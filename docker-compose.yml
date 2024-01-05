@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  identityserver:
+    image: ${DOCKER_REGISTRY-}identityserver
+    build:
+      context: .
+      dockerfile: IdentityServer/Dockerfile
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - UdapIdpBaseUrl=https://localhost:5001
