@@ -1,6 +1,8 @@
 ﻿using IdentityServer;
 using IdentityServer.Models;
 using Serilog;
+using System.Text.Json;
+using Udap.Server.Configuration;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -21,7 +23,7 @@ try
         .ConfigureServices()
         .ConfigurePipeline();
 
-    var appConfig = builder.Configuration.Get<AppConfig>();
+    var appConfig = builder.Configuration.GetOption<AppConfig>(nameof(AppConfig));
 
     Log.Debug("Seed database: {SeedDatabase}", appConfig.SeedData);
     if (appConfig.SeedData)
