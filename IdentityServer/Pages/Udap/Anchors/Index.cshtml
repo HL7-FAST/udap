@@ -1,0 +1,65 @@
+﻿@page
+@model IdentityServer.Pages.Udap.Anchors.IndexModel
+@{
+}
+
+
+<div>
+    <h2>
+        UDAP Trust Anchors Admin
+    </h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <form class="row">
+                <div class="form-group">
+                    <input class="form-control" placeholder="Filter" id="filter" name="filter" type="text" value="@Model.Filter" autofocus />
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary">Search</button>
+                </div>
+
+                <div class="col">
+                    <a asp-page="/Udap/Index" class="btn btn-secondary">Cancel</a>
+                    <a asp-page="/Udap/Anchors/New" class="btn btn-success">New</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Anchor ID</th>
+                        <th>Community</th>
+                        <th>Name</th>
+                        <th>Certificate</th>
+                        <th>Thumbprint</th>
+                        <th>Begin</th>
+                        <th>End</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var anchor in Model.Anchors)
+                    {
+                        <tr>
+                            <td><a asp-page="/Udap/Anchors/Edit" asp-route-id="@anchor.AnchorId">@anchor.AnchorId</a></td>
+                            <td>@anchor.Community.Name</td>
+                            <td>@anchor.Name</td>
+                            <td>@anchor.Certificate.Substring(0, 150) ...</td>
+                            <td>@anchor.Thumbprint</td>
+                            <td>@anchor.BeginDate.ToString("yyyy-MM-dd")</td>
+                            <td>@anchor.EndDate.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,53 @@
+﻿@page
+@model IdentityServer.Pages.Udap.Communities.IndexModel
+@{
+}
+
+<div>
+    <div>
+        <h2>Communities</h2>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <form class="row">
+                <div class="form-group">
+                    <input class="form-control" placeholder="Filter" id="filter" name="filter" type="text" value="@Model.Filter" autofocus />
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary">Search</button>
+                </div>
+
+                <div class="col">
+                    <a asp-page="/Udap/Index" class="btn btn-secondary">Cancel</a>
+                    <a asp-page="/Udap/Communities/New" class="btn btn-success">New</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Community ID</th>
+                        <th>Name</th>
+                        <th>Enabled</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var community in Model.Communities)
+                    {
+                        <tr>
+                            <td><a asp-page="/Udap/Communities/Edit" asp-route-id="@community.CommunityId">@community.CommunityId</a></td>
+                            <td>@community.Name</td>
+                            <td>@community.Enabled</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

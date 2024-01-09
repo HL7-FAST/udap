@@ -1,0 +1,39 @@
+﻿@page
+@model IdentityServer.Pages.Udap.Communities.EditModel
+@{
+}
+
+<div>
+
+    <h2>
+        Edit Community: @Model.InputModel.Name
+    </h2>
+
+    <partial name="_ValidationSummary" />
+
+    <div class="row">
+        <div class="col-6">
+            <form method="post">
+                <input type="hidden" asp-for="@Model.InputModel.CommunityId" />
+
+                <div class="form-group">
+                    <label asp-for="@Model.InputModel.Name">Community Name</label>
+                    <input class="form-control" asp-for="@Model.InputModel.Name" autofocus />
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" asp-for="@Model.InputModel.Enabled" type="checkbox" />
+                    <label class="form-check-label" asp-for="@Model.InputModel.Enabled">Enabled</label>
+                </div>
+
+
+                <div class="form-group">
+                    <button class="btn btn-primary" type="submit" name="Button" value="save">Save Changes</button>
+                    <a class="btn btn-secondary" asp-page="/Udap/Communities/Index">Cancel</a>
+                    <button class="btn btn-danger" type="submit" name="Button" value="delete">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
