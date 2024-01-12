@@ -9,6 +9,8 @@ using IdentityServer.Pages.Udap.Anchors;
 using IdentityServer.Pages.Udap.Communities;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations.Internal;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using System.Security.Claims;
 using Udap.Server.Configuration;
@@ -21,6 +23,8 @@ namespace IdentityServer
         {
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            var provider = builder.Configuration.GetValue("provider", "no provider set");
+
 
             builder.Services.AddOptions();
             builder.Services.AddMemoryCache();
@@ -40,9 +44,19 @@ namespace IdentityServer
                         options.ForceStateParamOnAuthorizationCode = udapServerOptions.ForceStateParamOnAuthorizationCode;
                     },
                     storeOptionAction: options =>
-                        options.UdapDbContext = b =>
+                    _ = appConfig.DatabaseProvider switch
+                    {
+                        "Pgsql" => options.UdapDbContext = b =>
+                            b.UseNpgsql(connectionString,
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Pgsql")),
+                        "SqlServer" => options.UdapDbContext = b =>
+                            b.UseSqlServer(connectionString,
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.SqlServer")),
+                        _ => options.UdapDbContext = b =>
                             b.UseSqlite(connectionString,
-                                dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName)),
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Sqlite"))
+                    }
+                        ,
                     baseUrl: appConfig.UdapIdpBaseUrl
                 )
                 .AddUdapResponseGenerators()
@@ -63,19 +77,35 @@ namespace IdentityServer
                 .AddServerSideSessions()
                 // this adds the config data from DB (clients, resources, CORS)
                 .AddConfigurationStore(options =>
-                {
-                    options.ConfigureDbContext = b =>
-                        b.UseSqlite(connectionString, dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
-                })
+                    _ = appConfig.DatabaseProvider switch
+                    {
+                        "Pgsql" => options.ConfigureDbContext = b =>
+                            b.UseNpgsql(connectionString,
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Pgsql")),
+                        "SqlServer" => options.ConfigureDbContext = b =>
+                            b.UseSqlServer(connectionString,
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.SqlServer")),
+                        _ => options.ConfigureDbContext = b =>
+                            b.UseSqlite(connectionString,
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Sqlite"))
+                    })
                 // this is something you will want in production to reduce load on and requests to the DB
                 //.AddConfigurationStoreCache()
                 //
                 // this adds the operational data from DB (codes, tokens, consents)
                 .AddOperationalStore(options =>
-                {
-                    options.ConfigureDbContext = b =>
-                        b.UseSqlite(connectionString, dbOpts => dbOpts.MigrationsAssembly(typeof(Program).Assembly.FullName));
-                })
+                    _ = appConfig.DatabaseProvider switch
+                    {
+                        "Pgsql" => options.ConfigureDbContext = b =>
+                            b.UseNpgsql(connectionString,
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Pgsql")),
+                        "SqlServer" => options.ConfigureDbContext = b =>
+                            b.UseSqlServer(connectionString,
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.SqlServer")),
+                        _ => options.ConfigureDbContext = b =>
+                            b.UseSqlite(connectionString,
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Sqlite"))
+                    })
                 .AddResourceStore<ResourceStore>()
                 .AddClientStore<ClientStore>()
                 .AddTestUsers(new List<TestUser> { 
@@ -147,6 +177,7 @@ namespace IdentityServer
 
             builder.Services.AddHealthChecks();
 
+            Console.WriteLine($"typeof(Program).Assembly.FullName): {typeof(Program).Assembly.FullName}");
 
             return builder.Build();
         }
@@ -161,6 +192,7 @@ namespace IdentityServer
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
                         

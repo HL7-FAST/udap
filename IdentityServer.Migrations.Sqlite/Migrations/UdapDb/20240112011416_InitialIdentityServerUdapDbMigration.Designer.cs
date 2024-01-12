@@ -2,20 +2,23 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Udap.Server.DbContexts;
 
 #nullable disable
 
-namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
+namespace IdentityServer.Migrations.Sqlite.Migrations.UdapDb
 {
     [DbContext(typeof(UdapDbContext))]
-    partial class UdapDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240112011416_InitialIdentityServerUdapDbMigration")]
+    partial class InitialIdentityServerUdapDbMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "7.0.14");
+            modelBuilder.HasAnnotation("ProductVersion", "7.0.15");
 
             modelBuilder.Entity("Duende.IdentityServer.EntityFramework.Entities.Client", b =>
                 {

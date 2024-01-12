@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
+namespace IdentityServer.Migrations.SqlServer.Migrations.UdapDb
 {
     /// <inheritdoc />
-    public partial class InitialIdentityServerUdapDbMigration : Migration
+    public partial class InitialInitialIdentityServerUdapDbMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,10 +15,10 @@ namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
                 name: "DataProtectionKeys",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    FriendlyName = table.Column<string>(type: "TEXT", nullable: true),
-                    Xml = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FriendlyName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Xml = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -29,16 +29,16 @@ namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
                 name: "TieredClients",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    ClientName = table.Column<string>(type: "TEXT", nullable: false),
-                    ClientId = table.Column<string>(type: "TEXT", nullable: false),
-                    IdPBaseUrl = table.Column<string>(type: "TEXT", nullable: false),
-                    RedirectUri = table.Column<string>(type: "TEXT", nullable: false),
-                    ClientUriSan = table.Column<string>(type: "TEXT", nullable: false),
-                    CommunityId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    TokenEndpoint = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ClientName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClientId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdPBaseUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RedirectUri = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClientUriSan = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CommunityId = table.Column<int>(type: "int", nullable: false),
+                    Enabled = table.Column<bool>(type: "bit", nullable: false),
+                    TokenEndpoint = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,11 +49,11 @@ namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
                 name: "UdapCommunities",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Default = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Enabled = table.Column<bool>(type: "bit", nullable: false),
+                    Default = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,15 +64,15 @@ namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
                 name: "UdapAnchors",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    X509Certificate = table.Column<string>(type: "TEXT", nullable: false),
-                    Thumbprint = table.Column<string>(type: "TEXT", nullable: false),
-                    BeginDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CommunityId = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Enabled = table.Column<bool>(type: "bit", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    X509Certificate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Thumbprint = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BeginDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CommunityId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -89,10 +89,10 @@ namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
                 name: "UdapCertifications",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    CommunityId = table.Column<int>(type: "INTEGER", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    CommunityId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -108,15 +108,15 @@ namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
                 name: "UdapIntermediateCertificates",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AnchorId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    X509Certificate = table.Column<string>(type: "TEXT", nullable: false),
-                    Thumbprint = table.Column<string>(type: "TEXT", nullable: false),
-                    BeginDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AnchorId = table.Column<int>(type: "int", nullable: false),
+                    Enabled = table.Column<bool>(type: "bit", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    X509Certificate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Thumbprint = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BeginDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -133,8 +133,8 @@ namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
                 name: "UdapAnchorCertification",
                 columns: table => new
                 {
-                    AnchorId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CertificationId = table.Column<int>(type: "INTEGER", nullable: false)
+                    AnchorId = table.Column<int>(type: "int", nullable: false),
+                    CertificationId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -157,8 +157,8 @@ namespace IdentityServer.Data.Migrations.IdentityServer.UdapDb
                 name: "UdapCommunityCertification",
                 columns: table => new
                 {
-                    CommunityId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CertificationId = table.Column<int>(type: "INTEGER", nullable: false)
+                    CommunityId = table.Column<int>(type: "int", nullable: false),
+                    CertificationId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
