@@ -7,6 +7,7 @@ using IdentityServer.Pages.Admin.Clients;
 using IdentityServer.Pages.Admin.IdentityScopes;
 using IdentityServer.Pages.Udap.Anchors;
 using IdentityServer.Pages.Udap.Communities;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Internal;
@@ -174,6 +175,12 @@ namespace IdentityServer
             //builder.Services.Configure<RazorPagesOptions>(options =>
             //    options.Conventions.AuthorizeFolder("/ServerSideSessions", "admin"));
 
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
 
             builder.Services.AddHealthChecks();
 
