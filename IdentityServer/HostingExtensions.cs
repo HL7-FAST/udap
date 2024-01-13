@@ -177,14 +177,13 @@ namespace IdentityServer
 
             builder.Services.AddHealthChecks();
 
-            Console.WriteLine($"typeof(Program).Assembly.FullName): {typeof(Program).Assembly.FullName}");
-
             return builder.Build();
         }
 
 
         public static WebApplication ConfigurePipeline(this WebApplication app)
         {
+            app.UseForwardedHeaders();
             app.UseSerilogRequestLogging();
 
             if (app.Environment.IsDevelopment())
