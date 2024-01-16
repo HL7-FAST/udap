@@ -63,11 +63,11 @@ namespace IdentityServer.Pages.Udap.Anchors
         }
 
 
-        public async Task<AnchorModel> GetByIdAsync(string id)
+        public async Task<AnchorModel> GetByIdAsync(int id)
         {
             var anchor = await _context.Anchors
                 .Include(x => x.Community)
-                .SingleOrDefaultAsync(x => x.Id.ToString() == id);
+                .SingleOrDefaultAsync(x => x.Id == id);
 
             if (anchor is null)
                 return null;
@@ -80,6 +80,7 @@ namespace IdentityServer.Pages.Udap.Anchors
                 Thumbprint = anchor.Thumbprint,
                 BeginDate = anchor.BeginDate,
                 EndDate = anchor.EndDate,
+                Community = anchor.Community,
                 CommunityId = anchor.CommunityId
             };
         }
@@ -122,10 +123,10 @@ namespace IdentityServer.Pages.Udap.Anchors
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(int id)
         {
             var anchor = await _context.Anchors
-                .SingleOrDefaultAsync(x => x.Id.ToString() == id);
+                .SingleOrDefaultAsync(x => x.Id == id);
 
             if (anchor is null)
             {

@@ -1,0 +1,66 @@
+﻿@page
+@model IdentityServer.Pages.Udap.Anchors.DeleteModel
+@{
+}
+
+<div>
+    <h2>
+        Delete Trust Anchor
+    </h2>
+
+    <div class="row">
+        <p>
+            Are you sure you want to delete this trust anchor?
+        </p>
+        <dl class="row">
+            <dt class="col-2">
+                Anchor ID
+            </dt>
+            <dd class="col-10">
+                @Model.InputModel.AnchorId
+            </dd>
+            <dt class="col-2">
+                Community
+            </dt>
+            <dd class="col-10">
+                @Model.InputModel.Community?.Name
+            </dd>
+            <dt class="col-2">
+                Name
+            </dt>
+            <dd class="col-10">
+                @Model.InputModel.Name
+            </dd>
+            <dt class="col-2">
+                Certificate
+            </dt>
+            <dd class="col-10">
+                @Model.InputModel.Certificate.Substring(0, 150) ...
+            </dd>
+            <dt class="col-2">
+                Thumbprint
+            </dt>
+            <dd class="col-10">
+                @Model.InputModel.Thumbprint
+            </dd>
+            <dt class="col-2">
+                Begin
+            </dt>
+            <dd class="col-10">
+                @Model.InputModel.BeginDate.ToString("yyyy-MM-dd")
+            </dd>
+            <dt class="col-2">
+                End
+            </dt>
+            <dd class="col-10">
+                @Model.InputModel.EndDate.ToString("yyyy-MM-dd")
+            </dd>
+        </dl>
+        <form method="post">
+            <input type="hidden" asp-for="@Model.InputModel.AnchorId" />
+            <button class="btn btn-danger" type="submit" name="Button" value="delete">Delete</button>
+            <a class="btn btn-secondary" asp-page="/Udap/Anchors/Index">Cancel</a>
+        </form>
+    </div>
+
+</div>
