@@ -202,6 +202,7 @@ namespace IdentityServer
             app.UseStaticFiles();
             app.UseRouting();
                         
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseIdentityServer();
             app.UseUdapServer();
 
