@@ -82,7 +82,25 @@ CREATE INDEX "IX_ServerSideSessions_SessionId" ON "ServerSideSessions" ("Session
 CREATE INDEX "IX_ServerSideSessions_SubjectId" ON "ServerSideSessions" ("SubjectId");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20240112011412_InitialIdentityServerPersistedGrantDbMigration', '7.0.15');
+VALUES ('20240112011412_InitialIdentityServerPersistedGrantDbMigration', '8.0.1');
+
+COMMIT;
+
+BEGIN TRANSACTION;
+
+CREATE TABLE "PushedAuthorizationRequests" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_PushedAuthorizationRequests" PRIMARY KEY AUTOINCREMENT,
+    "ReferenceValueHash" TEXT NOT NULL,
+    "ExpiresAtUtc" TEXT NOT NULL,
+    "Parameters" TEXT NOT NULL
+);
+
+CREATE INDEX "IX_PushedAuthorizationRequests_ExpiresAtUtc" ON "PushedAuthorizationRequests" ("ExpiresAtUtc");
+
+CREATE UNIQUE INDEX "IX_PushedAuthorizationRequests_ReferenceValueHash" ON "PushedAuthorizationRequests" ("ReferenceValueHash");
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20240206182353_Update_Duende_v7_0IdentityServerPersistedGrantDbMigration', '8.0.1');
 
 COMMIT;
 

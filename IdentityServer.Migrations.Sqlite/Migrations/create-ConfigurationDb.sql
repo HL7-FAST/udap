@@ -293,7 +293,18 @@ CREATE UNIQUE INDEX "IX_IdentityResourceProperties_IdentityResourceId_Key" ON "I
 CREATE UNIQUE INDEX "IX_IdentityResources_Name" ON "IdentityResources" ("Name");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20240112011407_InitialConfigurationDbMigration', '7.0.15');
+VALUES ('20240112011407_InitialConfigurationDbMigration', '8.0.1');
+
+COMMIT;
+
+BEGIN TRANSACTION;
+
+ALTER TABLE "Clients" ADD "PushedAuthorizationLifetime" INTEGER NULL;
+
+ALTER TABLE "Clients" ADD "RequirePushedAuthorization" INTEGER NOT NULL DEFAULT 0;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20240206182348_Update_Duende_v7_0ConfigurationDbMigration', '8.0.1');
 
 COMMIT;
 

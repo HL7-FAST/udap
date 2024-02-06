@@ -15,7 +15,7 @@ namespace IdentityServer.Migrations.Sqlite.Migrations.UdapDb
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "7.0.15");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.1");
 
             modelBuilder.Entity("Duende.IdentityServer.EntityFramework.Entities.Client", b =>
                 {
@@ -137,6 +137,9 @@ namespace IdentityServer.Migrations.Sqlite.Migrations.UdapDb
                     b.Property<string>("ProtocolType")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("PushedAuthorizationLifetime")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("RefreshTokenExpiration")
                         .HasColumnType("INTEGER");
 
@@ -153,6 +156,9 @@ namespace IdentityServer.Migrations.Sqlite.Migrations.UdapDb
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("RequirePkce")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("RequirePushedAuthorization")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("RequireRequestObject")

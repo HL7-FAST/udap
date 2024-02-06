@@ -17,7 +17,7 @@ namespace IdentityServer.Migrations.SqlServer.Migrations.UdapDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.15")
+                .HasAnnotation("ProductVersion", "8.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -144,6 +144,9 @@ namespace IdentityServer.Migrations.SqlServer.Migrations.UdapDb
                     b.Property<string>("ProtocolType")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("PushedAuthorizationLifetime")
+                        .HasColumnType("int");
+
                     b.Property<int>("RefreshTokenExpiration")
                         .HasColumnType("int");
 
@@ -160,6 +163,9 @@ namespace IdentityServer.Migrations.SqlServer.Migrations.UdapDb
                         .HasColumnType("bit");
 
                     b.Property<bool>("RequirePkce")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("RequirePushedAuthorization")
                         .HasColumnType("bit");
 
                     b.Property<bool>("RequireRequestObject")

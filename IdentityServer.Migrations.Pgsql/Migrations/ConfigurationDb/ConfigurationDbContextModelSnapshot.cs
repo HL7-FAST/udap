@@ -17,7 +17,7 @@ namespace IdentityServer.Migrations.Pgsql.Migrations.ConfigurationDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.15")
+                .HasAnnotation("ProductVersion", "8.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -433,6 +433,9 @@ namespace IdentityServer.Migrations.Pgsql.Migrations.ConfigurationDb
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int?>("PushedAuthorizationLifetime")
+                        .HasColumnType("integer");
+
                     b.Property<int>("RefreshTokenExpiration")
                         .HasColumnType("integer");
 
@@ -449,6 +452,9 @@ namespace IdentityServer.Migrations.Pgsql.Migrations.ConfigurationDb
                         .HasColumnType("boolean");
 
                     b.Property<bool>("RequirePkce")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("RequirePushedAuthorization")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("RequireRequestObject")

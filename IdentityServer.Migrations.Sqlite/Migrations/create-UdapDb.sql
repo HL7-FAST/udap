@@ -88,7 +88,14 @@ CREATE INDEX "IX_UdapCommunityCertification_CertificationId" ON "UdapCommunityCe
 CREATE INDEX "IX_UdapIntermediateCertificates_AnchorId" ON "UdapIntermediateCertificates" ("AnchorId");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20240112011416_InitialIdentityServerUdapDbMigration', '7.0.15');
+VALUES ('20240112011416_InitialIdentityServerUdapDbMigration', '8.0.1');
+
+COMMIT;
+
+BEGIN TRANSACTION;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20240206182358_Update_Duende_v7_0IdentityServerUdapDbMigration', '8.0.1');
 
 COMMIT;
 

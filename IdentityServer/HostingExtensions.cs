@@ -10,8 +10,7 @@ using IdentityServer.Pages.Udap.Communities;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Internal;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using Serilog;
 using System.Security.Claims;
 using Udap.Server.Configuration;
@@ -182,7 +181,13 @@ namespace IdentityServer
                 options.KnownProxies.Clear();
             });
 
+            builder.Services.AddControllers();
+            builder.Services.AddDirectoryBrowser();
             builder.Services.AddHealthChecks();
+
+            builder.Services.AddMvcCore().AddApiExplorer();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
             return builder.Build();
         }
@@ -193,16 +198,30 @@ namespace IdentityServer
             app.UseForwardedHeaders();
             app.UseSerilogRequestLogging();
 
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            app.MapControllers();
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
             app.UseRouting();
-                        
+
+
+            app.UseStaticFiles();
+            app.UseFileServer(new FileServerOptions 
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "CertStore")),
+                RequestPath = "/certs",
+                EnableDirectoryBrowsing = true
+            });
+
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
             app.UseIdentityServer();
             app.UseUdapServer();
 

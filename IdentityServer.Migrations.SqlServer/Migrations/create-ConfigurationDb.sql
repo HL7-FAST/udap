@@ -365,7 +365,23 @@ CREATE UNIQUE INDEX [IX_IdentityResources_Name] ON [IdentityResources] ([Name]);
 GO
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20240112011433_InitialIdentityServerConfigurationDbMigration', N'7.0.15');
+VALUES (N'20240112011433_InitialIdentityServerConfigurationDbMigration', N'8.0.1');
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+ALTER TABLE [Clients] ADD [PushedAuthorizationLifetime] int NULL;
+GO
+
+ALTER TABLE [Clients] ADD [RequirePushedAuthorization] bit NOT NULL DEFAULT CAST(0 AS bit);
+GO
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20240206182415_Update_Duende_v7_0IdentityServerConfigurationDbMigration', N'8.0.1');
 GO
 
 COMMIT;

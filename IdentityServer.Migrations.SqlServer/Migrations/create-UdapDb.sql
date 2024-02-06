@@ -113,7 +113,17 @@ CREATE INDEX [IX_UdapIntermediateCertificates_AnchorId] ON [UdapIntermediateCert
 GO
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20240112011441_InitialInitialIdentityServerUdapDbMigration', N'7.0.15');
+VALUES (N'20240112011441_InitialInitialIdentityServerUdapDbMigration', N'8.0.1');
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20240206182424_Update_Duende_v7_0InitialIdentityServerUdapDbMigration', N'8.0.1');
 GO
 
 COMMIT;
