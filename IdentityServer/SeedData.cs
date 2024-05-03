@@ -120,7 +120,7 @@ namespace IdentityServer
             foreach(var directory in Directory.GetDirectories(certificateStoreFullPath))
             {
                 var dirName = new DirectoryInfo(directory).Name;
-                var anchorFile = Directory.GetFiles(directory, "*.crt").FirstOrDefault();
+                var anchorFile = Directory.GetFiles(directory, "*.cer").Union(Directory.GetFiles(directory, "*.crt")).FirstOrDefault();
                 if (anchorFile is null)
                 {
                     Log.Warning($"Skipping {dirName} because no anchor certificate was found");
