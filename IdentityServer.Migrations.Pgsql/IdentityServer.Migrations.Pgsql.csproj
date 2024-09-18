@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
-    <PackageReference Include="Udap.Server" Version="0.3.47" />
+    <PackageReference Include="Udap.Server" Version="0.3.77" />
   </ItemGroup>
 
 </Project>
