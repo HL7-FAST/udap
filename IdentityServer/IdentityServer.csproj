@@ -34,6 +34,7 @@
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.1" />
 		<PackageReference Include="Udap.Metadata.Server" Version="0.3.77" />
 		<PackageReference Include="Udap.Server" Version="0.3.77" />
+		<PackageReference Include="Udap.UI" Version="0.3.77" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -51,6 +52,12 @@
 	  <ProjectReference Include="..\IdentityServer.Migrations.Pgsql\IdentityServer.Migrations.Pgsql.csproj" />
 	  <ProjectReference Include="..\IdentityServer.Migrations.Sqlite\IdentityServer.Migrations.Sqlite.csproj" />
 	  <ProjectReference Include="..\IdentityServer.Migrations.SqlServer\IdentityServer.Migrations.SqlServer.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="CertStore\issued\surefhirlabs_community_issued_idp2.securedcontrols.net.server.pfx">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>

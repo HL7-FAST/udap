@@ -1,3 +1,4 @@
+using Duende.IdentityServer;
 using Duende.IdentityServer.EntityFramework.Stores;
 using Duende.IdentityServer.Test;
 using IdentityModel;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.FileProviders;
 using Serilog;
 using System.Security.Claims;
 using Udap.Server.Configuration;
+using Udap.Server.Security.Authentication.TieredOAuth;
 
 namespace IdentityServer
 {
@@ -60,6 +62,12 @@ namespace IdentityServer
                 )
                 .AddUdapResponseGenerators()
                 .AddSmartV2Expander();
+
+            builder.Services.AddAuthentication()
+                .AddTieredOAuth(options =>
+                {
+                    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+                });
 
 
 

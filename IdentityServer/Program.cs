@@ -26,11 +26,11 @@ try
     var appConfig = builder.Configuration.GetOption<AppConfig>(nameof(AppConfig));
 
     Log.Debug("Seed database: {SeedDatabase}", appConfig.SeedData);
-    if (appConfig.SeedData)
-    {
+    //if (appConfig.SeedData)
+    //{
         Log.Information("Seeding database");
         await SeedData.InitializeDatabase(app);
-    }
+    //}
 
     app.Run();
 }
