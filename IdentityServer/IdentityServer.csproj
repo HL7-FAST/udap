@@ -9,32 +9,32 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.0.4" />
+		<PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.0.7" />
 
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.8" />
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.5">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		  <PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
 
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
-		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+		<PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
 
-		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.5" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.5" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.5">
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.1" />
-		<PackageReference Include="Udap.Metadata.Server" Version="0.3.77" />
-		<PackageReference Include="Udap.Server" Version="0.3.77" />
-		<PackageReference Include="Udap.UI" Version="0.3.77" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+		<PackageReference Include="Udap.Metadata.Server" Version="0.3.82" />
+		<PackageReference Include="Udap.Server" Version="0.3.82" />
+		<PackageReference Include="Udap.UI" Version="0.3.82" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -46,6 +46,10 @@
 		<Content Include="CertStore\**">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="CertStore\issued\idp2.securedcontrols.net.server.pfx" />
 	</ItemGroup>
 
 	<ItemGroup>
