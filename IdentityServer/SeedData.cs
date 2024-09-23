@@ -73,13 +73,13 @@ namespace IdentityServer
             //
             // udap
             //
-            //if (context.IdentityResources.All(i => i.Name != UdapConstants.StandardScopes.Udap))
-            //{
-            //    var udapIdentity = new UdapIdentityResources.Udap();
-            //    context.IdentityResources.Add(udapIdentity.ToEntity());
+            if (context.ApiScopes.All(i => i.Name != UdapConstants.StandardScopes.Udap))
+            {
+                var udapIdentity = new UdapApiScopes.Udap();
+                context.ApiScopes.Add(udapIdentity.ToEntity());
 
-            //    await context.SaveChangesAsync();
-            //}
+                await context.SaveChangesAsync();
+            }
 
             //
             // profile
