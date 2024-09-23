@@ -14,8 +14,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using System.Security.Claims;
+using Microsoft.AspNetCore.DataProtection;
+using Udap.Client.Configuration;
+using Udap.Common;
 using Udap.Server.Configuration;
+using Udap.Server.DbContexts;
 using Udap.Server.Security.Authentication.TieredOAuth;
+using static Azure.Core.HttpHeader;
 
 namespace IdentityServer
 {
@@ -63,14 +68,19 @@ namespace IdentityServer
                 .AddUdapResponseGenerators()
                 .AddSmartV2Expander();
 
+
+            builder.Services.AddDataProtection().PersistKeysToDbContext<UdapDbContext>();
+
+            builder.Services.Configure<UdapClientOptions>(builder.Configuration.GetSection("UdapClientOptions"));
+            builder.Services.Configure<UdapFileCertStoreManifest>(builder.Configuration.GetSection(Udap.Common.Constants.UDAP_FILE_STORE_MANIFEST));
+
             builder.Services.AddAuthentication()
                 .AddTieredOAuth(options =>
                 {
                     options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
                 });
 
-
-
+            
             builder.Services.AddIdentityServer(options =>
                 {
                     options.Events.RaiseErrorEvents = true;
@@ -80,6 +90,10 @@ namespace IdentityServer
 
                     // see https://docs.duendesoftware.com/identityserver/v5/fundamentals/resources/
                     options.EmitStaticAudienceClaim = true;
+
+                    options.UserInteraction.LoginUrl = "/udapaccount/login";
+                    options.UserInteraction.LogoutUrl = "/udapaccount/logout";
+                    options.InputLengthRestrictions.Scope = 7000;
                 })
                 .AddServerSideSessions()
                 // this adds the config data from DB (clients, resources, CORS)
