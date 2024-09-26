@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Web;
 
 namespace IdentityServer.Pages.Login
 {
@@ -185,10 +187,26 @@ namespace IdentityServer.Pages.Login
 
             var providers = schemes
                 .Where(x => x.DisplayName != null)
-                .Select(x => new ViewModel.ExternalProvider
+                //.Select(x => new ViewModel.ExternalProvider
+                //{
+                //    DisplayName = x.DisplayName ?? x.Name,
+                //    AuthenticationScheme = x.Name
+                //}).ToList();
+                .Select(x =>
                 {
-                    DisplayName = x.DisplayName ?? x.Name,
-                    AuthenticationScheme = x.Name
+                    var externalProvider = new ViewModel.ExternalProvider
+                    {
+                        DisplayName = x.DisplayName ?? x.Name,
+                        AuthenticationScheme = x.Name,
+                        ReturnUrl = returnUrl
+                    };
+
+                    if (QueryHelpers.ParseQuery(HttpUtility.UrlDecode(returnUrl)).TryGetValue("idp", out var udapIdp))
+                    {
+                        externalProvider.TieredOAuthIdp = udapIdp.FirstOrDefault();
+                    }
+
+                    return externalProvider;
                 }).ToList();
 
             var dyanmicSchemes = (await _identityProviderStore.GetAllSchemeNamesAsync())

@@ -80,7 +80,7 @@ namespace IdentityServer
                     options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
                 });
 
-            
+
             builder.Services.AddIdentityServer(options =>
                 {
                     options.Events.RaiseErrorEvents = true;
@@ -91,8 +91,8 @@ namespace IdentityServer
                     // see https://docs.duendesoftware.com/identityserver/v5/fundamentals/resources/
                     options.EmitStaticAudienceClaim = true;
 
-                    options.UserInteraction.LoginUrl = "/udapaccount/login";
-                    options.UserInteraction.LogoutUrl = "/udapaccount/logout";
+                    //options.UserInteraction.LoginUrl = "/udapaccount/login";
+                    //options.UserInteraction.LogoutUrl = "/udapaccount/logout";
                     options.InputLengthRestrictions.Scope = 7000;
                 })
                 .AddServerSideSessions()

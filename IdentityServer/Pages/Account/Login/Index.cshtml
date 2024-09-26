@@ -69,9 +69,35 @@
             </div>
         </div>
 
+        @if (Model.View.TieredProvider != null)
+        {
+            <div class="col-sm-6 my-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Tiered OAuth</h2>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-inline">
+                            <li class="list-inline-item">
+                                @{
+                                    var provider = Model.View.TieredProvider;
+                                }
+                                <a class="btn btn-primary"
+                                   asp-page="/UdapTieredLogin/Challenge"
+                                   asp-route-scheme="@provider.AuthenticationScheme"
+                                   asp-route-returnUrl="@(provider.ReturnUrl)">
+                                    @provider.DisplayName
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+
         @if (Model.View.VisibleExternalProviders.Any())
         {
-            <div class="col-sm-6">
+            <div class="col-sm-6 my-2">
                 <div class="card">
                     <div class="card-header">
                         <h2>External Account</h2>
