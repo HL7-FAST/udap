@@ -49,7 +49,8 @@ namespace IdentityServer.Controllers
 
             var contentBase64 = await response.Content.ReadAsStringAsync();
             var bytes = Convert.FromBase64String(contentBase64);
-            var certificate = new X509Certificate2(bytes, password, X509KeyStorageFlags.Exportable);
+            var certificate = X509CertificateLoader.LoadPkcs12(bytes, password, X509KeyStorageFlags.Exportable);
+
             var clientBytes = certificate.Export(X509ContentType.Pkcs12, password);
 
             return File(clientBytes, "application/x-pkcs12", "client-cert.pfx");

@@ -129,7 +129,7 @@ namespace IdentityServer
 
                 try
                 {
-                    var anchorCertificate = new X509Certificate2(anchorFile);
+                    var anchorCertificate = X509CertificateLoader.LoadCertificateFromFile(anchorFile);
                     communities.Add(new Tuple<string, X509Certificate2>(dirName, anchorCertificate));
                 }
                 catch (Exception ex)

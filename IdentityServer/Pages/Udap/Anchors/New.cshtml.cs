@@ -57,7 +57,7 @@ namespace IdentityServer.Pages.Udap.Anchors
                 {
                     await AnchorFile.CopyToAsync(memoryStream);
                     var bytes = memoryStream.ToArray();
-                    var cert = new X509Certificate2(bytes);
+                    var cert = X509CertificateLoader.LoadCertificate(bytes);
 
                     InputModel.Name = cert.SubjectName.Name;
                     InputModel.Certificate = cert.ToPemFormat();
