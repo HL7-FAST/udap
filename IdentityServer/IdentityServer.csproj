@@ -6,35 +6,36 @@
 		<UserSecretsId>a81ec8d5-5ae8-49ea-8d85-778bbd70a42e</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+		<Nullable>disable</Nullable>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.0.7" />
+		<PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.1.0" />
 
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.8" />
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		  <PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
 
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
-		<PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+		<PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
 
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
-		<PackageReference Include="Udap.Metadata.Server" Version="0.3.82" />
-		<PackageReference Include="Udap.Server" Version="0.3.82" />
-		<PackageReference Include="Udap.UI" Version="0.3.82" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+		<PackageReference Include="Udap.Metadata.Server" Version="0.4.4" />
+		<PackageReference Include="Udap.Server" Version="0.4.4" />
+		<PackageReference Include="Udap.UI" Version="0.4.4" />
 	</ItemGroup>
 
 	<ItemGroup>

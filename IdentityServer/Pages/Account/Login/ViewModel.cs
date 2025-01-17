@@ -28,8 +28,8 @@ namespace IdentityServer.Pages.Login
         {
             public string DisplayName { get; set; }
             public string AuthenticationScheme { get; set; }
-            public string? ReturnUrl { get; set; }
-            public string? TieredOAuthIdp { get; set; }
+            public string ReturnUrl { get; set; }
+            public string TieredOAuthIdp { get; set; }
         }
     }
 }

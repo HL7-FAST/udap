@@ -1,7 +1,7 @@
 using Duende.IdentityServer;
 using Duende.IdentityServer.EntityFramework.Stores;
 using Duende.IdentityServer.Test;
-using IdentityModel;
+using Duende.IdentityModel;
 using IdentityServer.Models;
 using IdentityServer.Pages.Admin.ApiScopes;
 using IdentityServer.Pages.Admin.Clients;
