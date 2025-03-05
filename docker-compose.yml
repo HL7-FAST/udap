@@ -11,6 +11,7 @@ services:
       - "5001:443"
     environment:
       - ASPNETCORE_URLS=https://+:443;http://+:80
-      - UdapIdpBaseUrl=https://localhost:5001
-      - SeedData=false
-      - AdminPassword=Password1
+      - AppConfig__UdapIdpBaseUrl=https://localhost:5001
+      - AppConfig__SeedData=false
+      - AppConfig__SystemAdminPassword=Password1
+      - AppConfig__UdapAdminPassword=Password1
