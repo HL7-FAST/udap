@@ -35,6 +35,8 @@
                     <tr>
                         <th>Name</th>
                         <th>Display Name</th>
+                        <th>In Discovery Document</th>
+                        <th>Enabled</th>
                     </tr>
                 </thead>
 
@@ -44,6 +46,31 @@
                         <tr>
                             <td><a asp-page="/Admin/ApiScopes/Edit" asp-route-id="@scope.Name">@scope.Name</a></td>
                             <td>@scope.DisplayName</td>
+                            <td>
+                                @{
+                                    if (scope.ShowInDiscoveryDocument)
+                                    {
+                                        <span class="glyphicon glyphicon-ok-sign text-success" title="true"></span>
+
+                                    }
+                                    else
+                                    {
+                                        <span class="glyphicon glyphicon-remove-sign text-danger" title="false"></span>
+                                    }
+                                }
+                            </td>
+                            <td>
+                                @{
+                                    if (scope.Enabled)
+                                    {
+                                        <span class="glyphicon glyphicon-ok-sign text-success" title="true"></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="glyphicon glyphicon-remove-sign text-danger" title="false"></span>
+                                    }
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>

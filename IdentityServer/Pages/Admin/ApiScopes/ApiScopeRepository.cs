@@ -11,6 +11,8 @@ namespace IdentityServer.Pages.Admin.ApiScopes
         [Required]
         public string Name { get; set; }
         public string DisplayName { get; set; }
+        public bool ShowInDiscoveryDocument { get; set; }
+        public bool Enabled { get; set; }
     }
 
     public class ApiScopeModel : ApiScopeSummaryModel
@@ -42,7 +44,9 @@ namespace IdentityServer.Pages.Admin.ApiScopes
             var result = query.Select(x => new ApiScopeSummaryModel
             {
                 Name = x.Name,
-                DisplayName = x.DisplayName
+                DisplayName = x.DisplayName,
+                ShowInDiscoveryDocument = x.ShowInDiscoveryDocument,
+                Enabled = x.Enabled
             });
 
             return await result.ToArrayAsync();
@@ -60,7 +64,9 @@ namespace IdentityServer.Pages.Admin.ApiScopes
             {
                 Name = scope.Name,
                 DisplayName = scope.DisplayName,
-                UserClaims = scope.UserClaims.Any() ? scope.UserClaims.Select(x => x.Type).Aggregate((a, b) => $"{a} {b}") : null,
+                ShowInDiscoveryDocument = scope.ShowInDiscoveryDocument,
+                Enabled = scope.Enabled,
+                UserClaims = scope.UserClaims.Any() ? scope.UserClaims.Select(x => x.Type).Aggregate((a, b) => $"{a} {b}") : null
             };
         }
 
@@ -69,7 +75,9 @@ namespace IdentityServer.Pages.Admin.ApiScopes
             var scope = new Duende.IdentityServer.Models.ApiScope()
             {
                 Name = model.Name,
-                DisplayName = model.DisplayName?.Trim()
+                DisplayName = model.DisplayName?.Trim(),
+                ShowInDiscoveryDocument = model.ShowInDiscoveryDocument,
+                Enabled = model.Enabled
             };
 
             var claims = model.UserClaims?.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToArray() ?? Enumerable.Empty<string>();
@@ -94,6 +102,10 @@ namespace IdentityServer.Pages.Admin.ApiScopes
             {
                 scope.DisplayName = model.DisplayName?.Trim();
             }
+            
+            scope.ShowInDiscoveryDocument = model.ShowInDiscoveryDocument;
+            scope.Enabled = model.Enabled;
+
 
             var claims = model.UserClaims?.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToArray() ?? Enumerable.Empty<string>();
             var currentClaims = (scope.UserClaims.Select(x => x.Type) ?? Enumerable.Empty<String>()).ToArray();

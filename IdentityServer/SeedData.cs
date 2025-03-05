@@ -229,7 +229,6 @@ namespace IdentityServer
                     if (apiScope.Name.StartsWith("system/*."))
                     {
                         apiScope.ShowInDiscoveryDocument = true;
-                        apiScope.Enabled = false;
                     }
 
                     apiScope.Properties.Add("udap_prefix", "system");
@@ -254,7 +253,6 @@ namespace IdentityServer
                     if (apiScope.Name.StartsWith("patient/*."))
                     {
                         apiScope.ShowInDiscoveryDocument = true;
-                        apiScope.Enabled = false;
                     }
 
                     apiScope.Properties.Add("udap_prefix", "user");
@@ -278,7 +276,6 @@ namespace IdentityServer
                     if (apiScope.Name.StartsWith("patient/*."))
                     {
                         apiScope.ShowInDiscoveryDocument = true;
-                        apiScope.Enabled = false;
                     }
 
                     apiScope.Properties.Add("udap_prefix", "patient");
