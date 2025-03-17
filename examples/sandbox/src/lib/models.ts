@@ -1,5 +1,8 @@
 import { X509Certificate } from "crypto";
+import { Profile } from "next-auth";
 import * as forge from 'node-forge';
+import { DataModel } from '@toolpad/core/Crud';
+import { DomainResource } from "fhir/r4";
 
 
 export type P12Certificate = forge.pkcs12.Pkcs12Pfx;
@@ -18,7 +21,13 @@ export interface UdapClientRequest {
 export interface UdapClient {
   id: string;
   name: string;
-  fhirServer: string;
+  iss: string;
+  sub: string;
+  aud: string;
+  authorization: string;
+  token: string;
+  userinfo: string;
+  fhirServers?: string[];
   redirectUris: string[];
   responseTypes: string[];
   scopes: string[];
@@ -41,6 +50,7 @@ export interface UdapMetadata {
   registration_endpoint: string;
   registration_endpoint_jwt_signing_alg_values_supported: string[];
   signed_metadata: string;
+  userinfo_endpoint: string;
 }
 
 export interface UdapX509Header {
@@ -77,3 +87,33 @@ export interface UdapRegistrationRequest {
   software_statement: string;
   udap: "1";
 }
+
+export interface UdapRegistrationResponse {
+  client_id: string;
+  software_statement: string;
+  iss: string;
+  sub: string;
+  aud: string;
+  exp: number;
+  iat: number;
+  jti: string;
+  client_name: string;
+  redirect_uris: string[];
+  logo_uri: string;
+  contacts: string[];
+  grant_types: string[];
+  response_types: string[];
+  token_endpoint_auth_method: string;
+  scope: string;
+}
+
+
+export type UdapProfile = Profile;
+
+
+
+
+// export interface FhirResult extends DataModel {
+//   resource: DomainResource;
+// }
+export type FhirResult = DomainResource & DataModel;

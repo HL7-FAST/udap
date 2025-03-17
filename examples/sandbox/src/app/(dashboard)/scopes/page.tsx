@@ -1,33 +1,14 @@
 "use client"
 
-import { getServerCertificate } from '@/lib/cert-store';
-import { getDefaultClient } from '@/lib/client-store';
-import { UdapClient } from '@/lib/models';
-import { Chip, Stack } from '@mui/material';
-import Typography from '@mui/material/Typography';
-import { useEffect, useState } from 'react';
+import { Alert, Stack } from '@mui/material';
 
 
-export default function OrdersPage() {
-
-  const [client, setClient] = useState<UdapClient>();
-
-  useEffect(() => {
-    async function loadClient() {
-      const client = await getDefaultClient();
-      setClient(client);
-    }
-    loadClient();
-  }, []);
-  
+export default function ScopesPage() {
 
   return (
     <>
-      <Typography>
-        Client scopes:
-      </Typography>
       <Stack direction="row" spacing={1}>
-        {client?.scopes.map((scope, i) => <Chip key={i} label={scope} size="small"/>)}
+        <Alert severity="info" color={'warning'}>TODO</Alert>
       </Stack>
     </>
 

@@ -3,9 +3,8 @@
 import { UdapClient, UdapClientRequest } from '@/lib/models';
 import { getServerCertificate, getX509Certficate } from './cert-store';
 import { CLIENT_STORE_DEFAULT_ID } from './constants';
-import { registerClient } from './udap';
+import { registerClient } from './udap-actions';
 import { getDefaultFhirServer } from './env';
-import { headers } from 'next/headers';
 
 
 const clients: Map<string, UdapClient> = new Map();
@@ -46,19 +45,22 @@ export async function getDefaultClient(): Promise<UdapClient> {
     throw new Error("No alt names in certificate");
   }
 
-  const headerList = await headers();
-  const host = headerList.get('x-forwarded-host') ?? "localhost:3000";
-  const proto = headerList.get('x-forwarded-proto') ?? "http";
-  const hostUrl = `${proto}://${host.endsWith('/') ? host : host + '/'}`;
+  // const headerList = await headers();
+  // const host = headerList.get('x-forwarded-host') ?? "localhost:3000";
+  // const proto = headerList.get('x-forwarded-proto') ?? "http";
+  // const hostUrl = `${proto}://${host.endsWith('/') ? host : host + '/'}`;
+  const hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
 
   const regReq: UdapClientRequest = {
     fhirServer: await getDefaultFhirServer(),
-    grantTypes: ["authorization_code"],
+    grantTypes: ["authorization_code", "refresh_token"],
     issuer: hostUrl,
     clientName: "FAST Security Sandbox Client",
     contacts: ["mailto:tester@localhost"],
     scopes: ["user/*.rs user/*.read"],
-    redirectUris: [hostUrl],
+    // redirectUris: [hostUrl],
+    redirectUris: [hostUrl + "api/auth/callback/udap"],
+    // redirectUris: [hostUrl + "api/auth/udap"], // custom callback route for now
   };
 
   client = await registerClient(regReq, cert);

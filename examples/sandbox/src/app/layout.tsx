@@ -6,6 +6,9 @@ import { Dashboard, Search, ThumbsUpDown } from '@mui/icons-material';
 import { LinearProgress } from "@mui/material";
 import { NextAppProvider } from "@toolpad/core/nextjs";
 import theme from '../theme';
+import ZustandProvider from "@/components/zustand-provider";
+import { SessionProvider } from "next-auth/react";
+import { auth } from "@/auth";
 
 export const metadata: Metadata = {
   title: "FAST Security Sandbox",
@@ -19,8 +22,8 @@ const NAVIGATION: Navigation = [
     icon: <Dashboard />,
   },
   {
-    segment: 'query',
-    title: 'Query Server',
+    segment: 'fhir',
+    title: 'FHIR Query',
     icon: <Search />,
   },
   {
@@ -35,18 +38,24 @@ const BRANDING: Branding = {
   logo: "",
 };
 
-export default function RootLayout(props: { children: React.ReactNode }) {
+export default async function RootLayout(props: { children: React.ReactNode }) {
+
+  const session = await auth();
 
   return (
     <html lang="en" data-toolpad-color-scheme="light" suppressHydrationWarning>
       <body>
-      <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-        <React.Suspense fallback={<LinearProgress />}>
-          <NextAppProvider navigation={NAVIGATION} branding={BRANDING} theme={theme}>
-            {props.children}
-          </NextAppProvider>
-        </React.Suspense>
-      </AppRouterCacheProvider>
+        <ZustandProvider>
+          <SessionProvider session={session}>
+            <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+              <React.Suspense fallback={<LinearProgress />}>
+                <NextAppProvider navigation={NAVIGATION} branding={BRANDING} theme={theme} session={session}>
+                  {props.children}
+                </NextAppProvider>
+              </React.Suspense>
+            </AppRouterCacheProvider>
+          </SessionProvider>
+        </ZustandProvider>
       </body>
     </html>
   );
