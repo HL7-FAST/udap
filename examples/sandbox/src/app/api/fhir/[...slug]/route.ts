@@ -7,16 +7,32 @@ import Client, { FhirResource } from "fhir-kit-client";
 
 
 
+async function getFhirServer(request: NextRequest): Promise<string|undefined> {
+  const cookieStore  = await cookies();
+  let fhirServer = cookieStore.get(COOKIE_CURRENT_FHIR_SERVER)?.value;
+
+  const searchParams = new URLSearchParams(request.nextUrl.searchParams);
+
+  // query parameter overrides any possible cookie value
+  if (searchParams.has('server')) {
+    fhirServer = searchParams.get('server') ?? fhirServer;
+  }
+
+  return fhirServer;
+}
+
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string[] }> }
+  { params }: { params: Promise<{ slug: string[] }> },
 ) {
 
   const { slug } = await params;
-  const cookieStore  = await cookies();
   const session = await auth();
 
-  const fhirServer = cookieStore.get(COOKIE_CURRENT_FHIR_SERVER)?.value;
+  const fhirServer = await getFhirServer(request);
+  console.log('fhirServer:', fhirServer);
+  
 
   if (!fhirServer) {
     return getBadRequestResponse("No FHIR server specified");

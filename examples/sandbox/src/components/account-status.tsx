@@ -11,7 +11,7 @@ export default function AccountStatus() {
   
 
   useEffect(() => {
-    console.log('Session changed:', session, session.data?.expires);
+    // console.log('Session changed:', session, session.data?.expires);
     if (session?.data?.accessToken && session.status === "authenticated") {
 
       const jwt = jose.decodeJwt(session.data.accessToken);

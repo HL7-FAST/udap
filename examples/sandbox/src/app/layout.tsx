@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import React from "react";
 import { Branding, Navigation } from "@toolpad/core";
-import { Dashboard, Search, ThumbsUpDown } from '@mui/icons-material';
+import { Dashboard, Person, Search, ThumbsUpDown } from '@mui/icons-material';
 import { LinearProgress } from "@mui/material";
 import { NextAppProvider } from "@toolpad/core/nextjs";
 import theme from '../theme';
@@ -22,9 +22,22 @@ const NAVIGATION: Navigation = [
     icon: <Dashboard />,
   },
   {
+    title: 'FHIR Operations',
+    kind: 'header',
+  },
+  {
     segment: 'fhir',
-    title: 'FHIR Query',
+    title: 'All Resources',
     icon: <Search />,
+  },
+  {
+    segment: 'fhir/Patient',
+    title: 'Patients',
+    icon: <Person />,
+  },
+  {
+    title: 'Tests',
+    kind: 'header',
   },
   {
     segment: 'scopes',

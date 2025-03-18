@@ -58,12 +58,15 @@ export async function GET(request: NextRequest): Promise<Response> {
   // }
   // const codeVerifier = cookie.value;
 
+  let hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
+  hostUrl = hostUrl.endsWith('/') ? hostUrl : hostUrl + '/';
+
   const tokenParams = {
     grant_type: "authorization_code",
     code: request.nextUrl.searchParams.get("code") || "",
     client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     client_assertion: await getClientAssertion(options.clientId, options.token.url, cert),
-    redirect_uri: "http://localhost:3000/api/auth/callback/udap",
+    redirect_uri: hostUrl + "api/auth/callback/udap",
     // code_verifier: codeVerifier || "",
     udap: "1"
   }

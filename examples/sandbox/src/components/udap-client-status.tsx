@@ -1,33 +1,13 @@
 "use client"
-import { getDefaultClient } from "@/lib/client-store";
 import { useAvailableFhirServers, useCurrentFhirServer, useUdapClientState } from "@/lib/states";
 import { Alert, MenuItem, Select, Stack } from "@mui/material";
-import { useEffect } from "react";
 
 
 export default function UdapClientStatus() {
 
-  const { client, setClient } = useUdapClientState((state) => state);
+  const { client } = useUdapClientState((state) => state);
   const { currentFhirServer, setCurrentFhirServer } = useCurrentFhirServer((state) => state);
-  const { fhirServers, setFhirServers } = useAvailableFhirServers((state) => state);
-
-
-  // load default client
-  useEffect(() => {
-    setCurrentFhirServer("");
-    setFhirServers([]);
-    getDefaultClient().then((client) => setClient(client));
-  }, [setClient, setCurrentFhirServer, setFhirServers]);
-
-  // client change... refresh fhir servers and default to first
-  useEffect(() => {
-    setCurrentFhirServer("");
-    setFhirServers([]);
-    if (client && client.fhirServers && client.fhirServers.length > 0) {
-      setCurrentFhirServer(client.fhirServers[0]);
-      setFhirServers(client.fhirServers);
-    }
-  }, [client, setCurrentFhirServer, setFhirServers]);
+  const { fhirServers } = useAvailableFhirServers((state) => state);
 
 
   return (
@@ -58,17 +38,6 @@ export default function UdapClientStatus() {
                     )
                   }
               </Select>
-
-              {/* {
-                client.fhirServers.slice(0, maxBadges-1).map((server, i) =>
-                  <Chip key={i} label={server} size="small" color="info"/>
-                )
-              }
-              {
-                client.fhirServers.length > maxBadges ? 
-                <Chip key={maxBadges} label={`+${client.fhirServers.length - maxBadges}`} size="small" color="info" />
-                : <></>
-              } */}
             </>
             : <></>
           }

@@ -84,14 +84,14 @@ export async function getAuthConfig(): Promise<NextAuthConfig> {
       //   console.log('NextAuth authorized:', pathname, auth);
       //   return !!auth
       // },
-      async jwt({ token, trigger, session, account }) {
-        // console.log('NextAuth jwt:', token, trigger, session, account);
-        if (trigger === "update") {
-          token.name = session.user.name;
-        }
-        return token;
-      },
-      session({ session, user, token }) {
+      // async jwt({ token, trigger, session, account }) {
+      //   // console.log('NextAuth jwt:', token, trigger, session, account);
+      //   if (trigger === "update") {
+      //     token.name = session.user.name;
+      //   }
+      //   return token;
+      // },
+      session({ session, token }) {
         if (token?.accessToken) {
           session.accessToken = token.accessToken;
         }

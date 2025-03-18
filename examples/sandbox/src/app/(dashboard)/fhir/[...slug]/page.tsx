@@ -44,7 +44,7 @@ export default function FhirPage({params}: {
 
     getMany: async ({ paginationModel, filterModel, sortModel }) => {
 
-      console.log('FHIR data source:', fhirServer, resourceType);
+      // console.log('FHIR data source:', fhirServer, resourceType);
 
       if (!fhirServer || !resourceType) {
         return {
@@ -52,21 +52,23 @@ export default function FhirPage({params}: {
           itemCount: 0
         };
       }
-      // return {
-      //   items: [{
-      //     id: '1',
-      //     resourceType: 'Patient',
-      //     name: [{ family: 'Doe', given: ['John']}]
-      //   }],
-      //   itemCount: 1
-      // };
 
-      const client = new Client({baseUrl: fhirServer, bearerToken: session?.accessToken});
-      const res = await client.search({resourceType: resourceType});
-      return {
-        items: (res.entry || []).map((e: BundleEntry) => e.resource),
-        itemCount: res.total
-      };
+      try
+      {
+        const client = new Client({baseUrl: fhirServer, bearerToken: session?.accessToken});
+        const res = await client.search({resourceType: resourceType});
+        return {
+          items: (res.entry || []).map((e: BundleEntry) => e.resource),
+          itemCount: res.total
+        };
+      } catch (e) {
+        console.error('Failed to load FHIR data:', e);
+        return {
+          items: [],
+          itemCount: 0
+        };
+      }
+      
     },
 
     getOne: async (id) => {
@@ -76,8 +78,6 @@ export default function FhirPage({params}: {
           reject('Failed to load FHIR data');
         });
       }
-
-      console.log("getOne:", id);
       
       const client = new Client({baseUrl: fhirServer, bearerToken: session?.accessToken});
       const res = await client.read({resourceType: resourceType, id: id.toString()});
@@ -94,7 +94,7 @@ export default function FhirPage({params}: {
 
   return (
     <>
-      <Typography variant="h6">{resourceType} Viewer</Typography>
+      <Typography variant="h6">{resourceType} Resources</Typography>
       <Typography variant="subtitle1">Server: {fhirServer}</Typography>
       {
         resourceType ?

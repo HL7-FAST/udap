@@ -49,7 +49,8 @@ export async function getDefaultClient(): Promise<UdapClient> {
   // const host = headerList.get('x-forwarded-host') ?? "localhost:3000";
   // const proto = headerList.get('x-forwarded-proto') ?? "http";
   // const hostUrl = `${proto}://${host.endsWith('/') ? host : host + '/'}`;
-  const hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
+  let hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
+  hostUrl = hostUrl.endsWith('/') ? hostUrl : hostUrl + '/';
 
   const regReq: UdapClientRequest = {
     fhirServer: await getDefaultFhirServer(),

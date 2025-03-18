@@ -1,9 +1,6 @@
 "use client"
 
-import { useCurrentFhirServer } from "@/lib/states";
-import { useEffect, useState } from "react";
-import Client, { FhirResource } from "fhir-kit-client";
-import { CapabilityStatement } from "fhir/r4";
+import { useAvailableResourceTypes } from "@/lib/states";
 import { Alert, SelectChangeEvent } from "@mui/material";
 import { MenuItem, Select, FormControl } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -11,28 +8,7 @@ import { useRouter } from "next/navigation";
 
 export default function FhirQueryPage() {
 
-  const fhirServer = useCurrentFhirServer((state) => state.currentFhirServer);
-  const [resourceTypes, setResourceTypes] = useState<string[]>([]);
-
-  useEffect(() => {
-
-    setResourceTypes([]);
-
-    if (!fhirServer) {
-      return;
-    }
-
-    const client = new Client({ baseUrl: fhirServer });
-    client.capabilityStatement().then((cs: FhirResource) => {
-      if (cs.resourceType !== 'CapabilityStatement') {
-        console.error("Did not receive a CapabilityStatement.  Received:", cs);
-      }
-      const types = (cs as CapabilityStatement).rest?.[0].resource?.map((r) => r.type);
-      setResourceTypes(types || []);
-    });
-
-  },[fhirServer]);
-
+  const resourceTypes = useAvailableResourceTypes((state) => state.resourceTypes);
 
   const router = useRouter();
   const handleChange = (event: SelectChangeEvent) => {
