@@ -4,10 +4,12 @@ import { Button } from "@mui/material";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 import * as jose from "jose";
+import { useDialogs } from "@toolpad/core";
 
 export default function AccountStatus() {
 
   const session = useSession();
+  const dialogs = useDialogs();
   
 
   useEffect(() => {
@@ -18,13 +20,25 @@ export default function AccountStatus() {
       if (jwt.exp) {
         const expires = jwt.exp * 1000;
         if (expires < Date.now()) {
-          console.log('NextAuth jwt: token expired');
-          signIn("udap");
+          // console.log('NextAuth jwt: token expired');
+          const confirmed = dialogs.confirm("Do you want to sign in again?", {
+            title: "Access Token Expired",
+            okText: "Sign In",
+            cancelText: "Sign Out"
+          });
+          confirmed.then((result) => {
+            if (result) {
+              signIn("udap");
+            }
+            else {
+              signOut();
+            }
+          });
         }
       }
     }
 
-  }, [session]);
+  }, [dialogs, session]);
 
   return (
     <>

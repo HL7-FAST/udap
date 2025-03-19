@@ -40,7 +40,7 @@ const NAVIGATION: Navigation = [
     kind: 'header',
   },
   {
-    segment: 'scopes',
+    segment: 'tests/scopes',
     title: 'Scope Negotiation',
     icon: <ThumbsUpDown />,
   },

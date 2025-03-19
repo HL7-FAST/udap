@@ -95,6 +95,9 @@ export async function getAuthConfig(): Promise<NextAuthConfig> {
         if (token?.accessToken) {
           session.accessToken = token.accessToken;
         }
+        if (token?.refreshToken) {
+          session.refreshToken = token.refreshToken;
+        }
         // console.log('NextAuth session:', session, user, token);
         return session;
       },
@@ -118,12 +121,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async () => await ge
 
 declare module "next-auth" {
   interface Session {
-    accessToken?: string
+    accessToken?: string,
+    refreshToken?: string
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    accessToken?: string
+    accessToken?: string,
+    refreshToken?: string
   }
 }
