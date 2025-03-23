@@ -5,9 +5,9 @@ import { Branding, Navigation } from "@toolpad/core";
 import { Dashboard, Person, Search, ThumbsUpDown } from '@mui/icons-material';
 import { LinearProgress } from "@mui/material";
 import { NextAppProvider } from "@toolpad/core/nextjs";
+import { SessionProvider } from "next-auth/react";
 import theme from '../theme';
 import ZustandProvider from "@/components/zustand-provider";
-import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 
 export const metadata: Metadata = {

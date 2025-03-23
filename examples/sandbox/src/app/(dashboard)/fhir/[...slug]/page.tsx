@@ -1,95 +1,47 @@
-
 "use client"
+import { Alert, Typography } from "@mui/material";
+import { Crud } from "@toolpad/core";
+import { OperationOutcome } from "fhir/r4";
+import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { fhirDataCache, getFhirDataSource } from "./data-source";
 import { FhirResult } from "@/lib/models";
 import { useCurrentFhirServer } from "@/lib/states";
-import { Typography } from "@mui/material";
-import { Crud, DataSource, DataSourceCache } from "@toolpad/core";
-import Client from "fhir-kit-client";
-import { BundleEntry, HumanName } from "fhir/r4";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
 
-export default function FhirPage({params}: {
-  params: Promise<{ slug: string[] }>
-}) {
 
-  const [resourceType, setResourceType] = useState<string|undefined>();
-  const [rootPath, setRootPath] = useState<string>("/fhir");
+export default function FhirPage() {
+
   const fhirServer = useCurrentFhirServer((state) => state.currentFhirServer);
   const { data: session } = useSession();
-  const dataCache = new DataSourceCache();
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const resourceType = useParams<{ slug: string[] }>().slug[0];
+  const datasource = getFhirDataSource(fhirServer, resourceType, session, handleError);
 
 
-  useEffect(() => {
-    params.then((p) => {
-      setResourceType(p.slug[0]);
-      setRootPath(`/fhir/${p.slug[0]}`);
-    });
-  }, [params]);
+  function handleError(e: unknown) {
+    console.error("Error:", e);
+    setErrorMessage("An error occurred. Check the console for more information.");
 
+    if (e instanceof Error) {
+      console.error(e.stack);
+      setErrorMessage(`${e.name}: ${e.message}`);
+    } else if (typeof e === "object" && e !== null && "response" in e) {
+      const errorResponse = e as { response: { data: object|string } };
+      if (typeof errorResponse.response.data === "object" 
+          && "resourceType" in errorResponse.response.data 
+          && errorResponse.response.data.resourceType === "OperationOutcome") {
+        const outcome = errorResponse.response.data as OperationOutcome;
 
-  const fhirDataSource: DataSource<FhirResult> = {
-
-    fields: [
-      { field: 'id', headerName: 'ID' },
-      { field: 'resourceType', headerName: 'Resource Type' },
-      { 
-        field: 'name', headerName: 'Name', type: 'custom',
-        valueGetter: (name: HumanName[]) => {
-          if (!name || name.length < 1) return '';
-          return `${name[0].given?.join(' ')} ${name[0].family}`
-        },
-      },
-    ],
-
-    getMany: async ({ paginationModel, filterModel, sortModel }) => {
-
-      // console.log('FHIR data source:', fhirServer, resourceType);
-
-      if (!fhirServer || !resourceType) {
-        return {
-          items: [],
-          itemCount: 0
-        };
+        if (outcome.issue && outcome.issue.length > 0) {
+          setErrorMessage(outcome.issue.map((i) => `${i.severity}: ${i.diagnostics}`).join('; '));
+        }
+      } else {
+        setErrorMessage(errorResponse.response.data?.toString() ?? "An error occurred. Check the console for more information.");
       }
+    }
 
-      try
-      {
-        const client = new Client({baseUrl: fhirServer, bearerToken: session?.accessToken});
-        const res = await client.search({resourceType: resourceType});
-        return {
-          items: (res.entry || []).map((e: BundleEntry) => e.resource),
-          itemCount: res.total
-        };
-      } catch (e) {
-        console.error('Failed to load FHIR data:', e);
-        return {
-          items: [],
-          itemCount: 0
-        };
-      }
-      
-    },
-
-    getOne: async (id) => {
-
-      if (!fhirServer || !resourceType || !id) {
-        return new Promise<FhirResult>((resolve, reject) => {
-          reject('Failed to load FHIR data');
-        });
-      }
-      
-      const client = new Client({baseUrl: fhirServer, bearerToken: session?.accessToken});
-      const res = await client.read({resourceType: resourceType, id: id.toString()});
-      if (!res) {
-        return new Promise<FhirResult>((resolve, reject) => {
-          reject('Failed to load FHIR data');
-        });
-      }
-      return res as FhirResult;
-    },
-
-  }
+  }  
 
 
   return (
@@ -97,19 +49,24 @@ export default function FhirPage({params}: {
       <Typography variant="h6">{resourceType} Resources</Typography>
       <Typography variant="subtitle1">Server: {fhirServer}</Typography>
       {
-        resourceType ?
-        <>
-          <Crud<FhirResult>
-            dataSource={fhirDataSource}
-            dataSourceCache={dataCache}
-            rootPath={rootPath}
-          />
-        </>
-        :
-        <p>
-          Loading...
-        </p>
+        errorMessage && 
+        <Alert severity="error">
+          {errorMessage}
+        </Alert>
       }
+      <>
+        {
+          !fhirServer &&
+          <Alert severity="error">
+            {!fhirServer && <div>FHIR Server not selected.</div>}
+          </Alert>
+        }
+        <Crud<FhirResult>
+          dataSource={datasource}
+          dataSourceCache={fhirDataCache}
+          rootPath={`/fhir/${resourceType}`}
+        />        
+      </>
     </>
   )
 }

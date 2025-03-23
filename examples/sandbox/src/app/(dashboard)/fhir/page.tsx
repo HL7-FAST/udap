@@ -1,14 +1,19 @@
-"use client"
+"use client";
 
-import { useAvailableResourceTypes } from "@/lib/states";
-import { Alert, SelectChangeEvent } from "@mui/material";
-import { MenuItem, Select, FormControl } from "@mui/material";
+import {
+  Alert,
+  FormControl,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
-
+import { useAvailableResourceTypes } from "@/lib/states";
 
 export default function FhirQueryPage() {
-
-  const resourceTypes = useAvailableResourceTypes((state) => state.resourceTypes);
+  const resourceTypes = useAvailableResourceTypes(
+    (state) => state.resourceTypes,
+  );
 
   const router = useRouter();
   const handleChange = (event: SelectChangeEvent) => {
@@ -16,13 +21,10 @@ export default function FhirQueryPage() {
     router.push(`/fhir/${selectedResourceType}`);
   };
 
-  
   return (
     <>
-      {
-        resourceTypes.length > 0 ?
+      {resourceTypes.length > 0 ? (
         <div>
-
           <FormControl fullWidth>
             <Select
               labelId="resource-type-select-label"
@@ -40,11 +42,12 @@ export default function FhirQueryPage() {
               ))}
             </Select>
           </FormControl>
-          
         </div>
-        :
-        <Alert severity="warning" color={'warning'}>No resource types found in server CapabilityStatement.</Alert>
-      }
+      ) : (
+        <Alert severity="warning" color={"warning"}>
+          No resource types found in server CapabilityStatement.
+        </Alert>
+      )}
     </>
   );
 }

@@ -1,11 +1,9 @@
-import { create } from "zustand";
-import { UdapClient } from "./models";
-import Cookies from "universal-cookie";
-import { COOKIE_CURRENT_FHIR_SERVER } from "./constants";
-import { getResourceTypes, getServerCapabilityStatement } from "./fhir";
 import { CapabilityStatement } from "fhir/r4";
-
-
+import Cookies from "universal-cookie";
+import { create } from "zustand";
+import { getResourceTypes, getServerCapabilityStatement } from "./fhir";
+import { COOKIE_CURRENT_FHIR_SERVER } from "./constants";
+import { UdapClient } from "./models";
 
 export interface ClientState {
   client: UdapClient | undefined;
@@ -16,10 +14,8 @@ export const useUdapClientState = create<ClientState>((set) => ({
   client: undefined,
   setClient: (client) => {
     set({ client });
-  }
+  },
 }));
-
-
 
 export interface CurrentFhirServer {
   currentFhirServer: string;
@@ -29,21 +25,24 @@ export interface CurrentFhirServer {
 export const useCurrentFhirServer = create<CurrentFhirServer>((set) => ({
   currentFhirServer: "",
   setCurrentFhirServer: (fhirServer) => {
-
     // save the current fhir server in a cookie for future server requests
-    const cookies = new Cookies(null, { path: '/' });
+    const cookies = new Cookies(null, { path: "/" });
     cookies.set(COOKIE_CURRENT_FHIR_SERVER, fhirServer);
 
     set({ currentFhirServer: fhirServer });
 
     if (fhirServer) {
       // get the capability statement for the new server
-      useCurrentServerCapabilityStatement.getState().setCurrentCapabilityStatement();
+      useCurrentServerCapabilityStatement
+        .getState()
+        .setCurrentCapabilityStatement();
       getServerCapabilityStatement(fhirServer).then((capabilityStatement) => {
-        useCurrentServerCapabilityStatement.getState().setCurrentCapabilityStatement(capabilityStatement);
+        useCurrentServerCapabilityStatement
+          .getState()
+          .setCurrentCapabilityStatement(capabilityStatement);
       });
     }
-  }
+  },
 }));
 
 export interface AvailableFhirServers {
@@ -55,37 +54,57 @@ export const useAvailableFhirServers = create<AvailableFhirServers>((set) => ({
   fhirServers: [],
   setFhirServers: (fhirServers) => {
     set({ fhirServers });
-  }
+  },
 }));
-
 
 export interface CurrentServerCapabilityStatement {
-  curentCapabilityStatement: CapabilityStatement|undefined;
-  setCurrentCapabilityStatement: (capabilityStatement?: CapabilityStatement) => void;
+  curentCapabilityStatement: CapabilityStatement | undefined;
+  setCurrentCapabilityStatement: (
+    capabilityStatement?: CapabilityStatement,
+  ) => void;
 }
 
-export const useCurrentServerCapabilityStatement = create<CurrentServerCapabilityStatement>((set) => ({
-  curentCapabilityStatement: undefined,
-  setCurrentCapabilityStatement: (capabilityStatement) => {
-    set({ curentCapabilityStatement: capabilityStatement });
+export const useCurrentServerCapabilityStatement =
+  create<CurrentServerCapabilityStatement>((set) => ({
+    curentCapabilityStatement: undefined,
+    setCurrentCapabilityStatement: (capabilityStatement) => {
+      set({ curentCapabilityStatement: capabilityStatement });
 
-    if (capabilityStatement) {
-      const resourceTypes = getResourceTypes(capabilityStatement);
-      useAvailableResourceTypes.getState().setResourceTypes(resourceTypes);
-    }
-  }
-}));
-
+      if (capabilityStatement) {
+        const resourceTypes = getResourceTypes(capabilityStatement);
+        useAvailableResourceTypes.getState().setResourceTypes(resourceTypes);
+      }
+    },
+  }));
 
 export interface AvailableResourceTypes {
   resourceTypes: string[];
   setResourceTypes: (resourceTypes: string[]) => void;
 }
 
-export const useAvailableResourceTypes = create<AvailableResourceTypes>((set) => ({
-  resourceTypes: [],
-  setResourceTypes: (resourceTypes) => {
-    set({ resourceTypes });
+export const useAvailableResourceTypes = create<AvailableResourceTypes>(
+  (set) => ({
+    resourceTypes: [],
+    setResourceTypes: (resourceTypes) => {
+      set({ resourceTypes });
+    },
+  }),
+);
+
+
+
+export interface TestState {
+  currentTestIds: Record<string, string>;
+  setCurrentTestIds: (currentTestIds: Record<string, string>) => void;
+}
+
+export const useTestStore = create<TestState>((set, get) => ({
+  currentTestIds: {},
+  setCurrentTestIds: (currentTestIds) => set({ currentTestIds }),
+  getCurrentTestForSuite: (suiteKey: string) => {
+    return get().currentTestIds[suiteKey];
+  },
+  setCurrentTestForSuite: (suiteKey: string, testId: string) => {
+    set({ currentTestIds: { ...get().currentTestIds, [suiteKey]: testId } });
   }
 }));
-

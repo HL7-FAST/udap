@@ -1,46 +1,106 @@
-"use client"
+"use client";
 
-import TestSuite from '@/components/tests/test-suite';
-import ScopeNegotiationTestSuite from '@/lib/tests/scopes/scope-negotiation-suite';
-import ScopesSupportedTest from '@/lib/tests/scopes/scopes-supported';
-import { TestSuiteParams } from '@/lib/tests/test-suite';
-import { Alert, FormGroup, Link, Stack, Typography } from '@mui/material';
-import { PageContainerProps, useActivePage, useLocalStorageState } from '@toolpad/core';
-import { useEffect, useState } from 'react';
-import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import {
+  Container,
+  FormGroup,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useEffect, useState } from "react";
+import React from "react";
+import ScopesSupportedTest, {
+  getScopesSupportedTest,
+} from "./scopes-supported";
+import ScopeRegistrationTest, { getScopeRegistrationTest } from "./scope-registration";
+import { TestSuiteParams, getTestSuite } from "@/lib/tests/test-suite";
+import TestSuite from "@/components/tests/test-suite";
+import { useCurrentFhirServer } from "@/lib/states";
+import { formatMarkdownDescription } from "@/lib/utils";
+import { UdapMetadata } from "@/lib/models";
 
-
+export interface ScopeNegotiationTestSuiteParams extends TestSuiteParams {
+  fhirServer: string;
+}
 
 export default function ScopesPage() {
-
-  const [fhirServer, setFhirServer] = useState<string>();
-
-  useEffect(() => {
-    setFhirServer("http://localhost:8080/fhir");
-  },[]);
-
+  const [fhirServer, setFhirServer] = useState<string>("");
+  const [udapMetadata, setUdapMetadata] = useState<UdapMetadata>();
   
-  const setup = (
-    <Stack direction="column" spacing={2}>
-      <Alert severity="info">
-        Sending requests to <Link href={fhirServer}>{fhirServer}</Link>
-      </Alert>
-      <FormGroup>
-        <Typography variant="h6">Setup</Typography>
-        <Markdown remarkPlugins={[remarkGfm]}>{`This is the \`setup\` for the tests.`}</Markdown>
-      </FormGroup>
-    </Stack>
+  const currentFhirServer = useCurrentFhirServer(
+    (state) => state.currentFhirServer,
   );
 
-  const suite = new ScopeNegotiationTestSuite();
-  const params: TestSuiteParams ={ 
-    "scopes-supported": { fhirServer } 
-  }
+  useEffect(() => {
+    if (!fhirServer) {
+      setFhirServer(currentFhirServer);
+    }
+  }, [currentFhirServer, fhirServer, setFhirServer]);
+
+  const supportedScopesTest = getScopesSupportedTest({
+    fhirServer: fhirServer,
+    setFhirServer: setFhirServer,
+  });
+  const scopeRegistrationTest = getScopeRegistrationTest({
+    fhirServer: fhirServer,
+    udapWellknown: udapMetadata,
+    setUdapWellknown: setUdapMetadata,
+  });
+
+  const tests = [
+    {
+      component: ScopesSupportedTest(supportedScopesTest),
+      model: supportedScopesTest,
+    },
+    {
+      component: ScopeRegistrationTest(scopeRegistrationTest),
+      model: scopeRegistrationTest,
+    },
+  ].map((t) => {
+    t.model.params.suiteKey = "scope-negotiation";
+    return t;
+  });
+
+
+  const suiteKey = "scope-negotiation";
+  
+  const params: ScopeNegotiationTestSuiteParams = {
+    suiteKey,
+    fhirServer,
+  };
+
+  const testSuite = getTestSuite<ScopeNegotiationTestSuiteParams>(
+    suiteKey,
+    "Scope Negotiation",
+    formatMarkdownDescription(`
+      This contains tests for scope negotiation based on the 
+      <a href="https://build.fhir.org/ig/HL7/fhir-udap-security-ig/general.html#scope-negotiation" target="_blank" rel="noopener">guidelines</a>
+      in the implementation guide.
+      `),
+    tests,
+    params
+  );
+
+  const setup = (
+    <>
+      <Typography variant="h6">Test Setup</Typography>
+      <Container maxWidth="xl" sx={{ marginY: 2 }}>
+        <Stack direction="column" spacing={2}>
+          <FormGroup>
+            <TextField
+              label="FHIR Server"
+              value={fhirServer}
+              onChange={(e) => setFhirServer(e.target.value)}
+            />
+          </FormGroup>
+        </Stack>
+      </Container>
+    </>
+  );
 
   return (
     <>
-      <TestSuite suite={suite} params={params} setup={setup} />
+      <TestSuite suite={testSuite} setup={setup} />
     </>
   );
 }

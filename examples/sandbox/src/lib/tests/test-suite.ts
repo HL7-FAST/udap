@@ -1,70 +1,80 @@
-import TestDefinition, { TestDefinitionParams } from "./test-definition";
+import TestDefinitionModel, { TestDefinitionParams } from "./test-definition";
 import { TestResult } from "./test-result";
 
 export interface TestSuiteParams {
-  [key: string]: TestDefinitionParams;
+  suiteKey: string;
+  [key: string]: unknown;
 }
 
-export default abstract class TestSuite {
+interface SuiteTest {
+  component: React.JSX.Element;
+  model: TestDefinitionModel<TestDefinitionParams>;
+}
 
-  public abstract readonly key: string;
-  public abstract readonly name: string;
-  public abstract readonly description: string;
+export interface TestSuiteModel<T extends TestSuiteParams = TestSuiteParams> {
+  readonly suiteKey: string;
+  readonly name: string;
+  readonly description: string;
+  tests: SuiteTest[];
+  params: T;
 
-  public tests: TestDefinition[] = [];
+  before?(params?: T): Promise<boolean>;
+  after?(params?: T): Promise<boolean>;
+  runAllTests(
+    tests: TestDefinitionModel[],
+  ): AsyncGenerator<{ testKey: string; result: TestResult }>;
+  runOneTest(
+    testKey: string,
+    params?: TestDefinitionParams,
+  ): Promise<TestResult>;
+}
 
-  constructor() {
-  }
-  
+export function getTestSuite<T extends TestSuiteParams>(
+  suiteKey: string,
+  name: string,
+  description: string,
+  tests: SuiteTest[],
+  params?: T,
+): TestSuiteModel {
+  return {
+    suiteKey: suiteKey,
+    name,
+    description,
+    tests: tests,
+    params: params || ({} as T),
 
-  public async *runAllTests(params: TestSuiteParams = {}): AsyncGenerator<Record<string, TestResult>> {
+    async *runAllTests(
+      tests?: TestDefinitionModel[],
+    ): AsyncGenerator<{ testKey: string; result: TestResult }> {
+      if (!tests) {
+        tests = this.tests.map((t) => t.model);
+      }
 
-    if (!this.checkPrerequisites()) {
-      return {}
-    }
+      // console.log("Running test suite: " + this.suiteKey);
+      // console.log("test suite params:", params);
 
-    console.log("Running test suite: " + this.key);
-    console.log("test suite params:", params);
+      const results: Record<string, TestResult> = {};
 
-    const results: Record<string, TestResult> = {};
+      for (const test of tests || []) {
+        const testRes = await test.run(test.params);
+        results[test.testKey] = testRes;
+        yield { testKey: test.testKey, result: testRes };
+      }
 
-    for (const test of (this.tests||[])) {
-      const testParams = params[test.key];
-      console.log("Running test: " + test.key);
-      console.log("Test Params: ", testParams);
+      return results;
+    },
 
-      const testRes = await test.run(testParams);
-      results[test.key] = testRes;
+    async runOneTest(
+      testKey: string,
+      params?: TestDefinitionParams,
+    ): Promise<TestResult> {
+      const test = this.tests.find((t) => t.model.testKey === testKey);
+      if (!test) {
+        throw new Error("Test not found for key:" + testKey);
+      }
+      console.log("Running test: " + testKey);
 
-      yield { [test.key]: testRes };
-    }
-
-    return results;
-
-  }
-
-
-  public async runOneTest(testKey: string, params: TestDefinitionParams = {}): Promise<TestResult> {
-    
-    if (!this.checkPrerequisites()) {
-      return {id: crypto.randomUUID(), result: "prerequisite-fail"};
-    }
-
-    const test = this.tests.find(t => t.key === testKey);
-    if (!test) {
-      throw new Error("Test not found for key:" + testKey);
-    }
-    console.log("Running test: " + testKey);
-
-    return await test.run(params);
-  }
-
-  public checkPrerequisites(): boolean{
-    return true;
-  }
-
-  public getResults(): void {
-    throw new Error(this.constructor.name + "::getResults() not implemented.");
-  }
-
+      return await test.model.run(params);
+    },
+  };
 }

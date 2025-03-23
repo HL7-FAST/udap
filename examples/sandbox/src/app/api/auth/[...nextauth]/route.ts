@@ -1,11 +1,11 @@
+import { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
+import { NextRequest } from "next/server";
+import { encode } from "@auth/core/jwt";
+import { SerializeOptions, serialize } from "cookie";
 import { getAuthConfig, handlers } from "@/auth"
 import { getServerCertificate } from "@/lib/cert-store";
 import { UdapProfile } from "@/lib/models";
 import { discoverUdapEndpoint, getClientAssertion } from "@/lib/udap-actions";
-import { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
-import { NextRequest } from "next/server";
-import { encode } from "@auth/core/jwt";
-import { serialize, SerializeOptions } from "cookie";
 
 
 export async function GET(request: NextRequest): Promise<Response> {
