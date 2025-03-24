@@ -25,7 +25,6 @@ export interface ScopeNegotiationTestSuiteParams extends TestSuiteParams {
 
 export default function ScopesPage() {
   const [fhirServer, setFhirServer] = useState<string>("");
-  const [udapMetadata, setUdapMetadata] = useState<UdapMetadata>();
   
   const currentFhirServer = useCurrentFhirServer(
     (state) => state.currentFhirServer,
@@ -39,12 +38,9 @@ export default function ScopesPage() {
 
   const supportedScopesTest = getScopesSupportedTest({
     fhirServer: fhirServer,
-    setFhirServer: setFhirServer,
   });
   const scopeRegistrationTest = getScopeRegistrationTest({
     fhirServer: fhirServer,
-    udapWellknown: udapMetadata,
-    setUdapWellknown: setUdapMetadata,
   });
 
   const tests = [

@@ -4,11 +4,15 @@ import { Button, Stack } from "@mui/material";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
-import { useLocalStorageState } from "@toolpad/core";
-import React, { useEffect, useState } from "react";
+import { useDialogs, useLocalStorageState } from "@toolpad/core";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  CURRENT_TEST_KEY_STORE_ID,
   CURRENT_TEST_SESSION_ID_STORE_ID,
-  TEST_RESULT_STORE_ID,
+  CURRENT_TEST_STEP_KEY_STORE_ID,
+  LAST_TEST_RESULT_ID_STORE_ID,
+  TEST_IS_RUNNING_STORE_ID,
+  TEST_SESSION_STORE_ID,
 } from "@/lib/constants";
 import { TestSuiteModel } from "@/lib/tests/test-suite";
 import {
@@ -18,12 +22,16 @@ import {
   clearAllTestResultsFromStore,
   clearSessionFromStore,
   createTestSession,
-  getCurrentTestSessionParam,
+  getCurrentTestSessionParams,
   getResultStore,
   getTestSession,
+  setCurrentTestKey,
   setCurrentTestSessionParams,
+  setCurrentTestStepKey,
   testResultStoreOptions,
 } from "@/lib/tests/test-store";
+import { TestResult } from "@/lib/tests/test-result";
+import RawOutputDialog from "../dialogs/raw-dialog";
 
 export interface TestSuiteProps<T> {
   suite: T;
@@ -34,19 +42,64 @@ export default function TestSuite<T extends TestSuiteModel>(
   props: TestSuiteProps<T>,
 ) {
   const [resultStore] = useLocalStorageState<TestSessionStore>(
-    TEST_RESULT_STORE_ID,
+    TEST_SESSION_STORE_ID,
     null,
     testResultStoreOptions,
   );
   const [currentTestSessionId, setCurrentTestSessionId] = useLocalStorageState<string>(
     CURRENT_TEST_SESSION_ID_STORE_ID,
   );
-  const [isRunning, setIsRunning] = useState(false);
+  const [testIsRunning, setTestIsRunning] = useLocalStorageState<boolean>(TEST_IS_RUNNING_STORE_ID, false, {
+    codec: {
+      parse: (data) => {
+        return data === "true";
+      },
+      stringify: (data) => {
+        return data ? "true" : "false";
+      }
+    }
+  });
+  const [currentTestKey] = useLocalStorageState<string>(CURRENT_TEST_KEY_STORE_ID);
+  const [currentTestStepKey] = useLocalStorageState<string>(CURRENT_TEST_STEP_KEY_STORE_ID);
+  const [lastTestResultId, setLastTestResultId] = useLocalStorageState<string>(LAST_TEST_RESULT_ID_STORE_ID);
+  const [cancelRequested, setCancelRequested] = useState(false);
+  // const [isRunning, setIsRunning] = useState(false);
   const [currentSuite, setCurrentSuite] = useState<T>(props.suite);
 
+  const dialog = useDialogs();
+
+
+  
   useEffect(() => {
     setCurrentSuite(props.suite);
   }, [props.suite]);
+
+
+  async function runTests(sessionId: string, tests: AsyncGenerator<{ testKey: string; result: TestResult; }>) {
+    let waiting = false;
+    // Iterate over the tests and add results to the store as they arrive
+    for await (const res of await tests) {
+
+      if (cancelRequested) {
+        console.log("Tests have been cancelled.");
+        break;
+      }
+
+      await addTestResultToStore(sessionId, res.testKey, res.result);
+      setLastTestResultId(res.result.id);
+
+      // If the test is waiting, stop running additional tests
+      if (res.result.status === "waiting") {
+        console.log("Test is waiting for user action.");
+        waiting = true;
+        break;
+      }
+    }
+
+    if (!waiting) {
+      stopTests();
+    }
+  }
 
   /**
    * Runs all tests in the suite.
@@ -87,19 +140,33 @@ export default function TestSuite<T extends TestSuiteModel>(
       setCurrentTestSessionParams(currentSuite.params);
     }
 
-    setIsRunning(true);
+    startTests();
 
     // Async generator to run all tests in the suite
     const tests = currentSuite.runAllTests(
       (currentSuite.tests || []).map((t) => t.model),
     );
+    runTests(testSession.id, tests);
+  }
 
-    // Iterate over the tests and add results to the store as they arrive
-    for await (const res of await tests) {
-      await addTestResultToStore(testSession.id, res.testKey, res.result);
-    }
 
-    setIsRunning(false);
+  function cancelTests() {
+    setCancelRequested(true);
+    stopTests();
+  }
+
+  
+  function startTests() {
+    setCurrentTestKey("");
+    setCurrentTestStepKey("");
+    setTestIsRunning(true);
+  }
+
+  function stopTests() {
+    setTestIsRunning(false);
+    setCancelRequested(false);
+    setCurrentTestKey("");
+    setCurrentTestStepKey("");
   }
 
   function clearSessionData(currentSessionId: string|null): void {
@@ -109,11 +176,13 @@ export default function TestSuite<T extends TestSuiteModel>(
 
     clearSessionFromStore(currentSessionId);
     setCurrentTestSessionId(null);
+    setTestIsRunning(false);
   }
 
   function clearAllSessions(): void {
     clearAllTestResultsFromStore();
     setCurrentTestSessionId(null);
+    setTestIsRunning(false);
   }
 
   function createNewSession(): void {
@@ -126,6 +195,15 @@ export default function TestSuite<T extends TestSuiteModel>(
     setCurrentTestSessionId(testSession.id);
   }
 
+  function viewSessionData(): void {
+    const formattedData = JSON.stringify(resultStore, null, 2);
+    dialog.open(RawOutputDialog, {
+      title: "Test Session Data",
+      data: formattedData,
+    });
+  }
+
+
   return (
     <>
       <h2>{props.suite.name}</h2>
@@ -135,17 +213,30 @@ export default function TestSuite<T extends TestSuiteModel>(
 
       {props.setup}
 
-      <Stack direction="row" spacing={2}>
-        <Button variant="contained" onClick={() => createNewSession()} disabled={isRunning}>
-          Create New Session
-        </Button>
+      <Stack direction="row" spacing={2} sx={{ marginY: 2 }}>
         <Button
           variant="contained"
           color="primary"
           onClick={() => runAllTests()}
-          disabled={isRunning}
+          disabled={!!testIsRunning}
         >
           Run Tests
+        </Button>
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => cancelTests()}
+          disabled={!testIsRunning}
+        >
+          Cancel
+        </Button>
+      </Stack>
+      <Stack direction="row" spacing={2}>
+        <Button variant="contained" onClick={() => viewSessionData()}>
+          View All Session Data
+        </Button>
+        <Button variant="contained" onClick={() => createNewSession()} disabled={!!testIsRunning}>
+          Create New Session
         </Button>
         <Button
           variant="contained"
@@ -161,7 +252,7 @@ export default function TestSuite<T extends TestSuiteModel>(
         >
           Clear All Sessions
         </Button>
-        <div>Running: {isRunning ? "true" : "false"}</div>
+        {/* <div>Running: { testIsRunning?.toString() } -- { (!!testIsRunning)?.toString() } -- { cancelRequested }</div> */}
       </Stack>
 
       <Stack
@@ -177,18 +268,19 @@ export default function TestSuite<T extends TestSuiteModel>(
         }}
       >
         <div>Test session ID: {currentTestSessionId}</div>
-        <div>Suite params: {JSON.stringify(currentSuite.params)}</div>
-        <div>Session Params: {JSON.stringify(resultStore?.data.find(s => s.id === currentTestSessionId)?.params)}</div>
-        <div>fhirServer: {getCurrentTestSessionParam("fhirServer")?.toString()}</div>
+        <div>Current test: {currentTestKey}</div>
+        <div>Current test step: {currentTestStepKey}</div>
+        {/* <div>Suite params: {JSON.stringify(currentSuite.params)}</div> */}
+        {/* <div>Session Params: {JSON.stringify(resultStore?.data.find(s => s.id === currentTestSessionId)?.params)}</div> */}
       </Stack>
 
       {props.suite.tests.map((c, i) => {
         return <span key={i}>{c.component}</span>;
       })}
 
-      <div>
+      {/* <div>
         <pre>{JSON.stringify(resultStore, null, 2)}</pre>
-      </div>
+      </div> */}
     </>
   );
 }

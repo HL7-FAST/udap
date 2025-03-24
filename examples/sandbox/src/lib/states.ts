@@ -91,20 +91,3 @@ export const useAvailableResourceTypes = create<AvailableResourceTypes>(
   }),
 );
 
-
-
-export interface TestState {
-  currentTestIds: Record<string, string>;
-  setCurrentTestIds: (currentTestIds: Record<string, string>) => void;
-}
-
-export const useTestStore = create<TestState>((set, get) => ({
-  currentTestIds: {},
-  setCurrentTestIds: (currentTestIds) => set({ currentTestIds }),
-  getCurrentTestForSuite: (suiteKey: string) => {
-    return get().currentTestIds[suiteKey];
-  },
-  setCurrentTestForSuite: (suiteKey: string, testId: string) => {
-    set({ currentTestIds: { ...get().currentTestIds, [suiteKey]: testId } });
-  }
-}));

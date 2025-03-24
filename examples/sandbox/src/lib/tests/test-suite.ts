@@ -56,7 +56,7 @@ export function getTestSuite<T extends TestSuiteParams>(
       const results: Record<string, TestResult> = {};
 
       for (const test of tests || []) {
-        const testRes = await test.run(test.params);
+        const testRes = await test.run();
         results[test.testKey] = testRes;
         yield { testKey: test.testKey, result: testRes };
       }
@@ -66,7 +66,6 @@ export function getTestSuite<T extends TestSuiteParams>(
 
     async runOneTest(
       testKey: string,
-      params?: TestDefinitionParams,
     ): Promise<TestResult> {
       const test = this.tests.find((t) => t.model.testKey === testKey);
       if (!test) {
@@ -74,7 +73,7 @@ export function getTestSuite<T extends TestSuiteParams>(
       }
       console.log("Running test: " + testKey);
 
-      return await test.model.run(params);
+      return await test.model.run();
     },
   };
 }

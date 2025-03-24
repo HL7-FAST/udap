@@ -33,8 +33,7 @@ export function getFhirDataSource(fhirServer: string, resourceType: string, sess
 
     getMany: async ({ paginationModel, filterModel, sortModel }) => {
 
-      // setErrorMessage("");
-      console.log('FHIR data source:', fhirServer, resourceType);
+      // console.log('FHIR data source:', fhirServer, resourceType);
 
       if (!fhirServer || !resourceType) {
         return {

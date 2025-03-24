@@ -83,7 +83,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (!tokenResponse.ok) {
     throw new Error(`Failed to get token: (${tokenResponse.status}) ${tokenJson.error}: ${tokenJson.error_description}`);
   }
-  console.log("GET auth token:", tokenJson);
+  // console.log("GET auth token:", tokenJson);
 
   // get user info 
   let userInfoJson;
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     if (!userInfoResponse.ok) {
       throw new Error(`Failed to get user info: (${userInfoResponse.status}) ${userInfoJson.error}: ${userInfoJson.error_description}`);
     }
-    console.log("GET auth userinfo:", userInfoJson);
+    // console.log("GET auth userinfo:", userInfoJson);
 
   }
 

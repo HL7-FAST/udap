@@ -2,7 +2,7 @@ import React from "react";
 import {
   TestResult,
   getNewStep,
-  getOverallResult,
+  getOverallResultStatus,
   handleError,
 } from "@/lib/tests/test-result";
 import TestDefinitionModel, {
@@ -37,9 +37,8 @@ export function getScopesSupportedTest(
       params,
     ),
 
-    async before(
-      params: ScopesSupportedTestParams,
-    ): Promise<BeforeTestOutcome> {
+    async before(): Promise<BeforeTestOutcome> {
+
       // fhirServer parameter is required
       if (!params || !params.fhirServer || params.fhirServer.trim() === "") {
         return {
@@ -53,11 +52,12 @@ export function getScopesSupportedTest(
       return { success: true };
     },
 
-    async execute(params: ScopesSupportedTestParams): Promise<TestResult> {
+    async execute(): Promise<TestResult> {
       const result: TestResult = {
         id: crypto.randomUUID(),
         status: "unknown",
         params: params,
+        dateStarted: new Date(),
         messages: [],
         steps: [],
       };
@@ -87,6 +87,7 @@ export function getScopesSupportedTest(
       } catch (e) {
         step = handleError(step, e);
       }
+      step.dateCompleted = new Date();
 
       // nothing else to check if no well-known was fetched
       if (step.result !== "pass") {
@@ -98,7 +99,7 @@ export function getScopesSupportedTest(
       step = getNewStep(
         "validate-scopes-supported-field",
         "Validate scopes_supported Field",
-        "Ensure the scopes_supported field is present in the UDAP well-known endpoint.",
+        "Ensure the `scopes_supported` field is present in the UDAP well-known endpoint.",
       );
       result.steps.push(step);
       let hasScopes = false;
@@ -110,24 +111,25 @@ export function getScopesSupportedTest(
         if ((udapMetadata.scopes_supported || []).length > 0) {
           step.result = "pass";
           step.message =
-            "The scopes_supported field is present in the UDAP well-known endpoint and contains at least one scope.";
+            "The `scopes_supported` field is present in the UDAP well-known endpoint and contains at least one scope.";
           hasScopes = true;
         } else {
           step.result = "fail";
           step.message =
-            "The scopes_supported field is present in the UDAP well-known endpoint but is empty.";
+            "The `scopes_supported` field is present in the UDAP well-known endpoint but is empty.";
         }
       } else {
         step.result = "fail";
         step.message =
           "The scopes_supported field is missing from the UDAP well-known endpoint.";
       }
+      step.dateCompleted = new Date();
 
       // Check if the scopes_supported field contains wildcard scopes
       step = getNewStep(
         "check-for-wildcard-scopes",
         "Check for Wildcard Scopes",
-        "Check if the scopes_supported field contains wildcard scopes.",
+        formatMarkdownDescription("Check if `the scopes_supported` field contains wildcard scopes."),
       );
       result.steps.push(step);
 
@@ -150,7 +152,8 @@ export function getScopesSupportedTest(
           "The scopes_supported field is missing from the UDAP well-known endpoint.  Test skipped.";
       }
 
-      result.status = getOverallResult(result);
+      result.status = getOverallResultStatus(result);
+      result.dateCompleted = new Date();
       return result;
     },
 

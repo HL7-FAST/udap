@@ -1,4 +1,5 @@
 import { TestResult } from "./test-result";
+import { setCurrentTestKey } from "./test-store";
 
 export interface TestDefinitionParams {
   suiteKey?: string;
@@ -24,10 +25,11 @@ export default interface TestDefinitionModel<
   readonly description?: string;
   params: T;
 
-  run(params?: T): Promise<TestResult>;
+  run(): Promise<TestResult>;
 
-  before?(params?: T): Promise<BeforeTestOutcome>;
-  execute(params?: T): Promise<TestResult>;
+  before?(): Promise<BeforeTestOutcome>;
+  execute(): Promise<TestResult|undefined>;
+  resume?(): Promise<TestResult|undefined>;
   after?(result: TestResult): Promise<AfterTestOutcome>;
 }
 
@@ -42,18 +44,23 @@ export function getTestDefinition<T extends TestDefinitionParams>(
     name,
     description,
     params: params || ({} as T),
+
     async run(params?: T): Promise<TestResult> {
+
+      // set the current test key for the session
+      setCurrentTestKey(testKey);
       
       // run prereq check if implemented
       let beforeMessage: string | undefined;
       if (this.before) {
-        const beforeOutcome = await this.before(params);
+        const beforeOutcome = await this.before();
         if (!beforeOutcome.success) {
           if (beforeOutcome.isFatal) {
             return {
               id: crypto.randomUUID(),
               status: "before-test-fail",
               messages: beforeOutcome.message ? [beforeOutcome.message] : [],
+              dateStarted: new Date(),
               params: this.params,
               steps: [],
             };
@@ -62,11 +69,25 @@ export function getTestDefinition<T extends TestDefinitionParams>(
       }
 
       // execute the test
-      const result = await this.execute(params);
-
+      let result = await this.execute();
+      if (!result) {
+        result = {
+          id: crypto.randomUUID(),
+          status: "unknown",
+          params: this.params,
+          dateStarted: new Date(),
+          messages: [],
+          steps: [],
+        };
+      }
       // add non-fatal prereq message if any
       if (beforeMessage) {
         result.messages = [beforeMessage, ...result.messages];
+      }
+
+
+      if (result.status === "waiting" && this.resume) {
+        return result;
       }
 
       // run post check if implemented
@@ -79,7 +100,7 @@ export function getTestDefinition<T extends TestDefinitionParams>(
           }
         }
       }
-
+      
       return result;
     },
     async execute(): Promise<TestResult> {
@@ -87,6 +108,7 @@ export function getTestDefinition<T extends TestDefinitionParams>(
         id: crypto.randomUUID(),
         status: "unknown",
         params: this.params,
+        dateStarted: new Date(),
         messages: [],
         steps: [],
       };

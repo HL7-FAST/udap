@@ -1,7 +1,11 @@
+
 import { StorageStateOptions } from "@toolpad/core/persistence";
 import {
+  CURRENT_TEST_KEY_STORE_ID,
   CURRENT_TEST_SESSION_ID_STORE_ID,
-  TEST_RESULT_STORE_ID,
+  CURRENT_TEST_STEP_KEY_STORE_ID,
+  TEST_IS_RUNNING_STORE_ID,
+  TEST_SESSION_STORE_ID,
 } from "../constants";
 import { TestResult } from "./test-result";
 
@@ -45,7 +49,7 @@ export const testResultStoreOptions: StorageStateOptions<TestSessionStore> = {
 };
 
 export function getResultStore(): TestSessionStore {
-  const resultStore = localStorage.getItem(TEST_RESULT_STORE_ID);
+  const resultStore = localStorage.getItem(TEST_SESSION_STORE_ID);
   if (!resultStore) {
     return { data: [] };
   }
@@ -53,7 +57,7 @@ export function getResultStore(): TestSessionStore {
 }
 
 export function setResultStore(resultStore: TestSessionStore) {
-  localStorage.setItem(TEST_RESULT_STORE_ID, JSON.stringify(resultStore));
+  localStorage.setItem(TEST_SESSION_STORE_ID, JSON.stringify(resultStore));
 }
 
 export function createTestSession(
@@ -196,6 +200,63 @@ export function setCurrentTestSessionParams(
   });
   setResultStore(resultStore);
 }
+
+/**
+ * Get the current test key in this session if one is set.
+ */
+export function getCurrentTestKey(): string | null {
+  return localStorage.getItem(CURRENT_TEST_KEY_STORE_ID);
+}
+
+/**
+ * Set the current test key in this session.
+ */
+export function setCurrentTestKey(testKey: string) {
+  localStorage.setItem(CURRENT_TEST_KEY_STORE_ID, testKey);
+}
+
+/**
+ * Get the current test step key in this session if one is set.
+ */
+export function getCurrentTestStepKey(): string | null {
+  return localStorage.getItem(CURRENT_TEST_STEP_KEY_STORE_ID);
+}
+
+/**
+ * Set the current test step key in this session.
+ */
+export function setCurrentTestStepKey(testStepKey: string) {
+  localStorage.setItem(CURRENT_TEST_STEP_KEY_STORE_ID, testStepKey);
+}
+
+/**
+ * Get the test is running value in this session.
+ */
+export function getTestIsRunning(): boolean {
+  const isRunning = localStorage.getItem(TEST_IS_RUNNING_STORE_ID);
+  return isRunning === "true";
+}
+
+/**
+ * Set the test is running value in this session.
+ */
+export function setTestIsRunning(isRunning: boolean) {
+  localStorage.setItem(TEST_IS_RUNNING_STORE_ID, isRunning.toString());
+}
+
+
+/**
+ * 
+ */
+export function getTestResultsForSession(sessionId:string, testKey:string): TestResult[] | undefined {
+  const session = getTestSession(sessionId);
+  if (!session) {
+    return undefined;
+  }
+
+  return session.results[testKey];
+}
+
 
 /**
  * Add a test result to the given store.

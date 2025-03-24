@@ -14,3 +14,22 @@ export function formatMarkdownDescription(input: string, leadingSpacesToRemove?:
   }
   return input.trim().replace(new RegExp(`^ {${leadingSpacesToRemove}}`, 'gm'), '');
 }
+
+
+export function getAppBaseUrl(): string {
+
+  let hostUrl = process.env.APP_URL;
+  
+  try {
+    if (hostUrl) {
+      return hostUrl;
+    } else {
+      hostUrl = new URL(window.location.toString()).origin;
+    }
+  } catch {
+    hostUrl = "http://localhost:3000/";
+  }  
+
+  return hostUrl.endsWith('/') ? hostUrl : hostUrl + '/';
+
+}
