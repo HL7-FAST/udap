@@ -36,6 +36,7 @@
                         <th>Client ID</th>
                         <th>Name</th>
                         <th>Flow</th>
+                        <th>Scope Count</th>
                     </tr>
                 </thead>
 
@@ -46,6 +47,7 @@
                             <td><a asp-page="/Admin/Clients/Edit" asp-route-id="@client.ClientId">@client.ClientId</a></td>
                             <td>@client.Name</td>
                             <td>@client.Flow</td>
+                            <td>@client.AllowedScopesCount</td>
                         </tr>
                     }
                 </tbody>

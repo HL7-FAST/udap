@@ -14,6 +14,7 @@ namespace IdentityServer.Pages.Admin.Clients
         public string Name { get; set; }
         [Required]
         public Flow Flow { get; set; }
+        public int AllowedScopesCount { get; set; }
     }
 
     public class CreateClientModel : ClientSummaryModel
@@ -79,7 +80,8 @@ namespace IdentityServer.Pages.Admin.Clients
             {
                 ClientId = x.ClientId,
                 Name = x.ClientName,
-                Flow = x.AllowedGrantTypes.Select(x => x.GrantType).Single() == GrantType.ClientCredentials ? Flow.ClientCredentials : Flow.CodeFlowWithPkce
+                Flow = x.AllowedGrantTypes.Select(x => x.GrantType).Single() == GrantType.ClientCredentials ? Flow.ClientCredentials : Flow.CodeFlowWithPkce,
+                AllowedScopesCount = x.AllowedScopes.Count()
             });
 
             return await result.ToArrayAsync();
@@ -104,8 +106,8 @@ namespace IdentityServer.Pages.Admin.Clients
                 Flow = client.AllowedGrantTypes.Select(x => x.GrantType)
                     .Single() == GrantType.ClientCredentials ? Flow.ClientCredentials : Flow.CodeFlowWithPkce,
                 AllowedScopes = client.AllowedScopes.Any() ? client.AllowedScopes.Select(x => x.Scope).Aggregate((a, b) => $"{a} {b}") : null,
-                RedirectUri = client.RedirectUris.Select(x => x.RedirectUri).SingleOrDefault(),
-                PostLogoutRedirectUri = client.PostLogoutRedirectUris.Select(x => x.PostLogoutRedirectUri).SingleOrDefault(),
+                RedirectUri = string.Join(" ", client.RedirectUris.Select(x => x.RedirectUri)),
+                PostLogoutRedirectUri = string.Join(" ", client.PostLogoutRedirectUris.Select(x => x.PostLogoutRedirectUri)),
                 FrontChannelLogoutUri = client.FrontChannelLogoutUri,
                 BackChannelLogoutUri = client.BackChannelLogoutUri,
             };
@@ -172,22 +174,29 @@ namespace IdentityServer.Pages.Admin.Clients
 
             if (flow == Flow.CodeFlowWithPkce)
             {
-                if (client.RedirectUris.SingleOrDefault()?.RedirectUri != model.RedirectUri)
+                var newRedirectUris = (model.RedirectUri ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+                newRedirectUris.ForEach(x =>
                 {
-                    client.RedirectUris.Clear();
-                    if (model.RedirectUri != null)
+                    if (!client.RedirectUris.Any(y => y.RedirectUri == x))
                     {
-                        client.RedirectUris.Add(new ClientRedirectUri { RedirectUri = model.RedirectUri.Trim() });
+                        client.RedirectUris.Add(new ClientRedirectUri { RedirectUri = x.Trim() });
                     }
-                }
-                if (client.PostLogoutRedirectUris.SingleOrDefault()?.PostLogoutRedirectUri != model.PostLogoutRedirectUri)
+                });
+                var redirectUrisToRemove = client.RedirectUris.Where(x => !newRedirectUris.Contains(x.RedirectUri)).ToArray();
+                client.RedirectUris.RemoveAll(x => redirectUrisToRemove.Contains(x));
+
+                var newPostLogoutRedirectUri = (model.PostLogoutRedirectUri ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+                newPostLogoutRedirectUri.ForEach(x =>
                 {
-                    client.PostLogoutRedirectUris.Clear();
-                    if (model.PostLogoutRedirectUri != null)
+                    if (!client.PostLogoutRedirectUris.Any(y => y.PostLogoutRedirectUri == x))
                     {
-                        client.PostLogoutRedirectUris.Add(new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = model.PostLogoutRedirectUri.Trim() });
+                        client.PostLogoutRedirectUris.Add(new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = x.Trim() });
                     }
-                }
+                });
+                var postLogoutRedirectUrisToRemove = client.PostLogoutRedirectUris.Where(x => !newPostLogoutRedirectUri.Contains(x.PostLogoutRedirectUri)).ToArray();
+                client.PostLogoutRedirectUris.RemoveAll(x => postLogoutRedirectUrisToRemove.Contains(x));
+
+
                 if (client.FrontChannelLogoutUri != model.FrontChannelLogoutUri)
                 {
                     client.FrontChannelLogoutUri = model.FrontChannelLogoutUri?.Trim();
