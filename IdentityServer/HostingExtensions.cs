@@ -21,6 +21,7 @@ using Udap.Server.Configuration;
 using Udap.Server.DbContexts;
 using Udap.Server.Security.Authentication.TieredOAuth;
 using static Azure.Core.HttpHeader;
+using IdentityServer.Middleware;
 
 namespace IdentityServer
 {
@@ -245,6 +246,10 @@ namespace IdentityServer
 
             app.UseIdentityServer();
             app.UseUdapServer();
+
+            // middleware to handle customizations over the base UDAP libraries
+            app.UseCustomUdapMiddleware();
+
 
             app.UseAuthorization();
             app.MapRazorPages().RequireAuthorization();
