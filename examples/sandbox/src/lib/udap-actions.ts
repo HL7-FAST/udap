@@ -59,15 +59,6 @@ export async function discoverUdapEndpoint(baseUrl: string): Promise<UdapMetadat
 async function buildRegister(regReq: UdapClientRequest, metadata: UdapMetadata, cert: P12Certificate): Promise<UdapRegistration> {
 
   const iat = Math.floor(new Date().getTime() / 1000);
-  if (!regReq.scopes.includes("openid")) {
-    regReq.scopes.push("openid");
-  }
-  if (!regReq.scopes.includes("fhirUser")) {
-    regReq.scopes.push("fhirUser");
-  }
-  if (!regReq.scopes.includes("profile")) {
-    regReq.scopes.push("profile");
-  }
   const scopes = regReq.scopes.join(" ");
   let logo_uri = regReq.logoUri;
   if (!logo_uri && regReq.grantTypes.includes("authorization_code")) {
@@ -127,10 +118,10 @@ async function sendRegistrationRequest(registrationUrl: string, registrationBody
 
   const regJson = await regResp.json();
   if (!regResp.ok) {
-    throw new Error(`Failed to register client: (${regResp.status}) ${regJson.error}: ${regJson.error_description}`);
+    throw new Error(`Failed to register client: (${regResp.status}) ${regJson.error}: ${regJson.error_description}`, { cause: {status: regResp.status, body: regJson }});
   }
   
-  // console.log("Client registered:", regJson);
+  // console.log("sendRegistrationRequest response:", regJson);
   return regJson;
 }
 

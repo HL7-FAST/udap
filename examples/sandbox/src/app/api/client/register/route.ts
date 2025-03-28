@@ -25,7 +25,14 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json(reqRes, { status: 200 });
 
   } catch (e) {
-    console.error("Failed to register client: ", e);
+    console.error("API route failed to register client: ", typeof e, e instanceof Object, JSON.stringify(e));
+
+    if (e instanceof Error && e.cause && e.cause instanceof Object && "status" in e.cause && "body" in e.cause) {
+      if (typeof e.cause.status === "number" && typeof e.cause.body === "object") {
+        return NextResponse.json(e.cause.body, { status: e.cause.status });
+      }
+    }
+
     return NextResponse.json({
       status: "error",
       message: "Failed to register client",

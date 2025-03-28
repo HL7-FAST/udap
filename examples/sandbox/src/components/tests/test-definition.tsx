@@ -1,57 +1,52 @@
 import {
   Alert,
   AlertTitle,
-  Box,
   Button,
-  Card,
-  CardContent,
   Collapse,
   Container,
-  Divider,
   IconButton,
   List,
   ListItem,
   ListItemButton,
-  ListItemText,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import Markdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
-import remarkGfm from "remark-gfm";
-import {
-  clearSessionTestResultsFromStore,
-  getTestResultsForSession,
-  testResultStoreOptions,
-  TestSessionStore,
-} from "@/lib/tests/test-store";
-import TestDefinitionModel from "@/lib/tests/test-definition";
 import { useDialogs, useLocalStorageState } from "@toolpad/core";
-import {
-  CURRENT_TEST_KEY_STORE_ID,
-  CURRENT_TEST_SESSION_ID_STORE_ID,
-  LAST_TEST_RESULT_ID_STORE_ID,
-  TEST_SESSION_STORE_ID,
-} from "@/lib/constants";
 import { ReactNode, useEffect, useState } from "react";
+import {
+  Check,
+  Dangerous,
+  DataObject,
+  DescriptionOutlined,
+  Info,
+  Input,
+  Output,
+  QuestionMark,
+  Science,
+  SkipNext,
+  Warning,
+} from "@mui/icons-material";
+import RawOutputDialog from "../dialogs/raw-dialog";
+import CollapsibleMarkdown from "../collapsible-markdown";
 import {
   TestResult,
   TestResultStatus,
   TestStepResult,
 } from "@/lib/tests/test-result";
 import {
-  Check,
-  Dangerous,
-  DataObject,
-  ExpandLess,
-  ExpandMore,
-  Info,
-  QuestionMark,
-  SkipNext,
-  Warning,
-} from "@mui/icons-material";
-import RawOutputDialog from "../dialogs/raw-dialog";
-import CollapsibleDescription from "./description";
+  CURRENT_TEST_KEY_STORE_ID,
+  CURRENT_TEST_SESSION_ID_STORE_ID,
+  LAST_TEST_RESULT_ID_STORE_ID,
+  TEST_SESSION_STORE_ID,
+} from "@/lib/constants";
+import TestDefinitionModel from "@/lib/tests/test-definition";
+import {
+  TestSessionStore,
+  clearSessionTestResultsFromStore,
+  getTestResultsForSession,
+  testResultStoreOptions,
+} from "@/lib/tests/test-store";
 
 interface TestDefinitionProps<T extends TestDefinitionModel> {
   test: T;
@@ -79,7 +74,6 @@ export default function TestDefinition<T extends TestDefinitionModel>(
   const [lastTestResultId] = useLocalStorageState<string>(
     LAST_TEST_RESULT_ID_STORE_ID,
   );
-  const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [openTestResults, setOpenIndexes] = useState<number[]>([]);
 
   const dialog = useDialogs();
@@ -165,7 +159,20 @@ export default function TestDefinition<T extends TestDefinitionModel>(
   return (
     <>
       <h3>{props.test.name}</h3>
-      <CollapsibleDescription description={props.test.description || "No description for this test provided."} />
+
+      <Alert
+        severity="info"
+        variant="outlined"
+        sx={{ marginY: 2, minWidth: 1 }}
+        icon={<Science />}
+      >
+        <AlertTitle>Test Description</AlertTitle>
+        <CollapsibleMarkdown
+          markdown={
+            props.test.description || "No description for this test provided."
+          }
+        />
+      </Alert>
       {
         <Container
           maxWidth="xl"
@@ -225,45 +232,82 @@ export default function TestDefinition<T extends TestDefinitionModel>(
                           direction="row"
                           spacing={2}
                           alignItems="flex-start"
+                          width={1}
                         >
                           <Stack
-                            direction="row"
+                            direction="column"
                             spacing={2}
-                            alignItems="center"
+                            alignItems="flex-start"
                           >
-                            {getTestStepResultIcon(step.result)}
                             <IconButton
+                              title="View Step Result Data"
                               onClick={() =>
                                 viewOutput(step, "Step Result Data")
                               }
                             >
-                              <DataObject />
+                              {getTestStepResultIcon(step.result)}
                             </IconButton>
+                            <Tooltip
+                              title={
+                                step.input
+                                  ? "View step input"
+                                  : "No step input available"
+                              }
+                            >
+                              <span>
+                                <IconButton
+                                  disabled={!step.input}
+                                  onClick={() =>
+                                    viewOutput(step.input, "Step Input")
+                                  }
+                                >
+                                  <Input />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                            <Tooltip
+                              title={
+                                step.output
+                                  ? "View step output"
+                                  : "No step output available"
+                              }
+                            >
+                              <span>
+                                <IconButton
+                                  disabled={!step.output}
+                                  onClick={() =>
+                                    viewOutput(step.output, "Step Output")
+                                  }
+                                >
+                                  <Output />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
                           </Stack>
 
                           <Stack
                             direction="column"
                             spacing={2}
                             alignItems="flex-start"
+                            width={1}
                           >
                             <Typography variant="h6">{step.name}</Typography>
-                            {/* <Alert severity="info" variant="outlined">
-                              <AlertTitle>Step Description</AlertTitle>
-                              <Markdown
-                                remarkPlugins={[remarkGfm]}
-                                rehypePlugins={[rehypeRaw]}
-                              >
-                                {step.description}
-                              </Markdown>
-                            </Alert> */}
-                            <CollapsibleDescription description={step.description} length={20} />
-
-                            <Markdown
-                              remarkPlugins={[remarkGfm]}
-                              rehypePlugins={[rehypeRaw]}
+                            <Alert
+                              severity="info"
+                              variant="outlined"
+                              sx={{ marginY: 2, minWidth: 1 }}
+                              icon={<DescriptionOutlined />}
                             >
-                              {step.message}
-                            </Markdown>
+                              <AlertTitle>Step Result</AlertTitle>
+                              <CollapsibleMarkdown
+                                markdown={step.description}
+                                trimLength={100}
+                              />
+                            </Alert>
+                            <CollapsibleMarkdown
+                              markdown={step.message || "No message provided."}
+                              trimLength={250}
+                            />
                           </Stack>
                         </Stack>
                       </ListItem>

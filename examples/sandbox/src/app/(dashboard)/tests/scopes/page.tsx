@@ -17,7 +17,6 @@ import { TestSuiteParams, getTestSuite } from "@/lib/tests/test-suite";
 import TestSuite from "@/components/tests/test-suite";
 import { useCurrentFhirServer } from "@/lib/states";
 import { formatMarkdownDescription } from "@/lib/utils";
-import { UdapMetadata } from "@/lib/models";
 
 export interface ScopeNegotiationTestSuiteParams extends TestSuiteParams {
   fhirServer: string;

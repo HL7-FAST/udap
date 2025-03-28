@@ -45,7 +45,7 @@ export function getTestDefinition<T extends TestDefinitionParams>(
     description,
     params: params || ({} as T),
 
-    async run(params?: T): Promise<TestResult> {
+    async run(): Promise<TestResult> {
 
       // set the current test key for the session
       setCurrentTestKey(testKey);

@@ -14,7 +14,12 @@ export interface TestStep {
   dateStarted: Date;
   dateCompleted?: Date;
   result: TestStepResult;
+  input?: unknown;
   output?: unknown;
+
+  /**
+   * Markdown-formatted message to display to the user.
+   */
   message?: string;
 }
 

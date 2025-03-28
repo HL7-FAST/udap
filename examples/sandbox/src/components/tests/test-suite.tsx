@@ -5,7 +5,8 @@ import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { useDialogs, useLocalStorageState } from "@toolpad/core";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
+import RawOutputDialog from "../dialogs/raw-dialog";
 import {
   CURRENT_TEST_KEY_STORE_ID,
   CURRENT_TEST_SESSION_ID_STORE_ID,
@@ -22,7 +23,6 @@ import {
   clearAllTestResultsFromStore,
   clearSessionFromStore,
   createTestSession,
-  getCurrentTestSessionParams,
   getResultStore,
   getTestSession,
   setCurrentTestKey,
@@ -31,7 +31,6 @@ import {
   testResultStoreOptions,
 } from "@/lib/tests/test-store";
 import { TestResult } from "@/lib/tests/test-result";
-import RawOutputDialog from "../dialogs/raw-dialog";
 
 export interface TestSuiteProps<T> {
   suite: T;

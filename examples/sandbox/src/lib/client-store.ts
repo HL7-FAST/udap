@@ -41,6 +41,7 @@ export async function getDefaultClient(): Promise<UdapClient> {
   }
 
   const x509 = await getX509Certficate(cert);
+  // console.log('x509:', x509);
   if (!x509.subjectAltName) {
     throw new Error("No alt names in certificate");
   }
@@ -58,7 +59,7 @@ export async function getDefaultClient(): Promise<UdapClient> {
     issuer: hostUrl,
     clientName: "FAST Security Sandbox Client",
     contacts: ["mailto:tester@localhost"],
-    scopes: ["user/*.rs user/*.read"],
+    scopes: ["openid fhirUser profile user/*.rs user/*.read"],
     // redirectUris: [hostUrl],
     redirectUris: [hostUrl + "api/auth/callback/udap"],
     // redirectUris: [hostUrl + "api/auth/udap"], // custom callback route for now

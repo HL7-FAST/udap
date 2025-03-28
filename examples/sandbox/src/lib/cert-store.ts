@@ -75,7 +75,7 @@ export async function loadServerCertificate(): Promise<P12Certificate> {
 }
 
 
-export async function parseCertificate(buffer: Buffer<ArrayBufferLike>, password: string): Promise<P12Certificate> { 
+export async function parseCertificate(buffer: Buffer<ArrayBufferLike>, password: string): Promise<P12Certificate> {
   const p12Asn1 = forge.asn1.fromDer(buffer.toString('binary'));
   const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, password);
 
@@ -90,14 +90,22 @@ export async function getX509Certficate(p12Cert: P12Certificate): Promise<X509Ce
   if (!certBag || certBag.length === 0) {
     throw new Error("No certificate found in the provided P12 file");
   }
-  const cert = certBag[0]?.cert;
 
-  if (!cert) {
-    throw new Error("Certificate is undefined");
+  const certChain: X509Certificate[] = certBag.map((bag) => {
+    const cert = bag.cert;
+    if (!cert) {
+      throw new Error("Certificate is undefined");
+    }
+    return new X509Certificate(forge.pki.certificateToPem(cert));
+  });
+
+  // console.log("getX509Certficate() :: certChain:", certChain);
+
+  if (certChain.length === 0) {
+    throw new Error("No certificates found in the provided P12 file");
   }
 
-  return new X509Certificate(forge.pki.certificateToPem(cert));
-  
+  return certChain[certChain.length - 1];  
 }
 
 
