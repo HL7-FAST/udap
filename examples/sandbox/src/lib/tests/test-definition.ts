@@ -28,8 +28,8 @@ export default interface TestDefinitionModel<
   run(): Promise<TestResult>;
 
   before?(): Promise<BeforeTestOutcome>;
-  execute(): Promise<TestResult|undefined>;
-  resume?(): Promise<TestResult|undefined>;
+  execute(): Promise<TestResult | undefined>;
+  resume?(): Promise<TestResult | undefined>;
   after?(result: TestResult): Promise<AfterTestOutcome>;
 }
 
@@ -46,10 +46,9 @@ export function getTestDefinition<T extends TestDefinitionParams>(
     params: params || ({} as T),
 
     async run(): Promise<TestResult> {
-
       // set the current test key for the session
       setCurrentTestKey(testKey);
-      
+
       // run prereq check if implemented
       let beforeMessage: string | undefined;
       if (this.before) {
@@ -85,7 +84,6 @@ export function getTestDefinition<T extends TestDefinitionParams>(
         result.messages = [beforeMessage, ...result.messages];
       }
 
-
       if (result.status === "waiting" && this.resume) {
         return result;
       }
@@ -100,7 +98,7 @@ export function getTestDefinition<T extends TestDefinitionParams>(
           }
         }
       }
-      
+
       return result;
     },
     async execute(): Promise<TestResult> {

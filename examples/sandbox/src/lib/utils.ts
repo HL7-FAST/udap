@@ -1,7 +1,6 @@
-
 export function formatMarkdownDescription(input: string, leadingSpacesToRemove?: number): string {
   if (leadingSpacesToRemove === undefined) {
-    leadingSpacesToRemove = input.split('\n').reduce((acc, line) => {
+    leadingSpacesToRemove = input.split("\n").reduce((acc, line) => {
       if (line.trim().length === 0) {
         return acc;
       }
@@ -12,14 +11,12 @@ export function formatMarkdownDescription(input: string, leadingSpacesToRemove?:
       return acc;
     }, Infinity);
   }
-  return input.trim().replace(new RegExp(`^ {${leadingSpacesToRemove}}`, 'gm'), '');
+  return input.trim().replace(new RegExp(`^ {${leadingSpacesToRemove}}`, "gm"), "");
 }
 
-
 export function getAppBaseUrl(): string {
-
   let hostUrl = process.env.APP_URL;
-  
+
   try {
     if (hostUrl) {
       return hostUrl;
@@ -28,8 +25,7 @@ export function getAppBaseUrl(): string {
     }
   } catch {
     hostUrl = "http://localhost:3000/";
-  }  
+  }
 
-  return hostUrl.endsWith('/') ? hostUrl : hostUrl + '/';
-
+  return hostUrl.endsWith("/") ? hostUrl : hostUrl + "/";
 }

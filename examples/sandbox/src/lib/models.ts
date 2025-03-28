@@ -1,9 +1,8 @@
 import { X509Certificate } from "crypto";
 import { Profile } from "next-auth";
-import * as forge from 'node-forge';
-import { DataModel } from '@toolpad/core/Crud';
+import * as forge from "node-forge";
+import { DataModel } from "@toolpad/core/Crud";
 import { DomainResource } from "fhir/r4";
-
 
 export type P12Certificate = forge.pkcs12.Pkcs12Pfx;
 
@@ -33,7 +32,6 @@ export interface UdapClient {
   scopes: string[];
 }
 
-
 export interface UdapMetadata {
   udap_versions_supported: ["1"];
   udap_profiles_supported: string[];
@@ -41,7 +39,7 @@ export interface UdapMetadata {
   udap_authorization_extensions_required: string[];
   udap_certifications_supported: string[];
   udap_certifications_required: string[];
-  grant_types_supported: Array<"authorization_code"|"refresh_token"|"client_credentials">;
+  grant_types_supported: Array<"authorization_code" | "refresh_token" | "client_credentials">;
   scopes_supported: string[];
   authorization_endpoint: string;
   token_endpoint: string;
@@ -54,7 +52,7 @@ export interface UdapMetadata {
 }
 
 export interface UdapX509Header {
-  alg: "RS256"| "RS384";
+  alg: "RS256" | "RS384";
   x5c: X509Certificate;
 }
 
@@ -72,7 +70,7 @@ export interface UdapSoftwareStatement {
   grant_types: string[];
   response_types?: string[] | null;
   token_endpoint_auth_method: "private_key_jwt";
-  scope: string; 
+  scope: string;
 }
 
 export interface UdapRegistration {
@@ -107,11 +105,7 @@ export interface UdapRegistrationResponse {
   scope: string;
 }
 
-
 export type UdapProfile = Profile;
-
-
-
 
 // export interface FhirResult extends DataModel {
 //   resource: DomainResource;

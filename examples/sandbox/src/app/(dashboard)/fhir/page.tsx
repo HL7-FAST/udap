@@ -1,19 +1,11 @@
 "use client";
 
-import {
-  Alert,
-  FormControl,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-} from "@mui/material";
+import { Alert, FormControl, MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useAvailableResourceTypes } from "@/lib/states";
 
 export default function FhirQueryPage() {
-  const resourceTypes = useAvailableResourceTypes(
-    (state) => state.resourceTypes,
-  );
+  const resourceTypes = useAvailableResourceTypes((state) => state.resourceTypes);
 
   const router = useRouter();
   const handleChange = (event: SelectChangeEvent) => {

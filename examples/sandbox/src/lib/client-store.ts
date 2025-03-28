@@ -1,11 +1,10 @@
-"use server"
+"use server";
 
-import { getServerCertificate, getX509Certficate } from './cert-store';
-import { CLIENT_STORE_DEFAULT_ID } from './constants';
-import { registerClient } from './udap-actions';
-import { getDefaultFhirServer } from './env';
-import { UdapClient, UdapClientRequest } from '@/lib/models';
-
+import { getServerCertificate, getX509Certficate } from "./cert-store";
+import { CLIENT_STORE_DEFAULT_ID } from "./constants";
+import { registerClient } from "./udap-actions";
+import { getDefaultFhirServer } from "./env";
+import { UdapClient, UdapClientRequest } from "@/lib/models";
 
 const clients: Map<string, UdapClient> = new Map();
 
@@ -25,9 +24,7 @@ export async function removeClient(id: string): Promise<boolean> {
   return clients.delete(id);
 }
 
-
 export async function getDefaultClient(): Promise<UdapClient> {
-
   let client = await getClient(CLIENT_STORE_DEFAULT_ID);
   if (client) {
     return client;
@@ -51,7 +48,7 @@ export async function getDefaultClient(): Promise<UdapClient> {
   // const proto = headerList.get('x-forwarded-proto') ?? "http";
   // const hostUrl = `${proto}://${host.endsWith('/') ? host : host + '/'}`;
   let hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
-  hostUrl = hostUrl.endsWith('/') ? hostUrl : hostUrl + '/';
+  hostUrl = hostUrl.endsWith("/") ? hostUrl : hostUrl + "/";
 
   const regReq: UdapClientRequest = {
     fhirServer: await getDefaultFhirServer(),

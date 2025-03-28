@@ -1,4 +1,3 @@
-
 import { StorageStateOptions } from "@toolpad/core/persistence";
 import {
   CURRENT_TEST_KEY_STORE_ID,
@@ -101,9 +100,7 @@ export function getTestSession(testSessionId: string): TestSession | undefined {
     return undefined;
   }
 
-  const testSession = resultStore.data.find(
-    (session) => session.id === testSessionId,
-  );
+  const testSession = resultStore.data.find((session) => session.id === testSessionId);
   if (!testSession) {
     console.error("No test session found with ID: ", testSessionId);
     return undefined;
@@ -244,11 +241,13 @@ export function setTestIsRunning(isRunning: boolean) {
   localStorage.setItem(TEST_IS_RUNNING_STORE_ID, isRunning.toString());
 }
 
-
 /**
- * 
+ *
  */
-export function getTestResultsForSession(sessionId:string, testKey:string): TestResult[] | undefined {
+export function getTestResultsForSession(
+  sessionId: string,
+  testKey: string,
+): TestResult[] | undefined {
   const session = getTestSession(sessionId);
   if (!session) {
     return undefined;
@@ -257,15 +256,10 @@ export function getTestResultsForSession(sessionId:string, testKey:string): Test
   return session.results[testKey];
 }
 
-
 /**
  * Add a test result to the given store.
  */
-export function addTestResultToStore(
-  testSessionId: string,
-  testKey: string,
-  result: TestResult,
-) {
+export function addTestResultToStore(testSessionId: string, testKey: string, result: TestResult) {
   const resultStore = getResultStore();
 
   const testSession = getTestSession(testSessionId);
@@ -291,10 +285,7 @@ export function addTestResultToStore(
 /**
  * Clear all test results for a given test definition from the store.
  */
-export function clearSessionTestResultsFromStore(
-  testSessionId: string,
-  testDefinitionKey: string,
-) {
+export function clearSessionTestResultsFromStore(testSessionId: string, testDefinitionKey: string) {
   const resultStore = getResultStore();
 
   const testSession = getTestSession(testSessionId);
@@ -325,9 +316,7 @@ export function clearSessionFromStore(testSessionId: string) {
     return;
   }
 
-  resultStore.data = resultStore.data.filter(
-    (session) => session.id !== testSessionId,
-  );
+  resultStore.data = resultStore.data.filter((session) => session.id !== testSessionId);
   setResultStore(resultStore);
 }
 

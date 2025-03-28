@@ -1,20 +1,18 @@
-"use client"
-import { ReactNode, useEffect } from 'react';
-import { getDefaultClient } from '@/lib/client-store';
-import { useAvailableFhirServers, useCurrentFhirServer, useUdapClientState } from '@/lib/states';
+"use client";
+import { ReactNode, useEffect } from "react";
+import { getDefaultClient } from "@/lib/client-store";
+import { useAvailableFhirServers, useCurrentFhirServer, useUdapClientState } from "@/lib/states";
 
 export default function ZustandProvider(props: { children: ReactNode }) {
-
-  const {client, setClient} = useUdapClientState((state) => state);
+  const { client, setClient } = useUdapClientState((state) => state);
   const { setCurrentFhirServer } = useCurrentFhirServer((state) => state);
   const { setFhirServers } = useAvailableFhirServers((state) => state);
-
 
   // load default client
   useEffect(() => {
     // console.log('ZustandProvider: load default client', client);
     getDefaultClient().then((client) => setClient(client));
-  },[setClient]);
+  }, [setClient]);
 
   // client change... refresh fhir servers and default to first
   useEffect(() => {
@@ -27,7 +25,5 @@ export default function ZustandProvider(props: { children: ReactNode }) {
     }
   }, [client, setCurrentFhirServer, setFhirServers]);
 
-  return (
-    <>{props.children}</>
-  );
+  return <>{props.children}</>;
 }

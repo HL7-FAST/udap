@@ -15,9 +15,7 @@ export default function FhirPage() {
   const [errorMessage, setErrorMessage] = useState<ReactNode>();
   const params = useParams<{ slug: string[] }>();
   const [resourceType, setResourceType] = useState<string | undefined>();
-  const [dataSource, setDataSource] = useState<
-    DataSource<FhirResult> | undefined
-  >();
+  const [dataSource, setDataSource] = useState<DataSource<FhirResult> | undefined>();
 
   useEffect(() => {
     if (params.slug && params.slug.length > 0) {
@@ -33,9 +31,7 @@ export default function FhirPage() {
       setDataSource(undefined);
       return;
     }
-    setDataSource(
-      getFhirDataSource(fhirServer, resourceType, session, handleError),
-    );
+    setDataSource(getFhirDataSource(fhirServer, resourceType, session, handleError));
   }, [fhirServer, resourceType, session]);
 
   useEffect(() => {
@@ -44,9 +40,7 @@ export default function FhirPage() {
 
   function handleError(e: unknown) {
     // console.error("Error:", e);
-    setErrorMessage(
-      "An error occurred. Check the console for more information.",
-    );
+    setErrorMessage("An error occurred. Check the console for more information.");
 
     if (e instanceof Error) {
       console.error(e.stack);
@@ -62,11 +56,7 @@ export default function FhirPage() {
         const outcome = errorResponse.response.data as OperationOutcome;
 
         if (outcome.issue && outcome.issue.length > 0) {
-          setErrorMessage(
-            outcome.issue
-              .map((i) => `(${i.severity}): ${i.diagnostics}`)
-              .join("; "),
-          );
+          setErrorMessage(outcome.issue.map((i) => `(${i.severity}): ${i.diagnostics}`).join("; "));
         }
       }
     } else if (
@@ -96,9 +86,7 @@ export default function FhirPage() {
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
       <>
         {!fhirServer ? (
-          <Alert severity="error">
-            {!fhirServer && <div>FHIR Server not selected.</div>}
-          </Alert>
+          <Alert severity="error">{!fhirServer && <div>FHIR Server not selected.</div>}</Alert>
         ) : fhirServer && resourceType && dataSource ? (
           <Crud<FhirResult>
             dataSource={dataSource}

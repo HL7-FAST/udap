@@ -1,17 +1,9 @@
 "use client";
 
-import {
-  Container,
-  FormGroup,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Container, FormGroup, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import React from "react";
-import ScopesSupportedTest, {
-  getScopesSupportedTest,
-} from "./scopes-supported";
+import ScopesSupportedTest, { getScopesSupportedTest } from "./scopes-supported";
 import ScopeRegistrationTest, { getScopeRegistrationTest } from "./scope-registration";
 import { TestSuiteParams, getTestSuite } from "@/lib/tests/test-suite";
 import TestSuite from "@/components/tests/test-suite";
@@ -24,10 +16,8 @@ export interface ScopeNegotiationTestSuiteParams extends TestSuiteParams {
 
 export default function ScopesPage() {
   const [fhirServer, setFhirServer] = useState<string>("");
-  
-  const currentFhirServer = useCurrentFhirServer(
-    (state) => state.currentFhirServer,
-  );
+
+  const currentFhirServer = useCurrentFhirServer((state) => state.currentFhirServer);
 
   useEffect(() => {
     if (!fhirServer) {
@@ -56,9 +46,8 @@ export default function ScopesPage() {
     return t;
   });
 
-
   const suiteKey = "scope-negotiation";
-  
+
   const params: ScopeNegotiationTestSuiteParams = {
     suiteKey,
     fhirServer,
@@ -73,7 +62,7 @@ export default function ScopesPage() {
       in the implementation guide.
       `),
     tests,
-    params
+    params,
   );
 
   const setup = (

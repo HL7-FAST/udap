@@ -1,9 +1,5 @@
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import {
-  Button,
-  Collapse,
-  Stack,
-} from "@mui/material";
+import { Button, Collapse, Stack } from "@mui/material";
 import React, { useState } from "react";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -14,25 +10,18 @@ export interface CollapsibleDescriptionProps {
   trimLength?: number;
 }
 
-export default function CollapsibleMarkdown(
-  props: CollapsibleDescriptionProps,
-) {
+export default function CollapsibleMarkdown(props: CollapsibleDescriptionProps) {
   const [descriptionOpen, setDescriptionOpen] = useState(false);
-  const {
-    markdown = "",
-    trimLength = 100,
-  } = props;
+  const { markdown = "", trimLength = 100 } = props;
 
   return (
-
     <Stack direction="row" spacing={2} alignItems="self-end">
       {!descriptionOpen ? (
         <>
           <Stack direction="column" spacing={2}>
             <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
               {markdown
-                ? markdown?.slice(0, trimLength) +
-                  (markdown?.length > trimLength ? "..." : "")
+                ? markdown?.slice(0, trimLength) + (markdown?.length > trimLength ? "..." : "")
                 : ""}
             </Markdown>
           </Stack>
@@ -63,6 +52,5 @@ export default function CollapsibleMarkdown(
         </Collapse>
       )}
     </Stack>
-
   );
 }

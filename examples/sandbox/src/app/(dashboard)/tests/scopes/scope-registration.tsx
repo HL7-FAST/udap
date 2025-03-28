@@ -5,11 +5,7 @@ import TestDefinitionModel, {
   TestDefinitionParams,
   getTestDefinition,
 } from "@/lib/tests/test-definition";
-import {
-  TestResult,
-  getNewStep,
-  getOverallResultStatus,
-} from "@/lib/tests/test-result";
+import { TestResult, getNewStep, getOverallResultStatus } from "@/lib/tests/test-result";
 import { getCurrentTestSessionParam } from "@/lib/tests/test-store";
 import { discoverUdapEndpoint } from "@/lib/udap-actions";
 import { formatMarkdownDescription, getAppBaseUrl } from "@/lib/utils";
@@ -74,16 +70,14 @@ export function getScopeRegistrationTest(
         return {
           success: false,
           isFatal: true,
-          message:
-            "No registration endpoint found in UDAP well-known metadata.",
+          message: "No registration endpoint found in UDAP well-known metadata.",
         };
       }
 
       // Determine if FHIR server is using a different server for auth and fetch that auth server's scopes
       params.fhirServerScopes = params.udapWellknown.scopes_supported;
       const fhirOrigin = new URL(params.fhirServer).origin;
-      const authOrigin = new URL(params.udapWellknown.authorization_endpoint)
-        .origin;
+      const authOrigin = new URL(params.udapWellknown.authorization_endpoint).origin;
       if (fhirOrigin !== authOrigin) {
         const authWellknown = await discoverUdapEndpoint(authOrigin);
         if (authWellknown && authWellknown.scopes_supported) {
@@ -118,11 +112,9 @@ export function getScopeRegistrationTest(
       const missingInFhir = (params.authServerScopes || []).filter(
         (scope) => !params.fhirServerScopes?.includes(scope),
       );
-      const scopesAreSame =
-        missingInAuth.length === 0 && missingInFhir.length === 0;
+      const scopesAreSame = missingInAuth.length === 0 && missingInFhir.length === 0;
       if (scopesAreSame) {
-        step.message =
-          "The scopes supported by the FHIR server and the auth server are the same.";
+        step.message = "The scopes supported by the FHIR server and the auth server are the same.";
       } else {
         if (missingInAuth.length > 0) {
           step.message = formatMarkdownDescription(`
@@ -180,8 +172,7 @@ export function getScopeRegistrationTest(
       // still the same size... skip the test
       if (scopes.length === size) {
         step.result = "skip";
-        step.message =
-          "No patient, user, or system scopes found to remove. Skipping test.";
+        step.message = "No patient, user, or system scopes found to remove. Skipping test.";
       }
       // Otherwise run the registration test
       else {
@@ -209,8 +200,7 @@ export function getScopeRegistrationTest(
             // scopes should have been returned in the response... fail otherwise
             if (!("scopes" in regRes)) {
               step.result = "fail";
-              step.message =
-                "Client registered successfully but no scopes were returned.";
+              step.message = "Client registered successfully but no scopes were returned.";
             }
 
             // scopes should be an array by now... fail otherwise
@@ -316,8 +306,7 @@ export function getScopeRegistrationTest(
           // scopes should have been returned in the response... fail otherwise
           if (!("scopes" in regRes)) {
             step.result = "fail";
-            step.message =
-              "Client registered successfully but no scopes were returned.";
+            step.message = "Client registered successfully but no scopes were returned.";
           }
 
           // scopes should be an array by now... fail otherwise
@@ -413,10 +402,7 @@ export function getScopeRegistrationTest(
               step.result = "warn";
               step.message =
                 "Client registered and returned no scopes in response, but expected invalid scopes to be rejected.  This may be acceptable.";
-            } else if (
-              regRes.scopes instanceof Array &&
-              regRes.scopes.length > 0
-            ) {
+            } else if (regRes.scopes instanceof Array && regRes.scopes.length > 0) {
               step.result = "fail";
               step.message = formatMarkdownDescription(`
                 Client registered successfully with invalid scopes.  Expected invalid scopes to be rejected.

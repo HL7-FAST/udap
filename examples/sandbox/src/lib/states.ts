@@ -33,9 +33,7 @@ export const useCurrentFhirServer = create<CurrentFhirServer>((set) => ({
 
     if (fhirServer) {
       // get the capability statement for the new server
-      useCurrentServerCapabilityStatement
-        .getState()
-        .setCurrentCapabilityStatement();
+      useCurrentServerCapabilityStatement.getState().setCurrentCapabilityStatement();
       getServerCapabilityStatement(fhirServer).then((capabilityStatement) => {
         useCurrentServerCapabilityStatement
           .getState()
@@ -59,13 +57,11 @@ export const useAvailableFhirServers = create<AvailableFhirServers>((set) => ({
 
 export interface CurrentServerCapabilityStatement {
   curentCapabilityStatement: CapabilityStatement | undefined;
-  setCurrentCapabilityStatement: (
-    capabilityStatement?: CapabilityStatement,
-  ) => void;
+  setCurrentCapabilityStatement: (capabilityStatement?: CapabilityStatement) => void;
 }
 
-export const useCurrentServerCapabilityStatement =
-  create<CurrentServerCapabilityStatement>((set) => ({
+export const useCurrentServerCapabilityStatement = create<CurrentServerCapabilityStatement>(
+  (set) => ({
     curentCapabilityStatement: undefined,
     setCurrentCapabilityStatement: (capabilityStatement) => {
       set({ curentCapabilityStatement: capabilityStatement });
@@ -75,19 +71,17 @@ export const useCurrentServerCapabilityStatement =
         useAvailableResourceTypes.getState().setResourceTypes(resourceTypes);
       }
     },
-  }));
+  }),
+);
 
 export interface AvailableResourceTypes {
   resourceTypes: string[];
   setResourceTypes: (resourceTypes: string[]) => void;
 }
 
-export const useAvailableResourceTypes = create<AvailableResourceTypes>(
-  (set) => ({
-    resourceTypes: [],
-    setResourceTypes: (resourceTypes) => {
-      set({ resourceTypes });
-    },
-  }),
-);
-
+export const useAvailableResourceTypes = create<AvailableResourceTypes>((set) => ({
+  resourceTypes: [],
+  setResourceTypes: (resourceTypes) => {
+    set({ resourceTypes });
+  },
+}));

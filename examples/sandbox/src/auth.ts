@@ -113,9 +113,7 @@ export async function getAuthConfig(): Promise<NextAuthConfig> {
   return authConfig;
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth(
-  async () => await getAuthConfig(),
-);
+export const { handlers, signIn, signOut, auth } = NextAuth(async () => await getAuthConfig());
 
 declare module "next-auth" {
   interface Session {

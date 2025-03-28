@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import React from "react";
 import { Branding, Navigation } from "@toolpad/core";
-import { Dashboard, Person, Search, ThumbsUpDown } from '@mui/icons-material';
+import { Dashboard, Person, Search, ThumbsUpDown } from "@mui/icons-material";
 import { LinearProgress } from "@mui/material";
 import { NextAppProvider } from "@toolpad/core/nextjs";
 import { SessionProvider } from "next-auth/react";
-import theme from '../theme';
+import theme from "../theme";
 import ZustandProvider from "@/components/zustand-provider";
 import { auth } from "@/auth";
 
@@ -15,33 +15,32 @@ export const metadata: Metadata = {
   description: "Various examples and tests for FAST Security",
 };
 
-
 const NAVIGATION: Navigation = [
   {
-    title: 'Dashboard',
+    title: "Dashboard",
     icon: <Dashboard />,
   },
   {
-    title: 'FHIR Operations',
-    kind: 'header',
+    title: "FHIR Operations",
+    kind: "header",
   },
   {
-    segment: 'fhir',
-    title: 'All Resources',
+    segment: "fhir",
+    title: "All Resources",
     icon: <Search />,
   },
   {
-    segment: 'fhir/Patient',
-    title: 'Patients',
+    segment: "fhir/Patient",
+    title: "Patients",
     icon: <Person />,
   },
   {
-    title: 'Tests',
-    kind: 'header',
+    title: "Tests",
+    kind: "header",
   },
   {
-    segment: 'tests/scopes',
-    title: 'Scope Negotiation',
+    segment: "tests/scopes",
+    title: "Scope Negotiation",
     icon: <ThumbsUpDown />,
   },
 ];
@@ -52,7 +51,6 @@ const BRANDING: Branding = {
 };
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
-
   const session = await auth();
 
   return (
@@ -62,7 +60,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           <SessionProvider session={session}>
             <AppRouterCacheProvider options={{ enableCssLayer: true }}>
               <React.Suspense fallback={<LinearProgress />}>
-                <NextAppProvider navigation={NAVIGATION} branding={BRANDING} theme={theme} session={session}>
+                <NextAppProvider
+                  navigation={NAVIGATION}
+                  branding={BRANDING}
+                  theme={theme}
+                  session={session}
+                >
                   {props.children}
                 </NextAppProvider>
               </React.Suspense>

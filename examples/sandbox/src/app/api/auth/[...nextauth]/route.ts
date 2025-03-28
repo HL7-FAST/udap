@@ -2,11 +2,10 @@ import { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
 import { NextRequest } from "next/server";
 import { encode } from "@auth/core/jwt";
 import { SerializeOptions, serialize } from "cookie";
-import { getAuthConfig, handlers } from "@/auth"
+import { getAuthConfig, handlers } from "@/auth";
 import { getServerCertificate } from "@/lib/cert-store";
 import { UdapProfile } from "@/lib/models";
 import { discoverUdapEndpoint, getClientAssertion } from "@/lib/udap-actions";
-
 
 export async function GET(request: NextRequest): Promise<Response> {
   // console.log("GET auth: ", request.nextUrl.pathname, request.url);
@@ -17,8 +16,10 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   // console.log("GET auth:", request.url);
-  const authConfig = (await getAuthConfig()).providers.find((p) => (p as OAuthConfig<UdapProfile>).id === "udap");
-  
+  const authConfig = (await getAuthConfig()).providers.find(
+    (p) => (p as OAuthConfig<UdapProfile>).id === "udap",
+  );
+
   if (!authConfig || !authConfig.options) {
     throw new Error("No UDAP provider configured");
   }
@@ -49,7 +50,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     options.userinfo.url ??= wellKnown.userinfo_endpoint;
   }
 
-
   // TODO: implement PKCE code verifier check
 
   // const cookie = cookies.get("authjs.pkce.code_verifier");
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   // const codeVerifier = cookie.value;
 
   let hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
-  hostUrl = hostUrl.endsWith('/') ? hostUrl : hostUrl + '/';
+  hostUrl = hostUrl.endsWith("/") ? hostUrl : hostUrl + "/";
 
   const tokenParams = {
     grant_type: "authorization_code",
@@ -68,44 +68,47 @@ export async function GET(request: NextRequest): Promise<Response> {
     client_assertion: await getClientAssertion(options.clientId, options.token.url, cert),
     redirect_uri: hostUrl + "api/auth/callback/udap",
     // code_verifier: codeVerifier || "",
-    udap: "1"
-  }
+    udap: "1",
+  };
 
   const tokenResponse = await fetch(options.token.url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
+      "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams(tokenParams).toString()
+    body: new URLSearchParams(tokenParams).toString(),
   });
 
   const tokenJson = await tokenResponse.json();
   if (!tokenResponse.ok) {
-    throw new Error(`Failed to get token: (${tokenResponse.status}) ${tokenJson.error}: ${tokenJson.error_description}`);
+    throw new Error(
+      `Failed to get token: (${tokenResponse.status}) ${tokenJson.error}: ${tokenJson.error_description}`,
+    );
   }
   // console.log("GET auth token:", tokenJson);
 
-  // get user info 
+  // get user info
   let userInfoJson;
   if (options.userinfo?.url && tokenJson.scope?.split(" ").includes("profile")) {
     const userInfoResponse = await fetch(options.userinfo.url, {
       headers: {
-        Authorization: `Bearer ${tokenJson.access_token}`
-      }
+        Authorization: `Bearer ${tokenJson.access_token}`,
+      },
     });
 
     userInfoJson = await userInfoResponse.json();
     if (!userInfoResponse.ok) {
-      throw new Error(`Failed to get user info: (${userInfoResponse.status}) ${userInfoJson.error}: ${userInfoJson.error_description}`);
+      throw new Error(
+        `Failed to get user info: (${userInfoResponse.status}) ${userInfoJson.error}: ${userInfoJson.error_description}`,
+      );
     }
     // console.log("GET auth userinfo:", userInfoJson);
-
   }
 
   const token = {
     ...userInfoJson,
-    accessToken: tokenJson.access_token
-  }
+    accessToken: tokenJson.access_token,
+  };
 
   console.log("GET auth session token:", token);
 
@@ -114,7 +117,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     token,
     secret: process.env.AUTH_SECRET!,
     salt: "authjs.session-token",
-    maxAge: tokenJson.expires_in || 3600
+    maxAge: tokenJson.expires_in || 3600,
   });
 
   const sessionCookie = {
@@ -125,11 +128,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       secure: false, //process.env.NODE_ENV === "production",
       path: "/",
       sameSite: "lax",
-      maxAge: tokenJson.expires_in || 3600
-    } satisfies SerializeOptions
+      maxAge: tokenJson.expires_in || 3600,
+    } satisfies SerializeOptions,
   };
 
-  
   let redirect = cookies.get("authjs.callback-url")?.value;
   if (!redirect) {
     redirect = process.env.APP_URL ?? "http://localhost:3000/";
@@ -145,10 +147,10 @@ export async function GET(request: NextRequest): Promise<Response> {
   const response: Response = new Response(undefined, { headers: responseHeaders, status: 302 });
   console.log("GET auth response:", response);
 
-  return response;  
+  return response;
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
   // console.log("POST auth: ", request);
-  return handlers.POST(request)
+  return handlers.POST(request);
 }

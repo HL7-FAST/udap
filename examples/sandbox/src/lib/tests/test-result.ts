@@ -52,9 +52,8 @@ export function getNewStep(
   name: string,
   description: string,
   initialResult: TestStepResult = "unknown",
-  setCurrentStepKey: boolean = true
+  setCurrentStepKey: boolean = true,
 ): TestStep {
-
   if (setCurrentStepKey) {
     setCurrentTestStepKey(key);
   }
@@ -74,11 +73,7 @@ export function getOverallResultStatus(result: TestResult): TestResultStatus {
   }
 
   if (result.steps) {
-    if (
-      result.steps.some(
-        (step) => !["pass", "skip", "info"].includes(step.result),
-      )
-    ) {
+    if (result.steps.some((step) => !["pass", "skip", "info"].includes(step.result))) {
       if (result.steps.some((step) => step.result === "warn")) {
         return "fail-with-warning";
       }
@@ -90,11 +85,7 @@ export function getOverallResultStatus(result: TestResult): TestResultStatus {
   return result.status;
 }
 
-export function handleError(
-  step: TestStep,
-  e: unknown,
-  result: TestStepResult = "fail",
-): TestStep {
+export function handleError(step: TestStep, e: unknown, result: TestStepResult = "fail"): TestStep {
   step.result = result;
   step.output = e;
 

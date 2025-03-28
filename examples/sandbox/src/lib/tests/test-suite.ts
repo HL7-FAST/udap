@@ -23,10 +23,7 @@ export interface TestSuiteModel<T extends TestSuiteParams = TestSuiteParams> {
   runAllTests(
     tests: TestDefinitionModel[],
   ): AsyncGenerator<{ testKey: string; result: TestResult }>;
-  runOneTest(
-    testKey: string,
-    params?: TestDefinitionParams,
-  ): Promise<TestResult>;
+  runOneTest(testKey: string, params?: TestDefinitionParams): Promise<TestResult>;
 }
 
 export function getTestSuite<T extends TestSuiteParams>(
@@ -64,9 +61,7 @@ export function getTestSuite<T extends TestSuiteParams>(
       return results;
     },
 
-    async runOneTest(
-      testKey: string,
-    ): Promise<TestResult> {
+    async runOneTest(testKey: string): Promise<TestResult> {
       const test = this.tests.find((t) => t.model.testKey === testKey);
       if (!test) {
         throw new Error("Test not found for key:" + testKey);

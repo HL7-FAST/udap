@@ -1,15 +1,27 @@
-"use server"
+"use server";
 
-import jwt from 'jsonwebtoken';
-import * as forge from 'node-forge';
-import { P12Certificate, UdapClient, UdapClientRequest, UdapMetadata, UdapRegistration, UdapRegistrationRequest, UdapRegistrationResponse, UdapSoftwareStatement, UdapX509Header } from "./models";
-import { getPrivateKey, getX509Certficate } from './cert-store';
+import jwt from "jsonwebtoken";
+import * as forge from "node-forge";
+import {
+  P12Certificate,
+  UdapClient,
+  UdapClientRequest,
+  UdapMetadata,
+  UdapRegistration,
+  UdapRegistrationRequest,
+  UdapRegistrationResponse,
+  UdapSoftwareStatement,
+  UdapX509Header,
+} from "./models";
+import { getPrivateKey, getX509Certficate } from "./cert-store";
 
-export async function registerClient(regReq: UdapClientRequest, cert: P12Certificate): Promise<UdapClient> {
-
+export async function registerClient(
+  regReq: UdapClientRequest,
+  cert: P12Certificate,
+): Promise<UdapClient> {
   console.log("Registering client...");
   console.time("Client registration complete");
-    
+
   // discover the UDAP endpoint
   console.time("Loaded UDAP metadata");
   const udapMeta = await discoverUdapEndpoint(regReq.fhirServer);
@@ -40,13 +52,12 @@ export async function registerClient(regReq: UdapClientRequest, cert: P12Certifi
     redirectUris: regRes.redirect_uris,
     responseTypes: regRes.response_types,
     scopes: regRes.scope?.split(" "),
-  }
+  };
 
   console.timeEnd("Client registration complete");
 
   return client;
 }
-
 
 export async function discoverUdapEndpoint(baseUrl: string): Promise<UdapMetadata> {
   const url = baseUrl.replace(/\/$/, "") + "/.well-known/udap";
@@ -55,9 +66,11 @@ export async function discoverUdapEndpoint(baseUrl: string): Promise<UdapMetadat
   return udapJson;
 }
 
-
-async function buildRegister(regReq: UdapClientRequest, metadata: UdapMetadata, cert: P12Certificate): Promise<UdapRegistration> {
-
+async function buildRegister(
+  regReq: UdapClientRequest,
+  metadata: UdapMetadata,
+  cert: P12Certificate,
+): Promise<UdapRegistration> {
   const iat = Math.floor(new Date().getTime() / 1000);
   const scopes = regReq.scopes.join(" ");
   let logo_uri = regReq.logoUri;
@@ -77,83 +90,86 @@ async function buildRegister(regReq: UdapClientRequest, metadata: UdapMetadata, 
     contacts: regReq.contacts,
     logo_uri: logo_uri,
     grant_types: regReq.grantTypes,
-    response_types: (regReq.grantTypes||[]).includes("authorization_code") ? ["code"] : null,
+    response_types: (regReq.grantTypes || []).includes("authorization_code") ? ["code"] : null,
     token_endpoint_auth_method: "private_key_jwt",
-    scope: scopes
+    scope: scopes,
   } as UdapSoftwareStatement;
 
   const header: UdapX509Header = {
     alg: "RS256",
-    x5c: await getX509Certficate(cert)
+    x5c: await getX509Certficate(cert),
   };
 
   return {
     header: header,
-    softwareStatement: softwareStatement
+    softwareStatement: softwareStatement,
   };
 }
 
-
-async function buildRequestBody(register: UdapRegistration, cert: P12Certificate): Promise<UdapRegistrationRequest> {
-
+async function buildRequestBody(
+  register: UdapRegistration,
+  cert: P12Certificate,
+): Promise<UdapRegistrationRequest> {
   const token = await signJWT(register.softwareStatement, cert);
 
   return {
     software_statement: token,
-    udap: "1"
+    udap: "1",
   };
-
 }
 
-
-async function sendRegistrationRequest(registrationUrl: string, registrationBody: UdapRegistrationRequest): Promise<UdapRegistrationResponse> {
-
+async function sendRegistrationRequest(
+  registrationUrl: string,
+  registrationBody: UdapRegistrationRequest,
+): Promise<UdapRegistrationResponse> {
   const regResp = await fetch(registrationUrl, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(registrationBody)
+    body: JSON.stringify(registrationBody),
   });
 
   const regJson = await regResp.json();
   if (!regResp.ok) {
-    throw new Error(`Failed to register client: (${regResp.status}) ${regJson.error}: ${regJson.error_description}`, { cause: {status: regResp.status, body: regJson }});
+    throw new Error(
+      `Failed to register client: (${regResp.status}) ${regJson.error}: ${regJson.error_description}`,
+      { cause: { status: regResp.status, body: regJson } },
+    );
   }
-  
+
   // console.log("sendRegistrationRequest response:", regJson);
   return regJson;
 }
 
-
-
 export async function signJWT(payload: string | object, cert: P12Certificate): Promise<string> {
-
   const pk = await getPrivateKey(cert);
   if (!pk) {
     throw new Error("Could not load private key.");
   }
-  
-  const pkPem = forge.pki.privateKeyToPem(pk);
-  const x5c = (await getX509Certficate(cert)).raw.toString('base64');
-  const header = { alg: 'RS256', x5c: [x5c], typ: undefined };
 
-  const token = jwt.sign(payload, pkPem, { algorithm: 'RS256',  header: header });
+  const pkPem = forge.pki.privateKeyToPem(pk);
+  const x5c = (await getX509Certficate(cert)).raw.toString("base64");
+  const header = { alg: "RS256", x5c: [x5c], typ: undefined };
+
+  const token = jwt.sign(payload, pkPem, { algorithm: "RS256", header: header });
   // console.log('Signed JWT:', token);
 
   return token;
 }
 
-
-export async function getClientAssertion(clientId: string, tokenEndpoint: string, cert: P12Certificate): Promise<string> {
-
+export async function getClientAssertion(
+  clientId: string,
+  tokenEndpoint: string,
+  cert: P12Certificate,
+): Promise<string> {
   const body = {
     iss: clientId,
     sub: clientId,
     aud: tokenEndpoint,
     iat: Math.floor(new Date().getTime() / 1000),
     exp: Math.floor(new Date().getTime() / 1000) + 300,
-    jti: crypto.randomUUID()
+    jti: crypto.randomUUID(),
   };
 
   const token = await signJWT(body, cert);

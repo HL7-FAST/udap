@@ -37,9 +37,7 @@ export interface TestSuiteProps<T> {
   setup?: React.ReactNode;
 }
 
-export default function TestSuite<T extends TestSuiteModel>(
-  props: TestSuiteProps<T>,
-) {
+export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProps<T>) {
   const [resultStore] = useLocalStorageState<TestSessionStore>(
     TEST_SESSION_STORE_ID,
     null,
@@ -48,37 +46,42 @@ export default function TestSuite<T extends TestSuiteModel>(
   const [currentTestSessionId, setCurrentTestSessionId] = useLocalStorageState<string>(
     CURRENT_TEST_SESSION_ID_STORE_ID,
   );
-  const [testIsRunning, setTestIsRunning] = useLocalStorageState<boolean>(TEST_IS_RUNNING_STORE_ID, false, {
-    codec: {
-      parse: (data) => {
-        return data === "true";
+  const [testIsRunning, setTestIsRunning] = useLocalStorageState<boolean>(
+    TEST_IS_RUNNING_STORE_ID,
+    false,
+    {
+      codec: {
+        parse: (data) => {
+          return data === "true";
+        },
+        stringify: (data) => {
+          return data ? "true" : "false";
+        },
       },
-      stringify: (data) => {
-        return data ? "true" : "false";
-      }
-    }
-  });
+    },
+  );
   const [currentTestKey] = useLocalStorageState<string>(CURRENT_TEST_KEY_STORE_ID);
   const [currentTestStepKey] = useLocalStorageState<string>(CURRENT_TEST_STEP_KEY_STORE_ID);
-  const [lastTestResultId, setLastTestResultId] = useLocalStorageState<string>(LAST_TEST_RESULT_ID_STORE_ID);
+  const [, setLastTestResultId] = useLocalStorageState<string>(
+    LAST_TEST_RESULT_ID_STORE_ID,
+  );
   const [cancelRequested, setCancelRequested] = useState(false);
   // const [isRunning, setIsRunning] = useState(false);
   const [currentSuite, setCurrentSuite] = useState<T>(props.suite);
 
   const dialog = useDialogs();
 
-
-  
   useEffect(() => {
     setCurrentSuite(props.suite);
   }, [props.suite]);
 
-
-  async function runTests(sessionId: string, tests: AsyncGenerator<{ testKey: string; result: TestResult; }>) {
+  async function runTests(
+    sessionId: string,
+    tests: AsyncGenerator<{ testKey: string; result: TestResult }>,
+  ) {
     let waiting = false;
     // Iterate over the tests and add results to the store as they arrive
     for await (const res of await tests) {
-
       if (cancelRequested) {
         console.log("Tests have been cancelled.");
         break;
@@ -105,11 +108,7 @@ export default function TestSuite<T extends TestSuiteModel>(
    * @returns void
    */
   async function runAllTests() {
-    console.log(
-      "Running all tests in suite: ",
-      currentSuite.tests,
-      currentTestSessionId,
-    );
+    console.log("Running all tests in suite: ", currentSuite.tests, currentTestSessionId);
 
     const resultStore = getResultStore();
 
@@ -127,7 +126,7 @@ export default function TestSuite<T extends TestSuiteModel>(
         return;
       }
       setCurrentTestSessionId(testSession.id);
-    } 
+    }
     // Otherwise, get the existing session and update the session params
     else {
       const existingSession = getTestSession(currentTestSessionId);
@@ -142,19 +141,15 @@ export default function TestSuite<T extends TestSuiteModel>(
     startTests();
 
     // Async generator to run all tests in the suite
-    const tests = currentSuite.runAllTests(
-      (currentSuite.tests || []).map((t) => t.model),
-    );
+    const tests = currentSuite.runAllTests((currentSuite.tests || []).map((t) => t.model));
     runTests(testSession.id, tests);
   }
-
 
   function cancelTests() {
     setCancelRequested(true);
     stopTests();
   }
 
-  
   function startTests() {
     setCurrentTestKey("");
     setCurrentTestStepKey("");
@@ -168,7 +163,7 @@ export default function TestSuite<T extends TestSuiteModel>(
     setCurrentTestStepKey("");
   }
 
-  function clearSessionData(currentSessionId: string|null): void {
+  function clearSessionData(currentSessionId: string | null): void {
     if (!currentSessionId) {
       return;
     }
@@ -201,7 +196,6 @@ export default function TestSuite<T extends TestSuiteModel>(
       data: formattedData,
     });
   }
-
 
   return (
     <>
@@ -244,11 +238,7 @@ export default function TestSuite<T extends TestSuiteModel>(
         >
           Clear Session Data
         </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => clearAllSessions()}
-        >
+        <Button variant="contained" color="error" onClick={() => clearAllSessions()}>
           Clear All Sessions
         </Button>
         {/* <div>Running: { testIsRunning?.toString() } -- { (!!testIsRunning)?.toString() } -- { cancelRequested }</div> */}

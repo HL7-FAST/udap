@@ -1,13 +1,12 @@
 import Client from "fhir-kit-client";
 import { CapabilityStatement, OperationOutcome } from "fhir/r4";
 
-
-
-export async function getServerCapabilityStatement(fhirServer: string): Promise<CapabilityStatement> {
-
+export async function getServerCapabilityStatement(
+  fhirServer: string,
+): Promise<CapabilityStatement> {
   const client = new Client({ baseUrl: fhirServer });
-  const cs =  await client.capabilityStatement();
-  if (cs.resourceType !== 'CapabilityStatement') {
+  const cs = await client.capabilityStatement();
+  if (cs.resourceType !== "CapabilityStatement") {
     console.error("Did not receive a CapabilityStatement.  Received:", cs);
   }
   return cs as CapabilityStatement;
@@ -18,51 +17,46 @@ export function getResourceTypes(capabilityStatement: CapabilityStatement): stri
   return types || [];
 }
 
-
-
-export type OperationOutcomeSeverity = "fatal"|"error"|"warning"|"information";
+export type OperationOutcomeSeverity = "fatal" | "error" | "warning" | "information";
 
 export function getOperationOutcomeResponse(
-  diagnostics: string, 
+  diagnostics: string,
   severity: OperationOutcomeSeverity,
   code: string = "processing",
-  status: number = 200
+  status: number = 200,
 ): Response {
-
   const outcome: OperationOutcome = {
     resourceType: "OperationOutcome",
     issue: [
       {
         severity: severity,
         code: code,
-        diagnostics: diagnostics
-      }
-    ]
-  }
+        diagnostics: diagnostics,
+      },
+    ],
+  };
 
-  const response = new Response(JSON.stringify(outcome), { 
+  const response = new Response(JSON.stringify(outcome), {
     status: status,
     headers: {
-      'Content-Type': 'application/fhir+json'
-    }
+      "Content-Type": "application/fhir+json",
+    },
   });
   return response;
 }
 
-
 export function getBadRequestResponse(
-  diagnostics: string, 
+  diagnostics: string,
   severity: OperationOutcomeSeverity = "error",
-  code: string = "processing"
+  code: string = "processing",
 ) {
   return getOperationOutcomeResponse(diagnostics, severity, code, 400);
 }
 
-
 export function getInternalServerErrorResponse(
-  diagnostics: string, 
+  diagnostics: string,
   severity: OperationOutcomeSeverity = "error",
-  code: string = "processing"
+  code: string = "processing",
 ): Response {
   return getOperationOutcomeResponse(diagnostics, severity, code, 500);
 }

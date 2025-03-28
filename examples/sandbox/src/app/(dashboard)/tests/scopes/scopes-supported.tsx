@@ -21,7 +21,6 @@ export interface ScopesSupportedTestParams extends TestDefinitionParams {
 export function getScopesSupportedTest(
   params: ScopesSupportedTestParams,
 ): TestDefinitionModel<ScopesSupportedTestParams> {
-
   return {
     ...getTestDefinition<ScopesSupportedTestParams>(
       "scopes-supported",
@@ -38,14 +37,12 @@ export function getScopesSupportedTest(
     ),
 
     async before(): Promise<BeforeTestOutcome> {
-
       // fhirServer parameter is required
       if (!params || !params.fhirServer || params.fhirServer.trim() === "") {
         return {
           success: false,
           isFatal: true,
-          message:
-            "The parameter `fhirServer` is not set.  Test cannot proceed.",
+          message: "The parameter `fhirServer` is not set.  Test cannot proceed.",
         };
       }
 
@@ -104,10 +101,7 @@ export function getScopesSupportedTest(
       result.steps.push(step);
       let hasScopes = false;
 
-      if (
-        typeof udapMetadata === "object" &&
-        "scopes_supported" in udapMetadata
-      ) {
+      if (typeof udapMetadata === "object" && "scopes_supported" in udapMetadata) {
         if ((udapMetadata.scopes_supported || []).length > 0) {
           step.result = "pass";
           step.message =
@@ -120,8 +114,7 @@ export function getScopesSupportedTest(
         }
       } else {
         step.result = "fail";
-        step.message =
-          "The scopes_supported field is missing from the UDAP well-known endpoint.";
+        step.message = "The scopes_supported field is missing from the UDAP well-known endpoint.";
       }
       step.dateCompleted = new Date();
 
@@ -129,22 +122,22 @@ export function getScopesSupportedTest(
       step = getNewStep(
         "check-for-wildcard-scopes",
         "Check for Wildcard Scopes",
-        formatMarkdownDescription("Check if `the scopes_supported` field contains wildcard scopes."),
+        formatMarkdownDescription(
+          "Check if `the scopes_supported` field contains wildcard scopes.",
+        ),
       );
       result.steps.push(step);
 
       if (hasScopes) {
         step.result = "info";
         const wildcardScopes = (
-          (udapMetadata as { scopes_supported: string[] }).scopes_supported ||
-          []
+          (udapMetadata as { scopes_supported: string[] }).scopes_supported || []
         ).filter((scope: string) => scope.includes("/*"));
         if (wildcardScopes.length > 0) {
           step.output = wildcardScopes;
           step.message = "The scopes_supported field contains wildcard scopes.";
         } else {
-          step.message =
-            "The scopes_supported field does not contain any wildcard scopes.";
+          step.message = "The scopes_supported field does not contain any wildcard scopes.";
         }
       } else {
         step.result = "skip";
@@ -158,21 +151,18 @@ export function getScopesSupportedTest(
     },
 
     async after(result: TestResult): Promise<BeforeTestOutcome> {
-
       // set the udap discovery document for other tests
       const udap = result.steps.find((s) => s.key === "fetch-udap-well-known-endpoint")?.output;
       if (udap) {
         setCurrentTestSessionParam("udapWellknown", udap);
       }
-      
+
       return { success: true };
     },
   };
 }
 
-export default function ScopesSupportedTest(
-  props: TestDefinitionModel<ScopesSupportedTestParams>,
-) {
+export default function ScopesSupportedTest(props: TestDefinitionModel<ScopesSupportedTestParams>) {
   return (
     <>
       <TestDefinition test={props} />

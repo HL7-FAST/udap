@@ -29,11 +29,7 @@ import {
 } from "@mui/icons-material";
 import RawOutputDialog from "../dialogs/raw-dialog";
 import CollapsibleMarkdown from "../collapsible-markdown";
-import {
-  TestResult,
-  TestResultStatus,
-  TestStepResult,
-} from "@/lib/tests/test-result";
+import { TestResult, TestResultStatus, TestStepResult } from "@/lib/tests/test-result";
 import {
   CURRENT_TEST_KEY_STORE_ID,
   CURRENT_TEST_SESSION_ID_STORE_ID,
@@ -43,7 +39,6 @@ import {
 import TestDefinitionModel from "@/lib/tests/test-definition";
 import {
   TestSessionStore,
-  clearSessionTestResultsFromStore,
   getTestResultsForSession,
   testResultStoreOptions,
 } from "@/lib/tests/test-store";
@@ -61,19 +56,11 @@ export default function TestDefinition<T extends TestDefinitionModel>(
     null,
     testResultStoreOptions,
   );
-  const [currentTestSessionId] = useLocalStorageState<string>(
-    CURRENT_TEST_SESSION_ID_STORE_ID,
-  );
-  const [currentTestKey] = useLocalStorageState<string>(
-    CURRENT_TEST_KEY_STORE_ID,
-  );
-  const [currentTestStepKey] = useLocalStorageState<string>(
-    CURRENT_TEST_KEY_STORE_ID,
-  );
+  const [currentTestSessionId] = useLocalStorageState<string>(CURRENT_TEST_SESSION_ID_STORE_ID);
+  const [currentTestKey] = useLocalStorageState<string>(CURRENT_TEST_KEY_STORE_ID);
+  const [currentTestStepKey] = useLocalStorageState<string>(CURRENT_TEST_KEY_STORE_ID);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
-  const [lastTestResultId] = useLocalStorageState<string>(
-    LAST_TEST_RESULT_ID_STORE_ID,
-  );
+  const [lastTestResultId] = useLocalStorageState<string>(LAST_TEST_RESULT_ID_STORE_ID);
   const [openTestResults, setOpenIndexes] = useState<number[]>([]);
 
   const dialog = useDialogs();
@@ -83,10 +70,7 @@ export default function TestDefinition<T extends TestDefinitionModel>(
     if (!currentTestSessionId) {
       return;
     }
-    const results = getTestResultsForSession(
-      currentTestSessionId,
-      props.test.testKey,
-    );
+    const results = getTestResultsForSession(currentTestSessionId, props.test.testKey);
     if (results) {
       setTestResults(results);
     }
@@ -98,15 +82,6 @@ export default function TestDefinition<T extends TestDefinitionModel>(
     lastTestResultId,
     resultStore,
   ]);
-
-  function clearResults() {
-    if (props.test.params.suiteKey) {
-      clearSessionTestResultsFromStore(
-        props.test.params.suiteKey,
-        props.test.testKey,
-      );
-    }
-  }
 
   function toggleTestResultCollapse(index: number) {
     setOpenIndexes((prevOpenIndexes) =>
@@ -160,17 +135,10 @@ export default function TestDefinition<T extends TestDefinitionModel>(
     <>
       <h3>{props.test.name}</h3>
 
-      <Alert
-        severity="info"
-        variant="outlined"
-        sx={{ marginY: 2, minWidth: 1 }}
-        icon={<Science />}
-      >
+      <Alert severity="info" variant="outlined" sx={{ marginY: 2, minWidth: 1 }} icon={<Science />}>
         <AlertTitle>Test Description</AlertTitle>
         <CollapsibleMarkdown
-          markdown={
-            props.test.description || "No description for this test provided."
-          }
+          markdown={props.test.description || "No description for this test provided."}
         />
       </Alert>
       {
@@ -184,11 +152,7 @@ export default function TestDefinition<T extends TestDefinitionModel>(
           }}
         >
           {(testResults || []).map((result, i) => (
-            <List
-              key={i}
-              component="div"
-              sx={{ width: "100%", bgcolor: "background.paper" }}
-            >
+            <List key={i} component="div" sx={{ width: "100%", bgcolor: "background.paper" }}>
               <ListItemButton onClick={() => toggleTestResultCollapse(i)}>
                 <Stack direction="row" spacing={2} width="100%">
                   {getTestResultIcon(result.status)}
@@ -228,66 +192,39 @@ export default function TestDefinition<T extends TestDefinitionModel>(
                           padding: 2,
                         }}
                       >
-                        <Stack
-                          direction="row"
-                          spacing={2}
-                          alignItems="flex-start"
-                          width={1}
-                        >
-                          <Stack
-                            direction="column"
-                            spacing={2}
-                            alignItems="flex-start"
-                          >
+                        <Stack direction="row" spacing={2} alignItems="flex-start" width={1}>
+                          <Stack direction="column" spacing={2} alignItems="flex-start">
                             <Tooltip
-                              title={
-                                step.result
-                                  ? "View step result"
-                                  : "No step result available"
-                              }
+                              title={step.result ? "View step result" : "No step result available"}
                             >
                               <span>
                                 <IconButton
                                   disabled={!step.result}
-                                  onClick={() =>
-                                    viewOutput(step, "Step Result Data")
-                                  }
+                                  onClick={() => viewOutput(step, "Step Result Data")}
                                 >
                                   {getTestStepResultIcon(step.result)}
                                 </IconButton>
                               </span>
                             </Tooltip>
                             <Tooltip
-                              title={
-                                step.input
-                                  ? "View step input"
-                                  : "No step input available"
-                              }
+                              title={step.input ? "View step input" : "No step input available"}
                             >
                               <span>
                                 <IconButton
                                   disabled={!step.input}
-                                  onClick={() =>
-                                    viewOutput(step.input, "Step Input")
-                                  }
+                                  onClick={() => viewOutput(step.input, "Step Input")}
                                 >
                                   <Input />
                                 </IconButton>
                               </span>
                             </Tooltip>
                             <Tooltip
-                              title={
-                                step.output
-                                  ? "View step output"
-                                  : "No step output available"
-                              }
+                              title={step.output ? "View step output" : "No step output available"}
                             >
                               <span>
                                 <IconButton
                                   disabled={!step.output}
-                                  onClick={() =>
-                                    viewOutput(step.output, "Step Output")
-                                  }
+                                  onClick={() => viewOutput(step.output, "Step Output")}
                                 >
                                   <Output />
                                 </IconButton>
@@ -295,12 +232,7 @@ export default function TestDefinition<T extends TestDefinitionModel>(
                             </Tooltip>
                           </Stack>
 
-                          <Stack
-                            direction="column"
-                            spacing={2}
-                            alignItems="flex-start"
-                            width={1}
-                          >
+                          <Stack direction="column" spacing={2} alignItems="flex-start" width={1}>
                             <Typography variant="h6">{step.name}</Typography>
                             <Alert
                               severity="info"
@@ -309,10 +241,7 @@ export default function TestDefinition<T extends TestDefinitionModel>(
                               icon={<DescriptionOutlined />}
                             >
                               <AlertTitle>Step Result</AlertTitle>
-                              <CollapsibleMarkdown
-                                markdown={step.description}
-                                trimLength={100}
-                              />
+                              <CollapsibleMarkdown markdown={step.description} trimLength={100} />
                             </Alert>
                             <CollapsibleMarkdown
                               markdown={step.message || "No message provided."}

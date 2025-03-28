@@ -33,14 +33,7 @@ export function getFhirDataSource(
     ],
 
     getMany: async ({ paginationModel, filterModel, sortModel }) => {
-      console.log(
-        "getMany:",
-        paginationModel,
-        filterModel,
-        sortModel,
-        fhirServer,
-        resourceType,
-      );
+      console.log("getMany:", paginationModel, filterModel, sortModel, fhirServer, resourceType);
 
       if (!fhirServer || !resourceType) {
         return {
@@ -62,16 +55,12 @@ export function getFhirDataSource(
           if (query.status === 401) {
             if (handleError) {
               if (
-                query.headers
-                  .get("content-type")
-                  ?.includes("application/json") ||
-                query.headers
-                  .get("content-type")
-                  ?.includes("application/fhir+json")
+                query.headers.get("content-type")?.includes("application/json") ||
+                query.headers.get("content-type")?.includes("application/fhir+json")
               ) {
                 handleError(await query.json());
               } else {
-                handleError(new Error("Unauthorized: " + await query.text()));
+                handleError(new Error("Unauthorized: " + (await query.text())));
               }
             } else {
               console.error("Unauthorized.  Please login again.");
