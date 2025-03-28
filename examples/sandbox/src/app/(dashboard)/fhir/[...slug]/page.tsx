@@ -26,7 +26,6 @@ export default function FhirPage() {
   }, [params]);
 
   useEffect(() => {
-    console.log("Registering datasource", fhirServer, resourceType);
     if (!fhirServer || !resourceType) {
       setDataSource(undefined);
       return;
@@ -35,8 +34,8 @@ export default function FhirPage() {
   }, [fhirServer, resourceType, session]);
 
   useEffect(() => {
-    console.log("Data source changed:", dataSource);
-  }, [dataSource]);
+    fhirDataCache.clear();
+  }, [resourceType]);
 
   function handleError(e: unknown) {
     // console.error("Error:", e);

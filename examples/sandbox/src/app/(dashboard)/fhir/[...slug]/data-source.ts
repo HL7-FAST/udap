@@ -32,8 +32,8 @@ export function getFhirDataSource(
       },
     ],
 
-    getMany: async ({ paginationModel, filterModel, sortModel }) => {
-      console.log("getMany:", paginationModel, filterModel, sortModel, fhirServer, resourceType);
+    getMany: async (/*{ paginationModel, filterModel, sortModel }*/) => {
+      // console.log("getMany:", paginationModel, filterModel, sortModel, fhirServer, resourceType);
 
       if (!fhirServer || !resourceType) {
         return {

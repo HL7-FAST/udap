@@ -62,9 +62,7 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
   );
   const [currentTestKey] = useLocalStorageState<string>(CURRENT_TEST_KEY_STORE_ID);
   const [currentTestStepKey] = useLocalStorageState<string>(CURRENT_TEST_STEP_KEY_STORE_ID);
-  const [, setLastTestResultId] = useLocalStorageState<string>(
-    LAST_TEST_RESULT_ID_STORE_ID,
-  );
+  const [, setLastTestResultId] = useLocalStorageState<string>(LAST_TEST_RESULT_ID_STORE_ID);
   const [cancelRequested, setCancelRequested] = useState(false);
   // const [isRunning, setIsRunning] = useState(false);
   const [currentSuite, setCurrentSuite] = useState<T>(props.suite);
