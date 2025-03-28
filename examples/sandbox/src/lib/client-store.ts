@@ -59,7 +59,7 @@ export async function getDefaultClient(): Promise<UdapClient> {
     issuer: hostUrl,
     clientName: "FAST Security Sandbox Client",
     contacts: ["mailto:tester@localhost"],
-    scopes: ["openid fhirUser profile user/*.rs user/*.read"],
+    scopes: ["openid", "fhirUser", "profile", "user/*.rs", "user/*.read"],
     // redirectUris: [hostUrl],
     redirectUris: [hostUrl + "api/auth/callback/udap"],
     // redirectUris: [hostUrl + "api/auth/udap"], // custom callback route for now

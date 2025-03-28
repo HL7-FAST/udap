@@ -24,14 +24,6 @@ export default function CollapsibleMarkdown(
   } = props;
 
   return (
-    // <Alert
-    //   severity={severity}
-    //   variant={variant}
-    //   sx={{ marginY: 2, minWidth: 1 }}
-    //   icon={props.icon}
-    // >
-    //   <AlertTitle>{title}</AlertTitle>
-    // </Alert>
 
     <Stack direction="row" spacing={2} alignItems="self-end">
       {!descriptionOpen ? (

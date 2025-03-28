@@ -239,14 +239,24 @@ export default function TestDefinition<T extends TestDefinitionModel>(
                             spacing={2}
                             alignItems="flex-start"
                           >
-                            <IconButton
-                              title="View Step Result Data"
-                              onClick={() =>
-                                viewOutput(step, "Step Result Data")
+                            <Tooltip
+                              title={
+                                step.result
+                                  ? "View step result"
+                                  : "No step result available"
                               }
                             >
-                              {getTestStepResultIcon(step.result)}
-                            </IconButton>
+                              <span>
+                                <IconButton
+                                  disabled={!step.result}
+                                  onClick={() =>
+                                    viewOutput(step, "Step Result Data")
+                                  }
+                                >
+                                  {getTestStepResultIcon(step.result)}
+                                </IconButton>
+                              </span>
+                            </Tooltip>
                             <Tooltip
                               title={
                                 step.input

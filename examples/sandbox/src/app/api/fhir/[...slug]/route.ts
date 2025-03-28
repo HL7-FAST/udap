@@ -38,7 +38,10 @@ export async function GET(
     return getBadRequestResponse("No FHIR server specified");
   }
 
-  const client = new Client({baseUrl: fhirServer, bearerToken: session?.accessToken});
+  const client = new Client({baseUrl: fhirServer});
+  if (session?.accessToken) {
+    client.bearerToken = session.accessToken;
+  }
 
   // console.log('client:', client.customHeaders);
 
