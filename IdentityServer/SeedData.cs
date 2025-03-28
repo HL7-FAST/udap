@@ -2,12 +2,15 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Models;
+using IdentityServer.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Serilog;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using Udap.Common.Extensions;
 using Udap.Model;
+using Udap.Server.Configuration;
 using Udap.Server.DbContexts;
 using Udap.Server.Entities;
 using Udap.Server.Models;
@@ -19,7 +22,7 @@ namespace IdentityServer
 
     // seeding from https://github.com/udap-tools/udap-dotnet/blob/ada14f200032e84fd69e569801d8d66afe4266b5/migrations/UdapDb.SqlServer/SeedData.Auth.Server.cs
 
-    public class SeedData
+    public class SeedData()
     {
         public static async Task InitializeDatabase(WebApplication app)
         {
@@ -30,6 +33,7 @@ namespace IdentityServer
                 var configContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
                 var udapContext = scope.ServiceProvider.GetRequiredService<UdapDbContext>();
                 var clientRegistrationStore = scope.ServiceProvider.GetRequiredService<IUdapClientRegistrationStore>();
+                var appConfig = app.Configuration.GetOption<AppConfig>(nameof(AppConfig));
 
                 // handle migrations
                 await persistedGrantContext.Database.MigrateAsync();
@@ -39,7 +43,7 @@ namespace IdentityServer
                 // seed data
                 await SeedIdentityResources(configContext);
                 await SeedFhirScopes(configContext);
-                await SeedCommunities(udapContext, clientRegistrationStore);
+                await SeedCommunities(udapContext, clientRegistrationStore, appConfig);
             }
         }
 
@@ -105,7 +109,7 @@ namespace IdentityServer
         }
 
 
-        private static async Task SeedCommunities(UdapDbContext udapContext, IUdapClientRegistrationStore clientRegistrationStore)
+        private static async Task SeedCommunities(UdapDbContext udapContext, IUdapClientRegistrationStore clientRegistrationStore, AppConfig appConfig)
         {
 
             Log.Debug("Seeding communities from CertStore");
@@ -137,6 +141,49 @@ namespace IdentityServer
                     Log.Error(ex, $"Failed to load anchor certificate for community {dirName}");
                 }
             }
+
+            // Check for additional anchors from configuration
+            if (appConfig.Anchors is not null)
+            {
+                Log.Debug("Seeding anchors from app config");
+
+                foreach (var anchorConfig in appConfig.Anchors)
+                {
+
+                    // check if file appears to be base64 encoded
+                    try
+                    {
+                        // Check if the string contains only valid base64 characters
+                        var buffer = Convert.FromBase64String(anchorConfig.AnchorFile);
+                        var anchorCertificate = X509CertificateLoader.LoadCertificate(buffer);
+                        communities.Add(new Tuple<string, X509Certificate2>(anchorConfig.Community, anchorCertificate));
+                        continue;
+                    }
+                    catch
+                    {
+                    }
+
+
+                    // otherwise assume it's a file path
+                    var anchorFile = Path.Combine(certificateStoreFullPath, anchorConfig.AnchorFile);
+                    if (!File.Exists(anchorFile))
+                    {
+                        Log.Warning($"Skipping {anchorConfig.Community} because anchor file {anchorConfig.AnchorFile} was not found");
+                        continue;
+                    }
+                    try
+                    {
+                        var anchorCertificate = X509CertificateLoader.LoadCertificateFromFile(anchorFile);
+                        communities.Add(new Tuple<string, X509Certificate2>(anchorConfig.Community, anchorCertificate));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Failed to load anchor certificate for community {anchorConfig.Community}");
+                    }
+                }
+            }
+
+
 
             // Add communities to the database
             foreach (var communityName in communities.Select(c => c.Item1))

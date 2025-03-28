@@ -13,5 +13,13 @@
         public string FhirLabsJitCertUrl { get; set; }
         public string DefaultCertPassword { get; set; } = "udap-test";
 
+        public AnchorConfig[] Anchors { get; set; }
+    }
+
+
+    public class AnchorConfig
+    {
+        public string AnchorFile { get; set; }
+        public string Community { get; set; }
     }
 }
