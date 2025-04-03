@@ -1,8 +1,7 @@
-version: '3.4'
 
 services:
   identityserver:
-    image: ${DOCKER_REGISTRY-}identityserver
+    image: fast-udap-security
     build:
       context: .
       dockerfile: IdentityServer/Dockerfile
@@ -11,7 +10,11 @@ services:
       - "5001:443"
     environment:
       - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - AppConfig__SeedData=true
       - AppConfig__UdapIdpBaseUrl=https://localhost:5001
-      - AppConfig__SeedData=false
       - AppConfig__SystemAdminPassword=Password1
       - AppConfig__UdapAdminPassword=Password1
+    volumes:
+    - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+    - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
