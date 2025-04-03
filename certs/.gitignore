@@ -1,0 +1,5 @@
+*
+!.gitignore
+!localCA.crt
+!localhost.pfx
+!local-client-cert.pfx

@@ -1,0 +1,76 @@
+
+# Stands up a full local environment for the FAST UDAP server and the
+# FAST Identity Matching server and client reference implementations:
+#   - https://github.com/HL7-FAST/identity-matching
+#   - https://github.com/HL7-FAST/identity-matching-ui
+#
+# This uses prebuilt images from the HL7 Docker Hub repository
+
+name: fast-security-identity
+
+services:
+
+  # FAST UDAP Identity Server
+  authserver:
+    # using the default prebuilt image
+    image: hlseven/fast-udap-security:latest
+    # ... alternatively, you can build the image from the local source code
+    # build:
+    #   context: ../../
+    #   dockerfile: IdentityServer/Dockerfile
+    ports:
+      # - "5000:80"
+      - "5001:443"
+    environment:
+      # By default only HTTPS is enabled using the default self-signed certificate
+      - ASPNETCORE_URLS=https://+:443
+      # You may instead want to enable HTTP if you want to put this behind 
+      # - ASPNETCORE_URLS=https://+:443;http://+:80
+
+      # Additional default environment variables to seed the database and set the base URL
+      - AppConfig__SeedData=true
+      - AppConfig__UdapIdpBaseUrl=https://localhost:5001
+      - AppConfig__SystemAdminPassword=admin
+      - AppConfig__UdapAdminPassword=udap
+
+      # The following are already set in the image, but you can override them if using your own server certificate
+      # - ASPNETCORE_Kestrel__Certificates__Default__Password=udap-test
+      # - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/custom-cert.pfx
+    
+    # volumes:
+    #   - ../../certs:/certs
+
+
+  # FAST Identity Matching Server RI
+  identitymatching:
+    image: hlseven/fast-identity-matching:hapi
+    ports:
+      - "8080:8080"
+    environment:
+
+      # By default the included auth server uses a self-signed certificate that the identity matching server won't trust
+      # SSL verification is turned off by default, but you can turn it on if you are using your own certificate or 
+      - SECURITY_SSL_VERIFY=false
+      - SECURITY_ISSUER=https://host.docker.internal:5001
+      
+      # If you are supplying your own certificate, set SECURITY_CERT_FILE and SECURITY_CERT_PASSWORD
+      # The cert file variable can be a file path in a mapped volume to the certificate or a base64 encoded string of the certificate
+      - SECURITY_CERT_FILE=/certs/local-client-cert.pfx
+      - SECURITY_CERT_PASSWORD=udap-test
+
+      # Turn on if you want to fetch a default testing certificate from the UDAP server
+      - SECURITY_FETCH_CERT=false
+
+    # Mounting the certificate volume by default, adjust as needed if using your own certificate
+    volumes:
+      - ../../certs:/certs
+
+
+  # FAST Identity Matching Client RI
+  identitymatching-ui:
+    image: hlseven/fast-identity-matching-ui:latest
+    ports:
+      - "4200:80"
+    environment:
+      - BASE_API_URL=http://localhost:8080/fhir
+
