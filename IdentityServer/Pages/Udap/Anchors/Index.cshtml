@@ -54,7 +54,7 @@
                             <td>@anchor.BeginDate.ToString("yyyy-MM-dd")</td>
                             <td>@anchor.EndDate.ToString("yyyy-MM-dd")</td>
                             <td>
-                                @if (anchor.Community.Name != "EmrDirect")
+                                @if (anchor.Community.Name != "EmrDirect" && anchor.Community.Name != "FastCA")
                                 {
                                     <a asp-page="/Udap/Anchors/Delete" asp-route-id="@anchor.AnchorId" class="btn btn-danger">Delete</a>
                                 }

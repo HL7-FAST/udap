@@ -2,5 +2,11 @@
 !.gitignore
 !/EmrDirect
 !/EmrDirect/*
+!/FastCA
+!/FastCA/FastCA.crt
+!/FastCA/crl
+!/FastCA/crl/*.crl
+!/FastCA/intermediates
+!/FastCA/intermediates/FastSubCA.crt
 !/SureFireLabs
 !/SureFireLabs/*

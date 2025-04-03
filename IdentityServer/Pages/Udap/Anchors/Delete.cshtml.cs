@@ -20,7 +20,7 @@ namespace IdentityServer.Pages.Udap.Anchors
         {
             InputModel = await _repository.GetByIdAsync(id);
 
-            if (InputModel == null || InputModel.Community.Name == "EmrDirect")
+            if (InputModel == null || InputModel.Community.Name == "EmrDirect" || InputModel.Community.Name == "FastCA")
             {
                 return RedirectToPage("/Udap/Anchors/Index");
             }
