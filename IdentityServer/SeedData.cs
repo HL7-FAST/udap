@@ -3,6 +3,7 @@ using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Models;
 using IdentityServer.Models;
+using IdentityServer.Shared.x509;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -118,6 +119,7 @@ namespace IdentityServer
             var communities = new List<Tuple<string, X509Certificate2>>();
             var certificateStorePath = "CertStore";
             var certificateStoreFullPath = Path.Combine(assemblyPath!, certificateStorePath);
+            var intermediatesToLoad = new List<X509Certificate2>();
 
 
             // Scan CertStore directory for communities
@@ -140,6 +142,33 @@ namespace IdentityServer
                 {
                     Log.Error(ex, $"Failed to load anchor certificate for community {dirName}");
                 }
+
+                // load any intermediates
+                if (!Directory.Exists(directory + "/intermediates"))
+                {
+                    Log.Debug($"No intermediates found for {dirName}");
+                    continue;
+                }
+                var intermediates = Directory.GetFiles(directory + "/intermediates", "*.cer").Union(Directory.GetFiles(directory + "/intermediates", "*.crt"));
+                Log.Information($"Found {intermediates.Count()} intermediate certificates in {dirName}");
+                foreach (var intermediateFile in intermediates)
+                {
+                    try
+                    {
+                        var intermediateCertificate = X509CertificateLoader.LoadCertificateFromFile(intermediateFile);
+                        if (intermediateCertificate is null)
+                        {
+                            Log.Warning($"Could not load intermediate certificate from {intermediateFile}");
+                            continue;
+                        }
+                        intermediatesToLoad.Add(intermediateCertificate);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Failed to load intermediate certificate for community {dirName}");
+                    }
+                }
+
             }
 
             // Check for additional anchors from configuration
@@ -149,37 +178,13 @@ namespace IdentityServer
 
                 foreach (var anchorConfig in appConfig.Anchors)
                 {
-
-                    // check if file appears to be base64 encoded
-                    try
+                    var cert = CertUtil.LoadFromFileOrEncoded(anchorConfig.AnchorFile);
+                    if (cert is null)
                     {
-                        // Check if the string contains only valid base64 characters
-                        var buffer = Convert.FromBase64String(anchorConfig.AnchorFile);
-                        var anchorCertificate = X509CertificateLoader.LoadCertificate(buffer);
-                        communities.Add(new Tuple<string, X509Certificate2>(anchorConfig.Community, anchorCertificate));
+                        Log.Warning($"Could not load certificate from {anchorConfig.AnchorFile}");
                         continue;
                     }
-                    catch
-                    {
-                    }
-
-
-                    // otherwise assume it's a file path
-                    var anchorFile = Path.Combine(certificateStoreFullPath, anchorConfig.AnchorFile);
-                    if (!File.Exists(anchorFile))
-                    {
-                        Log.Warning($"Skipping {anchorConfig.Community} because anchor file {anchorConfig.AnchorFile} was not found");
-                        continue;
-                    }
-                    try
-                    {
-                        var anchorCertificate = X509CertificateLoader.LoadCertificateFromFile(anchorFile);
-                        communities.Add(new Tuple<string, X509Certificate2>(anchorConfig.Community, anchorCertificate));
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, $"Failed to load anchor certificate for community {anchorConfig.Community}");
-                    }
+                    communities.Add(new Tuple<string, X509Certificate2>(anchorConfig.Community, cert));
                 }
             }
 
@@ -235,6 +240,35 @@ namespace IdentityServer
                 }
             }
 
+            // Add any intermediates found
+            if (intermediatesToLoad.Count > 0)
+            {
+                
+                foreach (var cert in intermediatesToLoad)
+                {
+                    var anchor = await udapContext.Anchors.Where(a => a.Name == cert.Issuer).FirstOrDefaultAsync();
+                    if (anchor is null)
+                    {
+                        Log.Error($"Failed to find anchor for intermediate certificate {cert.Subject} in database while attempting to import intermediate.");
+                        continue;
+                    }
+
+                    var intermediate = new Intermediate
+                    {
+                        BeginDate = cert.NotBefore.ToUniversalTime(),
+                        EndDate = cert.NotAfter.ToUniversalTime(),
+                        Name = cert.Subject,
+                        X509Certificate = cert.ToPemFormat(),
+                        Thumbprint = cert.Thumbprint,
+                        Enabled = true,
+                        Anchor = anchor,
+                    };
+
+                    udapContext.IntermediateCertificates.Add(intermediate);
+                }
+                await udapContext.SaveChangesAsync();
+
+            }
 
         }
 

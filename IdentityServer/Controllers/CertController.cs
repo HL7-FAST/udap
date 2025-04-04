@@ -1,4 +1,5 @@
 ﻿using IdentityServer.Models;
+using IdentityServer.Shared.x509;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -34,12 +35,69 @@ namespace IdentityServer.Controllers
             }
 
             Log.Information($"Generating certificate for altNames: {string.Join(", ", request.AltNames)}");
+            string password = request.Password ?? appConfig.DefaultCertPassword;
+            request.Provider = request.Provider == 0 ? CertGenerationProvider.Local : request.Provider;
+
+            if (request.Provider == CertGenerationProvider.FhirLabs)
+            {
+                return await ProxyToFhirLabs(request.AltNames, password);
+            }
+
+            return await GenerateCertificateAsync(request.AltNames, password);
+        }
+
+
+        public async Task<IActionResult> GenerateCertificateAsync(List<string> altNames, string password)
+        {
+
+            var rootCert = CertUtil.LoadFromFileOrEncoded(appConfig.RootCertFile, true, appConfig.RootCertPassword);
+            var intermediateCert = CertUtil.LoadFromFileOrEncoded(appConfig.IntermediateCertFile, true, appConfig.IntermediateCertPassword);
+
+            if (rootCert == null)
+            {
+                return BadRequest("Could not load root certificate");
+            }
+            if (intermediateCert == null)
+            {
+                return BadRequest("Could not load intermediate certificate");
+            }
+
+            var x500Builder = new X500DistinguishedNameBuilder();
+            x500Builder.AddCommonName(altNames.First());
+            x500Builder.AddOrganizationalUnitName("UDAP Testing");
+            x500Builder.AddOrganizationName("FAST Security");
+            x500Builder.AddLocalityName("Locality");
+            x500Builder.AddStateOrProvinceName("State");
+            x500Builder.AddCountryOrRegion("US");
+
+            var distinguishedName = x500Builder.Build();
+
+            var certTooling = new CertificateTooling();
+
+            var rsaCertificate = certTooling.BuildUdapClientCertificate(
+                intermediateCert,
+                rootCert,
+                intermediateCert.GetRSAPrivateKey()!,
+                distinguishedName,
+                altNames,
+                "http://udap-security.fast.hl7.org/certs/FastCA/crl/FastSubCA.crl",
+                "http://udap-security.fast.hl7.org/certs/FastCA/intermediates/FastSubCA.crt",
+                DateTimeOffset.UtcNow.AddDays(-1),
+                DateTimeOffset.UtcNow.AddYears(2),
+                password
+            );
+
+            return File(rsaCertificate, "application/x-pkcs12", "client-cert.pfx");
+        }
+
+
+        public async Task<IActionResult> ProxyToFhirLabs(List<string> altNames, string password)
+        {
+
+            Log.Information($"Proxy request to FhirLabs for altNames: {string.Join(", ", altNames)}");
 
             string fhirLabsJitCertUrl = appConfig.FhirLabsJitCertUrl;
-            string password = request.Password ?? appConfig.DefaultCertPassword;
 
-            List<string> altNames = request.AltNames.Select(n => n.TrimEnd('/')).ToList();
-             
             string queryString = string.Join("&", altNames.Select(n => $"subjAltNames={Uri.EscapeDataString(n)}"));
             queryString += $"&password={password}";
             string url = $"{fhirLabsJitCertUrl}?{queryString}";
@@ -51,7 +109,7 @@ namespace IdentityServer.Controllers
             var bytes = Convert.FromBase64String(contentBase64);
 
             return File(bytes, "application/x-pkcs12", "client-cert.pfx");
-        }
 
+        }
     }
 }

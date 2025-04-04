@@ -13,6 +13,12 @@
         public string FhirLabsJitCertUrl { get; set; }
         public string DefaultCertPassword { get; set; } = "udap-test";
 
+        public string RootCertFile { get; set; }
+        public string RootCertPassword { get; set; } = "udap-test";
+        public string IntermediateCertFile { get; set; }
+        public string IntermediateCertPassword { get; set; } = "udap-test";
+
+
         public AnchorConfig[] Anchors { get; set; }
     }
 
