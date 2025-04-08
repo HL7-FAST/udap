@@ -2,8 +2,6 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-COPY ../certs/localCA.crt /etc/ssl/certs
-RUN update-ca-certificates
 EXPOSE 80
 EXPOSE 443
 
@@ -23,7 +21,19 @@ RUN dotnet publish "./IdentityServer.csproj" -c $BUILD_CONFIGURATION -o /app/pub
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# local default certificate for HTTPS support
 COPY ../certs/localhost.pfx .
 ENV ASPNETCORE_Kestrel__Certificates__Default__Password="udap-test"
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path="/app/localhost.pfx"
+
+# default local root and intermediate CA certs for cert generation endpoint
+COPY ../certs/LocalCA.pfx .
+COPY ../certs/LocalSubCA.pfx .
+ENV AppConfig__RootCertFile="/app/LocalCA.pfx"
+ENV AppConfig__IntermediateCertFile="/app/LocalSubCA.pfx"
+ENV AppConfig__RootCertPassword="udap-test"
+ENV AppConfig__IntermediateCertPassword="udap-test"
+
+
 ENTRYPOINT ["dotnet", "IdentityServer.dll"]

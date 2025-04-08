@@ -30,8 +30,9 @@ namespace IdentityServer.Shared.x509
                 cert = X509CertificateLoader.LoadCertificate(buffer);
                 return cert;
             }
-            catch
+            catch (Exception e)
             {
+                Log.Debug($"File {file} does not appear to be base64 encoded: {e.Message}");
             }
 
             // otherwise assume it's a file path
