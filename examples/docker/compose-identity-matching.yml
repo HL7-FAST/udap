@@ -15,6 +15,7 @@ services:
     # using the default prebuilt image
     image: hlseven/fast-udap-security:latest
     # ... alternatively, you can build the image from the local source code
+    # image: fast-udap-security
     # build:
     #   context: ../../
     #   dockerfile: IdentityServer/Dockerfile
@@ -24,46 +25,53 @@ services:
     environment:
       # By default only HTTPS is enabled using the default self-signed certificate
       - ASPNETCORE_URLS=https://+:443
-      # You may instead want to enable HTTP if you want to put this behind 
+      # You may instead want to enable HTTP if you want to put this behind a reverse proxy.
+      # Adjust the above port mapping as needed
       # - ASPNETCORE_URLS=https://+:443;http://+:80
 
-      # Additional default environment variables to seed the database and set the base URL
-      - AppConfig__SeedData=true
-      - AppConfig__UdapIdpBaseUrl=https://localhost:5001
-      - AppConfig__SystemAdminPassword=admin
-      - AppConfig__UdapAdminPassword=udap
+      # Additional default environment variables to seed the database and set the base URL could be changed here
+      # - AppConfig__SeedData=true
+      # - AppConfig__UdapIdpBaseUrl=https://localhost:5001
+      # - AppConfig__SystemAdminPassword=admin
+      # - AppConfig__UdapAdminPassword=udap
 
       # The following are already set in the image, but you can override them if using your own server certificate
-      # - ASPNETCORE_Kestrel__Certificates__Default__Password=udap-test
-      # - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/custom-cert.pfx
-    
+      # A common solution for locally trusted certificates is documented here: 
+      # https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https#starting-a-container-with-https-support-using-docker-compose
+      # - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    # If using the dev certs approach from above, mount the relevant path
     # volumes:
-    #   - ../../certs:/certs
+    #   - ~/.aspnet/https:/https:ro
 
 
   # FAST Identity Matching Server RI
   identitymatching:
-    image: hlseven/fast-identity-matching:hapi
+    image: hlseven/fast-identity-matching:latest
     ports:
       - "8080:8080"
     environment:
 
       # By default the included auth server uses a self-signed certificate that the identity matching server won't trust
-      # SSL verification is turned off by default, but you can turn it on if you are using your own certificate or 
+      # SSL verification is turned on by default, so if using self-signed certificates, you need to set this to false
       - SECURITY_SSL_VERIFY=false
+      # The base URL of the auth server
+      # For this example, we are using the host.docker.internal address to access the auth server from within the container
       - SECURITY_ISSUER=https://host.docker.internal:5001
       
-      # If you are supplying your own certificate, set SECURITY_CERT_FILE and SECURITY_CERT_PASSWORD
+      # If you are supplying your own UDAP certificate, set SECURITY_CERT_FILE and SECURITY_CERT_PASSWORD
       # The cert file variable can be a file path in a mapped volume to the certificate or a base64 encoded string of the certificate
-      - SECURITY_CERT_FILE=/certs/local-client-cert.pfx
-      - SECURITY_CERT_PASSWORD=udap-test
+      # - SECURITY_CERT_FILE=/certs/local-client-cert.pfx
+      # - SECURITY_CERT_FILE=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
+      # - SECURITY_CERT_PASSWORD=udap-test
 
-      # Turn on if you want to fetch a default testing certificate from the UDAP server
-      - SECURITY_FETCH_CERT=false
+      # You can turn off cert fetching if you are supplying your own certificate
+      # This is not required if the SECURITY_CERT_FILE property is set
+      # - SECURITY_FETCH_CERT=false
 
-    # Mounting the certificate volume by default, adjust as needed if using your own certificate
-    volumes:
-      - ../../certs:/certs
+    # If using a local certificate file, mount the relevant path
+    # volumes:
+    #   - ../../certs:/certs
 
 
   # FAST Identity Matching Client RI
