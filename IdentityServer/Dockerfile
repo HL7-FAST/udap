@@ -1,6 +1,6 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
@@ -35,5 +35,7 @@ ENV AppConfig__IntermediateCertFile="/app/LocalSubCA.pfx"
 ENV AppConfig__RootCertPassword="udap-test"
 ENV AppConfig__IntermediateCertPassword="udap-test"
 
+HEALTHCHECK --interval=10s --timeout=10s --start-period=60s \
+  CMD wget --no-check-certificate --quiet --spider -S https://localhost:443/health || exit 1
 
 ENTRYPOINT ["dotnet", "IdentityServer.dll"]
