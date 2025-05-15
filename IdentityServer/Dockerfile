@@ -35,7 +35,9 @@ ENV AppConfig__IntermediateCertFile="/app/LocalSubCA.pfx"
 ENV AppConfig__RootCertPassword="udap-test"
 ENV AppConfig__IntermediateCertPassword="udap-test"
 
+
+# Container health check defaults to checking https://localhost:443/health unless HEALTHCHECK_URL is set
 HEALTHCHECK --interval=10s --timeout=10s --start-period=60s \
-  CMD wget --no-check-certificate --quiet --spider -S https://localhost:443/health || exit 1
+  CMD wget --no-check-certificate --quiet --spider -S "${HEALTHCHECK_URL:-https://localhost:443/health}" || exit 1
 
 ENTRYPOINT ["dotnet", "IdentityServer.dll"]
