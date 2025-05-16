@@ -40,6 +40,10 @@ services:
       # https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https#starting-a-container-with-https-support-using-docker-compose
       # - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+
+      # The check to determine if the container is healthy defaults to checking https://localhost:443/health for a 200 response
+      # If other environment variables make this invalid, you can override the HEALTHCHECK_URL variable
+      # - HEALTHCHECK_URL=https://localhost/health
     # If using the dev certs approach from above, mount the relevant path
     # volumes:
     #   - ~/.aspnet/https:/https:ro
@@ -57,7 +61,9 @@ services:
       - SECURITY_SSL_VERIFY=false
       # The base URL of the auth server
       # For this example, we are using the host.docker.internal address to access the auth server from within the container
-      - SECURITY_ISSUER=https://host.docker.internal:5001
+      - SECURITY_ISSUER=https://authserver
+      - SECURITY_RESOLVE_ISSUER=false
+      - SECURITY_AUTHORIZATION_ENDPOINT=https://localhost:5001/connect/authorize
       
       # If you are supplying your own UDAP certificate, set SECURITY_CERT_FILE and SECURITY_CERT_PASSWORD
       # The cert file variable can be a file path in a mapped volume to the certificate or a base64 encoded string of the certificate
@@ -73,6 +79,10 @@ services:
     # volumes:
     #   - ../../certs:/certs
 
+    # Waits for the auth server to be healthy before starting
+    depends_on:
+      authserver:
+        condition: service_healthy
 
   # FAST Identity Matching Client RI
   identitymatching-ui:
@@ -80,5 +90,36 @@ services:
     ports:
       - "4200:80"
     environment:
-      - BASE_API_URL=http://localhost:8080/fhir
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - |
+        NODE_CONFIG={
+          "defaultFhirBaseUrl": "http://identitymatching:8080/fhir",
+          "appUrl": "http://localhost:4200",
+          "authSecret": "Yd/4IdRMfj66+hq0I5IvFXzIvucShWANpUWd2EwgJj8=",
+          "defaultClients": [
+            {
+              "fhirServer": "http://identitymatching:8080/fhir",
+              "grantTypes": [
+                "client_credentials"
+              ],
+              "scopes": "system/*.read system/*.rs",
+              "certGenerationProvider": "Local"
+            },
+            {
+              "fhirServer": "http://identitymatching:8080/fhir",
+              "grantTypes": [
+                "authorization_code"
+              ],
+              "scopes": "openid profile email user/*.read user/*.rs",
+              "redirectUris": ["http://localhost:4200/api/auth/callback"],
+              "certGenerationProvider": "Local"
+            }
+          ],
+          "certGenerationEndpoint": "https://authserver/api/cert/generate"
+        }
+
+    # Waits for the identity matching server to be healthy before starting
+    depends_on:
+      identitymatching:
+        condition: service_healthy
 
