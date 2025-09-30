@@ -1,5 +1,9 @@
 ﻿using IdentityServer;
 using IdentityServer.Models;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 using System.Text.Json;
 using Udap.Server.Configuration;
@@ -14,10 +18,55 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSerilog((ctx, lc) => lc
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
-        .Enrich.FromLogContext()
-        .ReadFrom.Configuration(ctx.Configuration));
+    // Get OpenTelemetry configuration from environment variables
+    var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+    var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME") ?? "identity-server";
+
+    builder.Host.UseSerilog((ctx, lc) =>
+    {
+        var loggerConfig = lc
+            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+            .Enrich.FromLogContext()
+            .ReadFrom.Configuration(ctx.Configuration);
+
+        // Add OpenTelemetry sink if OTLP endpoint is configured
+        if (!string.IsNullOrEmpty(otlpEndpoint))
+        {
+            loggerConfig.WriteTo.OpenTelemetry();
+        }
+    });
+
+
+    // Configure OpenTelemetry if endpoint is set
+    if (!string.IsNullOrEmpty(otlpEndpoint))
+    {
+        builder.Logging.AddOpenTelemetry(options =>
+        {
+            options
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName))
+                .AddOtlpExporter();
+        });
+
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource.AddService(serviceName))
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddOtlpExporter();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddEntityFrameworkCoreInstrumentation()
+                    .AddSqlClientInstrumentation()
+                    .AddOtlpExporter();
+            });
+    }
 
     var app = builder
         .ConfigureServices()
