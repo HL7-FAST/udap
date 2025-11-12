@@ -4,50 +4,85 @@
 }
 
 <div>
-    <div>
-        <h2>Communities</h2>
+    <div class="mb-4">
+        <h2 class="display-6 mb-3">
+            <i class="fa-solid fa-users text-primary me-2"></i>
+            Communities
+        </h2>
     </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <form class="row">
-                <div class="form-group">
-                    <input class="form-control" placeholder="Filter" id="filter" name="filter" type="text" value="@Model.Filter" autofocus />
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card elevation-2">
+                <div class="card-body">
+                    <form class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label for="filter" class="form-label">Filter Communities</label>
+                            <div class="form-outline" data-mdb-input-init>
+                                <input class="form-control" placeholder="Search by name..." id="filter" name="filter" type="text" value="@Model.Filter" autofocus />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary">
+                                    <i class="fa-solid fa-search me-2"></i>Search
+                                </button>
+                                <a asp-page="/Udap/Index" class="btn btn-secondary">
+                                    <i class="fa-solid fa-times me-2"></i>Cancel
+                                </a>
+                                <a asp-page="/Udap/Communities/New" class="btn btn-success ms-auto">
+                                    <i class="fa-solid fa-plus me-2"></i>New Community
+                                </a>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <button class="btn btn-primary">Search</button>
-                </div>
-
-                <div class="col">
-                    <a asp-page="/Udap/Index" class="btn btn-secondary">Cancel</a>
-                    <a asp-page="/Udap/Communities/New" class="btn btn-success">New</a>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
     <div class="row">
         <div class="col">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Community ID</th>
-                        <th>Name</th>
-                        <th>Enabled</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach(var community in Model.Communities)
-                    {
-                        <tr>
-                            <td><a asp-page="/Udap/Communities/Edit" asp-route-id="@community.CommunityId">@community.CommunityId</a></td>
-                            <td>@community.Name</td>
-                            <td>@community.Enabled</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            <div class="card elevation-2">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th><i class="fa-solid fa-fingerprint me-2"></i>Community ID</th>
+                                <th><i class="fa-solid fa-heading me-2"></i>Name</th>
+                                <th class="text-center"><i class="fa-solid fa-toggle-on me-2"></i>Enabled</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var community in Model.Communities)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-page="/Udap/Communities/Edit" asp-route-id="@community.CommunityId" class="text-decoration-none fw-semibold">
+                                            <i class="fa-solid fa-edit me-2 text-primary"></i>@community.CommunityId
+                                        </a>
+                                    </td>
+                                    <td>@community.Name</td>
+                                    <td class="text-center">
+                                        @if (community.Enabled)
+                                        {
+                                            <span class="badge bg-success rounded-pill">
+                                                <i class="fa-solid fa-check me-1"></i>Enabled
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill">
+                                                <i class="fa-solid fa-times me-1"></i>Disabled
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-
 </div>

@@ -79,47 +79,40 @@ services:
     # volumes:
     #   - ../../certs:/certs
 
-    # Waits for the auth server to be healthy before starting
-    depends_on:
-      authserver:
-        condition: service_healthy
-
   # FAST Identity Matching Client RI
   identitymatching-ui:
     image: hlseven/fast-identity-matching-ui:latest
     ports:
-      - "4200:80"
+      - "4200:4200"
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
-      - |
-        NODE_CONFIG={
-          "defaultFhirBaseUrl": "http://identitymatching:8080/fhir",
-          "appUrl": "http://localhost:4200",
-          "authSecret": "Yd/4IdRMfj66+hq0I5IvFXzIvucShWANpUWd2EwgJj8=",
-          "defaultClients": [
-            {
-              "fhirServer": "http://identitymatching:8080/fhir",
-              "grantTypes": [
-                "client_credentials"
-              ],
-              "scopes": "system/*.read system/*.rs",
-              "certGenerationProvider": "Local"
-            },
-            {
-              "fhirServer": "http://identitymatching:8080/fhir",
-              "grantTypes": [
-                "authorization_code"
-              ],
-              "scopes": "openid profile email user/*.read user/*.rs",
-              "redirectUris": ["http://localhost:4200/api/auth/callback"],
-              "certGenerationProvider": "Local"
-            }
-          ],
-          "certGenerationEndpoint": "https://authserver/api/cert/generate"
-        }
-
-    # Waits for the identity matching server to be healthy before starting
-    depends_on:
-      identitymatching:
-        condition: service_healthy
+      - DEFAULT_FHIR_BASE_URL=http://identitymatching:8080/fhir
+      - CERT_GENERATION_ENDPOINT=https://authserver/api/cert/generate
+      - PORT=4200
+      # - |
+      #   NODE_CONFIG={
+      #     "defaultFhirBaseUrl": "http://identitymatching:8080/fhir",
+      #     "appUrl": "http://localhost:4200",
+      #     "authSecret": "Yd/4IdRMfj66+hq0I5IvFXzIvucShWANpUWd2EwgJj8=",
+      #     "defaultClients": [
+      #       {
+      #         "fhirServer": "http://identitymatching:8080/fhir",
+      #         "grantTypes": [
+      #           "client_credentials"
+      #         ],
+      #         "scopes": "system/*.read system/*.rs",
+      #         "certGenerationProvider": "Local"
+      #       },
+      #       {
+      #         "fhirServer": "http://identitymatching:8080/fhir",
+      #         "grantTypes": [
+      #           "authorization_code"
+      #         ],
+      #         "scopes": "openid profile email user/*.read user/*.rs",
+      #         "redirectUris": ["http://localhost:4200/api/auth/callback"],
+      #         "certGenerationProvider": "Local"
+      #       }
+      #     ],
+      #     "certGenerationEndpoint": "https://authserver/api/cert/generate"
+      #   }
 

@@ -4,16 +4,40 @@
 }
 
 <div class="admin-page">
-    <h2>UDAP Admin</h2>
-
-    <div class="row">
-        <p>Administration for UDAP-specific tables.</p>
+    <div class="mb-4">
+        <h2 class="display-6 mb-3">
+            <i class="fa-solid fa-wrench text-primary me-2"></i>
+            UDAP Administration
+        </h2>
+        <p class="text-muted">Manage UDAP-specific configuration and trust relationships</p>
     </div>
 
     <div class="row">
-        <div class="list-group">
-            <a class="list-group-item list-group-item-action" asp-page="/Udap/Anchors/Index">Anchors</a>
-            <a class="list-group-item list-group-item-action" asp-page="/Udap/Communities/Index">Communities</a>
+        <div class="col-lg-8">
+            <div class="card elevation-2">
+                <div class="card-header">
+                    <i class="fa-solid fa-list me-2"></i>
+                    UDAP Configuration
+                </div>
+                <div class="list-group list-group-flush">
+                    <a class="list-group-item list-group-item-action d-flex align-items-center" asp-page="/Udap/Anchors/Index">
+                        <i class="fa-solid fa-certificate text-primary me-3 fs-4"></i>
+                        <div>
+                            <div class="fw-semibold">Trust Anchors</div>
+                            <small class="text-muted">Manage root certificates and trust anchors</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+                    </a>
+                    <a class="list-group-item list-group-item-action d-flex align-items-center" asp-page="/Udap/Communities/Index">
+                        <i class="fa-solid fa-users text-primary me-3 fs-4"></i>
+                        <div>
+                            <div class="fw-semibold">Communities</div>
+                            <small class="text-muted">Configure trust communities and networks</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -2,57 +2,77 @@
 @model IdentityServer.Pages.Home.Index
 
 <div class="welcome-page">
-    <h1>
-        <img src="~/duende-logo.svg" class="logo">
-        Welcome to Duende IdentityServer
-        <small class="text-muted">(version @Model.Version)</small>
-    </h1>
+    <div class="text-center mb-5">
+        <h1 class="display-5 mb-3">
+            FAST Security Reference Implementation Server
+        </h1>
+        <p class="lead text-muted">
+            A reference implementation of the <a href="https://build.fhir.org/ig/HL7/fhir-udap-security-ig/" target="_blank">FAST Security Implementation Guide</a>
+        </p>
+    </div>
 
-    <ul>
-        <li>
-            Well-known endpoints:
-            <ul>
-                <li>
-                    <a href="~/.well-known/openid-configuration">openid-configuration</a>
-                </li>
-                <li>
-                    <a href="~/.well-known/udap">udap</a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            Admin UIs:
-            <ul>
-                <li>
-                    <a href="~/admin">System Admin</a>
-                </li>
-                <li>
-                    <a href="~/udap">UDAP Admin</a>
-                </li>
-            </ul>
-        </li>
-        @* <li>
-            Click <a href="~/diagnostics">here</a> to see the claims for your current session.
-        </li>
-        <li>
-            Click <a href="~/grants">here</a> to manage your stored grants.
-        </li>
-        <li>
-            Click <a href="~/serversidesessions">here</a> to view the server side sessions.
-        </li>
-        <li>
-            Click <a href="~/ciba/all">here</a> to view your pending CIBA login requests.
-        </li>
-        <li>
-            Click <a href="~/admin">here</a> to view the simple admin page.
-        </li>
-        <li>
-            Click <a href="~/portal">here</a> to view the client application portal.
-        </li>
-        <li>
-            Here are links to the
-            <a href="https://github.com/duendesoftware/IdentityServer">source code repository</a>,
-            and <a href="https://github.com/duendesoftware/samples">ready to use samples</a>.
-        </li> *@
-    </ul>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card elevation-2">
+                <div class="card-header">
+                    <i class="fa-solid fa-globe"></i>
+                    Well-Known Endpoints
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="~/.well-known/openid-configuration" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="fa-solid fa-link text-primary me-3"></i>
+                            <div>
+                                <div class="fw-semibold">OpenID Configuration</div>
+                                <small class="text-muted">.well-known/openid-configuration</small>
+                            </div>
+                        </a>
+                        <a href="~/.well-known/udap" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="fa-solid fa-shield-halved text-primary me-3"></i>
+                            <div>
+                                <div class="fw-semibold">UDAP Configuration</div>
+                                <small class="text-muted">.well-known/udap</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card elevation-2">
+                <div class="card-header">
+                    <i class="fa-solid fa-user-shield"></i>
+                    Administration
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="~/admin" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="fa-solid fa-cog text-primary me-3"></i>
+                            <div>
+                                <div class="fw-semibold">System Admin</div>
+                                <small class="text-muted">Configure system settings</small>
+                            </div>
+                        </a>
+                        <a href="~/udap" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="fa-solid fa-wrench text-primary me-3"></i>
+                            <div>
+                                <div class="fw-semibold">UDAP Admin</div>
+                                <small class="text-muted">Manage UDAP configuration</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 p-4 bg-light rounded">
+        <p class="mb-0 text-center">
+            <i class="fa-solid fa-info-circle text-primary me-2"></i>
+            This server is built on <a href="https://duendesoftware.com/products/identityserver" target="_blank" class="text-decoration-none">
+                Duende IdentityServer <i class="fa-solid fa-external-link-alt fa-sm"></i> <small class="text-muted">(version @Model.Version)</small>
+            </a>
+        </p>
+    </div>
 </div>

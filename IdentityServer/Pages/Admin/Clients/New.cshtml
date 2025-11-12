@@ -6,50 +6,101 @@
 <div class="clients-page">
     @if (Model.Created)
     {
-        <div class="row">
-            <div class="col-md-6">
-                <h2>Client Id <em>@Model.InputModel.ClientId</em> created</h2>
-                <p>The client secret is displayed below. Copy it now, as it won't be shown again.</p>
-                <p class="alert alert-danger">@Model.InputModel.Secret</p>
-                <p>Click here to <a asp-page="/Admin/Clients/Edit" asp-route-id="@Model.InputModel.ClientId">continue</a>.</p>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="alert alert-success border-0 elevation-2">
+                    <h4 class="alert-heading">
+                        <i class="fa-solid fa-check-circle me-2"></i>
+                        Client Created Successfully
+                    </h4>
+                    <hr>
+                    <p class="mb-2"><strong>Client ID:</strong> <code class="fs-6">@Model.InputModel.ClientId</code></p>
+                    <p class="mb-3">The client secret is displayed below. <strong class="text-danger">Copy it now, as it won't be shown again.</strong></p>
+                    
+                    <div class="card border-danger mb-3">
+                        <div class="card-body bg-light">
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-key text-danger me-3 fs-4"></i>
+                                <code class="fs-5 flex-grow-1">@Model.InputModel.Secret</code>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="navigator.clipboard.writeText('@Model.InputModel.Secret')">
+                                    <i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a asp-page="/Admin/Clients/Edit" asp-route-id="@Model.InputModel.ClientId" class="btn btn-primary">
+                        <i class="fa-solid fa-edit me-2"></i>Configure Client
+                    </a>
+                    <a asp-page="/Admin/Clients/Index" class="btn btn-secondary">
+                        <i class="fa-solid fa-list me-2"></i>Back to Clients
+                    </a>
+                </div>
             </div>
         </div>
     }
     else
     {
-        <h2>
-            New Client
-        </h2>
+        <div class="mb-4">
+            <h2 class="display-6 mb-3">
+                <i class="fa-solid fa-plus-circle text-primary me-2"></i>
+                New Client
+            </h2>
+        </div>
 
-        <partial name="_ValidationSummary" />
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <partial name="_ValidationSummary" />
 
-        <div class="row">
-            <div class="col-md-6">
-                <form method="post">
-                    <div class="form-group">
-                        <label asp-for="@Model.InputModel.ClientId"></label>
-                        <input class="form-control" asp-for="@Model.InputModel.ClientId" autofocus />
+                <div class="card elevation-2">
+                    <div class="card-header">
+                        <i class="fa-solid fa-desktop me-2"></i>
+                        Client Details
                     </div>
-                    <div class="form-group">
-                        <label asp-for="@Model.InputModel.Secret"></label>
-                        <input class="form-control" asp-for="@Model.InputModel.Secret" />
+                    <div class="card-body">
+                        <form method="post">
+                            <div class="mb-3">
+                                <label asp-for="@Model.InputModel.ClientId" class="form-label">Client ID</label>
+                                <div class="form-outline" data-mdb-input-init>
+                                    <input class="form-control form-control-lg" asp-for="@Model.InputModel.ClientId" placeholder="Enter unique client identifier" autofocus />
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="@Model.InputModel.Secret" class="form-label">Client Secret</label>
+                                <div class="form-outline" data-mdb-input-init>
+                                    <input class="form-control form-control-lg" asp-for="@Model.InputModel.Secret" placeholder="Enter client secret" />
+                                </div>
+                                <small class="text-muted">This will only be shown once after creation</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="@Model.InputModel.Name" class="form-label">Client Name</label>
+                                <div class="form-outline" data-mdb-input-init>
+                                    <input class="form-control form-control-lg" asp-for="@Model.InputModel.Name" placeholder="Display name for the client" />
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label asp-for="@Model.InputModel.Flow" class="form-label">Grant Type / Flow</label>
+                                <select class="form-select form-select-lg" asp-for="@Model.InputModel.Flow">
+                                    <option value="0">Client Credentials</option>
+                                    <option value="1">Code Flow (with PKCE)</option>
+                                </select>
+                                <small class="text-muted">Choose the OAuth 2.0 flow appropriate for your client type</small>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-lg" type="submit">
+                                    <i class="fa-solid fa-save me-2"></i>Create Client
+                                </button>
+                                <a class="btn btn-secondary btn-lg" asp-page="/Admin/Clients/Index">
+                                    <i class="fa-solid fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
                     </div>
-                    <div class="form-group">
-                        <label asp-for="@Model.InputModel.Name"></label>
-                        <input class="form-control" asp-for="@Model.InputModel.Name" />
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="@Model.InputModel.Flow"></label>
-                        <select class="form-control" asp-for="@Model.InputModel.Flow">
-                            <option value="0">Client Credentials</option>
-                            <option value="1">Code Flow (with PKCE)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-primary" type="submit">Save Changes</button>
-                        <a class="btn btn-secondary" asp-page="/Admin/Clients/Index">Cancel</a>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     }

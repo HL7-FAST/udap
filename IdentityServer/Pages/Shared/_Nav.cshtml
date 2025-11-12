@@ -7,35 +7,89 @@
     }
 }
 
-<div class="nav-page">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<!-- Material Design Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container-fluid">
+    <!-- Brand -->
+    <a class="navbar-brand d-flex align-items-center" href="~/">
+        <i class="fa-solid fa-shield-halved text-primary me-2 fs-4"></i>
+        <span class="fw-semibold">FAST Security RI</span>
+    </a>
 
-        <a href="~/" class="navbar-brand">
-            <img src="~/duende-logo.svg" class="icon-banner">
-            Duende IdentityServer
-        </a>
+    <!-- Toggle button -->
+    <button
+        data-mdb-collapse-init
+        class="navbar-toggler"
+        type="button"
+        data-mdb-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+    >
+        <i class="fas fa-bars"></i>
+    </button>
 
-        <ul class="navbar-nav mr-auto">
+    <!-- Collapsible wrapper -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <!-- Left links -->
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+            <li class="nav-item">
+                <a class="nav-link" href="~/">
+                    <i class="fa-solid fa-home me-1"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" asp-page="/Udap/Index">
+                    <i class="fa-solid fa-wrench me-1"></i>
+                    UDAP Admin
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" asp-page="/Admin/Index">
+                    <i class="fa-solid fa-cog me-1"></i>
+                    Server Admin
+                </a>
+            </li>
 
             @if (!string.IsNullOrWhiteSpace(name))
             {
                 <li class="nav-item dropdown">
-                    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">@name <b class="caret"></b></a>
-                    
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" asp-page="/Account/Logout/Index">Logout</a>
-                    </div>
+                    <a
+                        data-mdb-dropdown-init
+                        class="nav-link dropdown-toggle" 
+                        href="#"
+                        id="navbarDropdownUser"
+                        role="button"
+                        aria-expanded="false"
+                    >
+                        <i class="fa-solid fa-user-circle me-1"></i>
+                        @name
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdownUser">
+                        <li>
+                            <a class="dropdown-item" asp-page="/Account/Logout/Index">
+                                <i class="fa-solid fa-sign-out-alt me-2"></i>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
                 </li>            
             }
-
-            <li class="nav-item">
-                <a class="nav-link" asp-page="/Udap/Index">UDAP Admin</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" asp-page="/Admin/Index">Server Admin</a>
-            </li>
-
         </ul>
-    
-    </nav>
-</div>
+      
+        <!-- Right elements -->
+        <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-link text-muted" href="~/docs" target="_blank" title="Documentation" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                <i class="fas fa-book fs-5"></i>
+            </a>
+            <a class="btn btn-link text-muted" href="https://github.com/HL7-FAST/udap" target="_blank" title="GitHub Repository" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                <i class="fab fa-github fs-5"></i>
+            </a>
+        </div>
+    </div>
+  </div>
+</nav>

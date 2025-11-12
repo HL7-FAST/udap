@@ -234,6 +234,7 @@ namespace IdentityServer
             app.UseRouting();
 
 
+            app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseFileServer(new FileServerOptions 
             {

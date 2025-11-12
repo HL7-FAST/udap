@@ -4,19 +4,48 @@
 }
 
 <div class="admin-page">
-    <h2>
-        Duende IdentityServer Admin
-    </h2>
-
-    <div class="row">
-        <p>There are simple administrative pages.</p>
+    <div class="mb-4">
+        <h2 class="display-6 mb-3">
+            <i class="fa-solid fa-cog text-primary me-2"></i>
+            Server Administration
+        </h2>
+        <p class="text-muted">Manage server configuration and settings</p>
     </div>
 
     <div class="row">
-        <div class="list-group">
-            <a class="list-group-item list-group-item-action" asp-page="/Admin/Clients/Index">Clients</a>
-            <a class="list-group-item list-group-item-action" asp-page="/Admin/IdentityScopes/Index">Identity Scopes</a>
-            <a class="list-group-item list-group-item-action" asp-page="/Admin/ApiScopes/Index">API Scopes</a>
+        <div class="col-lg-8">
+            <div class="card elevation-2">
+                <div class="card-header">
+                    <i class="fa-solid fa-list me-2"></i>
+                    Administrative Sections
+                </div>
+                <div class="list-group list-group-flush">
+                    <a class="list-group-item list-group-item-action d-flex align-items-center" asp-page="/Admin/Clients/Index">
+                        <i class="fa-solid fa-desktop text-primary me-3 fs-4"></i>
+                        <div>
+                            <div class="fw-semibold">Clients</div>
+                            <small class="text-muted">Manage registered clients</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+                    </a>
+                    <a class="list-group-item list-group-item-action d-flex align-items-center" asp-page="/Admin/IdentityScopes/Index">
+                        <i class="fa-solid fa-id-card text-primary me-3 fs-4"></i>
+                        <div>
+                            <div class="fw-semibold">Identity Scopes</div>
+                            <small class="text-muted">Configure identity resource scopes</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+                    </a>
+                    <a class="list-group-item list-group-item-action d-flex align-items-center" asp-page="/Admin/ApiScopes/Index">
+                        <i class="fa-solid fa-list-check text-primary me-3 fs-4"></i>
+                        <div>
+                            <div class="fw-semibold">API Scopes</div>
+                            <small class="text-muted">Manage API access scopes</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

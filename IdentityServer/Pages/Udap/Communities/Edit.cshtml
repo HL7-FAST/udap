@@ -4,36 +4,58 @@
 }
 
 <div>
-
-    <h2>
-        Edit Community: @Model.InputModel.Name
-    </h2>
-
-    <partial name="_ValidationSummary" />
-
-    <div class="row">
-        <div class="col-6">
-            <form method="post">
-                <input type="hidden" asp-for="@Model.InputModel.CommunityId" />
-
-                <div class="form-group">
-                    <label asp-for="@Model.InputModel.Name">Community Name</label>
-                    <input class="form-control" asp-for="@Model.InputModel.Name" autofocus />
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" asp-for="@Model.InputModel.Enabled" type="checkbox" />
-                    <label class="form-check-label" asp-for="@Model.InputModel.Enabled">Enabled</label>
-                </div>
-
-
-                <div class="form-group">
-                    <button class="btn btn-primary" type="submit" name="Button" value="save">Save Changes</button>
-                    <a class="btn btn-secondary" asp-page="/Udap/Communities/Index">Cancel</a>
-                    <button class="btn btn-danger" type="submit" name="Button" value="delete">Delete</button>
-                </div>
-            </form>
-        </div>
+    <div class="mb-4">
+        <h2 class="display-6 mb-2">
+            <i class="fa-solid fa-edit text-primary me-2"></i>
+            Edit Community
+        </h2>
+        <span class="badge bg-info fs-6">@Model.InputModel.Name</span>
     </div>
 
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <partial name="_ValidationSummary" />
+
+            <div class="card elevation-2">
+                <div class="card-header">
+                    <i class="fa-solid fa-users me-2"></i>
+                    Community Configuration
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" asp-for="@Model.InputModel.CommunityId" />
+
+                        <div class="mb-4">
+                            <label asp-for="@Model.InputModel.Name" class="form-label">Community Name</label>
+                            <div class="form-outline" data-mdb-input-init>
+                                <input class="form-control form-control-lg" asp-for="@Model.InputModel.Name" autofocus />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" asp-for="@Model.InputModel.Enabled" type="checkbox" id="enabledSwitch" />
+                                <label class="form-check-label fw-semibold" for="enabledSwitch">
+                                    Enabled
+                                </label>
+                            </div>
+                            <small class="text-muted ms-4">Enable or disable this community</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" type="submit" name="Button" value="save">
+                                <i class="fa-solid fa-save me-2"></i>Save Changes
+                            </button>
+                            <a class="btn btn-secondary" asp-page="/Udap/Communities/Index">
+                                <i class="fa-solid fa-times me-2"></i>Cancel
+                            </a>
+                            <button class="btn btn-danger ms-auto" type="submit" name="Button" value="delete" onclick="return confirm('Are you sure you want to delete this community?')">
+                                <i class="fa-solid fa-trash me-2"></i>Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

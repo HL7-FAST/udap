@@ -1,0 +1,13 @@
+site_name: FAST Security RI Documentation
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Configuration: configuration.md
+  - Seeding Data: seeding-data.md
+  - Integrating Clients and Servers: integration.md
+theme:
+  name: material
+  features:
+    - content.code.copy
+markdown_extensions:
+  - pymdownx.superfences

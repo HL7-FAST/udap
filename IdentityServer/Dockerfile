@@ -5,7 +5,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-server
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["IdentityServer/IdentityServer.csproj", "IdentityServer/"]
@@ -14,13 +14,21 @@ COPY . .
 WORKDIR "/src/IdentityServer"
 RUN dotnet build "./IdentityServer.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
+FROM build-server AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./IdentityServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM python:3.11-alpine AS build-docs
+WORKDIR /src
+COPY mkdocs.yml .
+COPY docs/ ./docs/
+RUN pip install --no-cache-dir mkdocs mkdocs-material pymdown-extensions
+RUN mkdocs build -d /app/docs
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=build-docs /app/docs ./wwwroot/docs
 
 # local default certificate for HTTPS support
 COPY ../certs/localhost.pfx .

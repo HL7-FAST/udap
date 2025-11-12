@@ -1,29 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
 
-    <title>Duende IdentityServer</title>
-    
+    <title>FAST Security Reference Implementation Server</title>
+
     <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
     <link rel="shortcut icon" type="image/x-icon" href="~/favicon.ico" />
+
     
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/lib/bootstrap4-glyphicons/css/bootstrap-glyphicons.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.2.0/mdb.min.css" integrity="sha512-wSYHr7n8BxVNsJ7S5v7SJ1fH2i+CR2TmTp/LNQSVmIe+4jDCAx3JpjkvlD5JSl7pnD/HhgLCWH0cJ0z/yPhjHg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
-<body>
+
+<body class="bg-light">
     <partial name="_Nav" />
-   
-    <div class="container-fluid body-container mx-2">
+
+    <div class="container py-4">
         @RenderBody()
     </div>
-
-    <script src="~/lib/jquery/dist/jquery.slim.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.2.0/mdb.umd.min.js" integrity="sha512-VY+mj3DzW3U/KhQue1SvfKGS9QEPyJZcAUQE6D5ZJf4IRe9eDc4J/eQC604+2xDovoEqTbXtJjus0w3zV1VPZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     @RenderSection("scripts", required: false)
 </body>
+
 </html>
