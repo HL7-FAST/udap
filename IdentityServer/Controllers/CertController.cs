@@ -74,18 +74,6 @@ namespace IdentityServer.Controllers
 
             var certTooling = new CertificateTooling();
 
-            string host;
-            if (!string.IsNullOrEmpty(appConfig.CertDistBaseUrl))
-            {
-                host = appConfig.CertDistBaseUrl.TrimEnd('/');
-            }
-            else
-            {
-                var baseUri = new Uri(appConfig.UdapIdpBaseUrl);
-                var builder = new UriBuilder(baseUri) { Scheme = Uri.UriSchemeHttp, Port = baseUri.IsDefaultPort ? -1 : baseUri.Port };
-                host = builder.Uri.GetLeftPart(UriPartial.Authority);
-            }
-
 
             var rsaCertificate = certTooling.BuildUdapClientCertificate(
                 intermediateCert,
@@ -93,8 +81,8 @@ namespace IdentityServer.Controllers
                 intermediateCert.GetRSAPrivateKey()!,
                 distinguishedName,
                 altNames,
-                $"{host}/certs/FastCA/crl/FastSubCA.crl",
-                $"{host}/certs/FastCA/intermediates/FastSubCA.crt",
+                appConfig.IntermediateCrlUrl,
+                appConfig.IntermediateCertUrl,
                 DateTimeOffset.UtcNow.AddDays(-1),
                 DateTimeOffset.UtcNow.AddYears(2),
                 password

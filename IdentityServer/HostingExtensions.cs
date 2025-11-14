@@ -18,9 +18,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Udap.Client.Configuration;
 using Udap.Common;
 using Udap.Server.Configuration;
-using Udap.Server.DbContexts;
+using Udap.Server.Storage.DbContexts;
 using Udap.Server.Security.Authentication.TieredOAuth;
-using static Azure.Core.HttpHeader;
 using IdentityServer.Middleware;
 
 namespace IdentityServer
@@ -230,7 +229,10 @@ namespace IdentityServer
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.UseHttpsRedirection();
+            app.UseWhen(
+                context => !context.Request.Path.StartsWithSegments("/certs"),
+                appBuilder => appBuilder.UseHttpsRedirection()
+            );
             app.UseRouting();
 
 

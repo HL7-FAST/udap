@@ -9,7 +9,6 @@
         public string DatabaseProvider { get; set; } = "Sqlite";
         public bool SeedData { get; set; }
         public string UdapIdpBaseUrl { get; set; }
-        public string CertDistBaseUrl { get; set; }
 
         public string FhirLabsJitCertUrl { get; set; }
         public string DefaultCertPassword { get; set; } = "udap-test";
@@ -18,6 +17,9 @@
         public string RootCertPassword { get; set; } = "udap-test";
         public string IntermediateCertFile { get; set; }
         public string IntermediateCertPassword { get; set; } = "udap-test";
+
+        public string IntermediateCrlUrl { get; set; }
+        public string IntermediateCertUrl { get; set; }
 
 
         public AnchorConfig[] Anchors { get; set; }

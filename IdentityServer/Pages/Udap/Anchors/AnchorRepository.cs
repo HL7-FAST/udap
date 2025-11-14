@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Udap.Server.DbContexts;
-using Udap.Server.Entities;
+using Udap.Server.Storage.DbContexts;
+using Udap.Server.Storage.Entities;
 
 namespace IdentityServer.Pages.Udap.Anchors
 {

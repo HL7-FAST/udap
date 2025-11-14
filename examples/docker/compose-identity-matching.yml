@@ -20,14 +20,10 @@ services:
     #   context: ../../
     #   dockerfile: IdentityServer/Dockerfile
     ports:
-      # - "5000:80"
+      - "5000:80"
       - "5001:443"
     environment:
-      # By default only HTTPS is enabled using the default self-signed certificate
-      - ASPNETCORE_URLS=https://+:443
-      # You may instead want to enable HTTP if you want to put this behind a reverse proxy.
-      # Adjust the above port mapping as needed
-      # - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_URLS=https://+:443;http://+:80
 
       # Additional default environment variables to seed the database and set the base URL could be changed here
       # - AppConfig__SeedData=true
