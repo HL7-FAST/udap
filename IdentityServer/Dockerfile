@@ -26,6 +26,10 @@ RUN pip install --no-cache-dir mkdocs mkdocs-material pymdown-extensions
 RUN mkdocs build -d /app/docs
 
 FROM base AS final
+
+# Install ca-certificates and openssl for certificate management
+RUN apk add --no-cache ca-certificates
+
 WORKDIR /app
 COPY --from=publish /app/publish .
 COPY --from=build-docs /app/docs ./wwwroot/docs
@@ -42,6 +46,14 @@ ENV AppConfig__RootCertFile="/app/LocalCA.pfx"
 ENV AppConfig__IntermediateCertFile="/app/LocalSubCA.pfx"
 ENV AppConfig__RootCertPassword="udap-test"
 ENV AppConfig__IntermediateCertPassword="udap-test"
+
+# Install self-signed local certificates into system trust store
+COPY IdentityServer/CertStore/LocalCA/LocalCA.crt /usr/local/share/ca-certificates/LocalCA.crt
+COPY IdentityServer/CertStore/LocalCA/intermediates/LocalSubCA.crt /usr/local/share/ca-certificates/LocalSubCA.crt
+COPY IdentityServer/CertStore/FastCA/FastCA.crt /usr/local/share/ca-certificates/FastCA.crt
+COPY IdentityServer/CertStore/FastCA/intermediates/FastSubCA.crt /usr/local/share/ca-certificates/FastSubCA.crt
+RUN update-ca-certificates
+
 
 
 # Container health check defaults to checking https://localhost:443/health unless HEALTHCHECK_URL is set
