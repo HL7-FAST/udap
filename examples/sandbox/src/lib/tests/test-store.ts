@@ -271,7 +271,8 @@ export function addTestResultToStore(testSessionId: string, testKey: string, res
     testSession.results[testKey] = [];
   }
 
-  testSession.results[testKey].push(result);
+  // Deep clone the result to avoid reference issues when the test continues to modify objects
+  testSession.results[testKey].push(JSON.parse(JSON.stringify(result)));
 
   resultStore.data = resultStore.data.map((session) => {
     if (session.id === testSessionId) {

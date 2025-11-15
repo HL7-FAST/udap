@@ -38,17 +38,31 @@ export default function AccountStatus() {
   return (
     <>
       {session && session.status === "authenticated" ? (
-        <div>
-          <Button variant="outlined" color="primary" onClick={() => signOut()}>
-            Sign Out
-          </Button>
-        </div>
+        <Button 
+          variant="contained" 
+          color="error" 
+          onClick={() => signOut()}
+          sx={{ 
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
+        >
+          Sign Out
+        </Button>
       ) : (
-        <div>
-          <Button variant="outlined" color="primary" onClick={() => signIn("udap")}>
-            Sign In
-          </Button>
-        </div>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={() => signIn("udap")}
+          sx={{ 
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
+        >
+          Sign In
+        </Button>
       )}
     </>
   );

@@ -1,5 +1,6 @@
 "use client";
-import { Alert, Typography } from "@mui/material";
+import { Alert, Box, Chip, Divider, Typography } from "@mui/material";
+import { Storage } from "@mui/icons-material";
 import { Crud, DataSource } from "@toolpad/core";
 import { OperationOutcome } from "fhir/r4";
 import { useSession } from "next-auth/react";
@@ -79,25 +80,32 @@ export default function FhirPage() {
   }
 
   return (
-    <>
-      <Typography variant="h6">{resourceType} Resources</Typography>
-      <Typography variant="subtitle1">Server: {fhirServer}</Typography>
-      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-      <>
-        {!fhirServer ? (
-          <Alert severity="error">{!fhirServer && <div>FHIR Server not selected.</div>}</Alert>
-        ) : fhirServer && resourceType && dataSource ? (
-          <Crud<FhirResult>
-            dataSource={dataSource}
-            dataSourceCache={fhirDataCache}
-            rootPath={`/fhir/${resourceType}`}
-          />
-        ) : (
-          <Alert severity="error">
-            <div>Data source not available.</div>
-          </Alert>
-        )}
-      </>
-    </>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+          <Storage color="primary" />
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            {resourceType} Resources
+          </Typography>
+          <Chip label="Authorization Code" color="primary" size="small" />
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          Server: <code style={{ fontSize: "0.875rem" }}>{fhirServer}</code>
+        </Typography>
+      </Box>
+      <Divider sx={{ mb: 3 }} />
+      {errorMessage && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage}</Alert>}
+      {!fhirServer ? (
+        <Alert severity="error">FHIR Server not selected.</Alert>
+      ) : fhirServer && resourceType && dataSource ? (
+        <Crud<FhirResult>
+          dataSource={dataSource}
+          dataSourceCache={fhirDataCache}
+          rootPath={`/fhir/${resourceType}`}
+        />
+      ) : (
+        <Alert severity="error">Data source not available.</Alert>
+      )}
+    </Box>
   );
 }

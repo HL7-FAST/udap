@@ -180,7 +180,7 @@ export function getScopeRegistrationTest(
 
         // console.log("Original server scopes:", params.fhirServerScopes);
         // console.log("Registering client with scopes: ", clientReq.scopes);
-        step.input = clientReq;
+        step.input = { ...clientReq, scopes: [...scopes] };
 
         try {
           const request = await fetch("/api/client/register", {
@@ -285,7 +285,7 @@ export function getScopeRegistrationTest(
       }
 
       clientReq.scopes = scopes;
-      step.input = clientReq;
+      step.input = { ...clientReq, scopes: [...scopes] };
 
       // attempt to register the client
       try {
@@ -380,7 +380,7 @@ export function getScopeRegistrationTest(
         "imanadmin/trust.me",
       ];
       clientReq.scopes = invalidScopes;
-      step.input = clientReq;
+      step.input = { ...clientReq, scopes: [...invalidScopes] };
 
       // attempt to register the client
       try {

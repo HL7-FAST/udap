@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerCertificate } from "@/lib/cert-store";
+import { getServerCertificate, getX509Certficate } from "@/lib/cert-store";
 import { UdapClientRequest } from "@/lib/models";
 import { registerClient } from "@/lib/udap-actions";
 
@@ -15,6 +15,18 @@ export async function POST(request: NextRequest): Promise<Response> {
     if (!cert) {
       throw new Error("No server certificate loaded");
     }
+
+    const x509 = await getX509Certficate(cert);
+    const sans = (x509.subjectAltName || "").split(", ").map(s => s.replace("URI:", "").trim());
+    if (sans.length < 1) {
+      throw new Error("No alt names in certificate");
+    }
+    
+
+    if (!sans.includes(body.issuer)) {
+      body.issuer = sans[0];
+    }
+
     const reqRes = await registerClient(body, cert);
 
     console.log("Client registered: ", reqRes);

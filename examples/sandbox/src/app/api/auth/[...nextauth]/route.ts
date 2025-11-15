@@ -126,7 +126,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   // Update the session with the new token
   const sessionToken = await encode({
     token,
-    secret: process.env.AUTH_SECRET!,
+    secret: process.env.AUTH_SECRET || "changeMe",
     salt: "authjs.session-token",
     maxAge: tokenJson.expires_in || 3600,
   });

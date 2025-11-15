@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Stack } from "@mui/material";
+import { Button, Card, CardContent, Stack } from "@mui/material";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
@@ -197,77 +197,85 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
 
   return (
     <>
-      <h2>{props.suite.name}</h2>
-      <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-        {props.suite.description}
-      </Markdown>
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Markdown 
+            remarkPlugins={[remarkGfm]} 
+            rehypePlugins={[rehypeRaw]}
+            components={{
+              p: ({ children }) => (
+                <div style={{ marginBottom: '1rem', color: 'inherit' }}>{children}</div>
+              ),
+            }}
+          >
+            {props.suite.description}
+          </Markdown>
+        </CardContent>
+      </Card>
 
       {props.setup}
 
-      <Stack direction="row" spacing={2} sx={{ marginY: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => runAllTests()}
-          disabled={!!testIsRunning}
-        >
-          Run Tests
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => cancelTests()}
-          disabled={!testIsRunning}
-        >
-          Cancel
-        </Button>
-      </Stack>
-      <Stack direction="row" spacing={2}>
-        <Button variant="contained" onClick={() => viewSessionData()}>
-          View All Session Data
-        </Button>
-        <Button variant="contained" onClick={() => createNewSession()} disabled={!!testIsRunning}>
-          Create New Session
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => clearSessionData(currentTestSessionId)}
-        >
-          Clear Session Data
-        </Button>
-        <Button variant="contained" color="error" onClick={() => clearAllSessions()}>
-          Clear All Sessions
-        </Button>
-        {/* <div>Running: { testIsRunning?.toString() } -- { (!!testIsRunning)?.toString() } -- { cancelRequested }</div> */}
-      </Stack>
+      <Card sx={{ mt: 3, mb: 3 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => runAllTests()}
+              disabled={!!testIsRunning}
+              sx={{ minWidth: 120 }}
+            >
+              Run Tests
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => cancelTests()}
+              disabled={!testIsRunning}
+            >
+              Cancel
+            </Button>
+          </Stack>
+          <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
+            <Button variant="outlined" onClick={() => viewSessionData()}>
+              View Session Data
+            </Button>
+            <Button variant="outlined" onClick={() => createNewSession()} disabled={!!testIsRunning}>
+              New Session
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => clearSessionData(currentTestSessionId)}
+            >
+              Clear Session
+            </Button>
+            <Button variant="outlined" color="error" onClick={() => clearAllSessions()}>
+              Clear All
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
 
-      <Stack
-        direction="column"
-        spacing={2}
-        sx={{
-          borderColor: "grey.300",
-          borderWidth: 1,
-          borderStyle: "solid",
-          borderRadius: 4,
-          marginY: 2,
-          padding: 2,
-        }}
-      >
-        <div>Test session ID: {currentTestSessionId}</div>
-        <div>Current test: {currentTestKey}</div>
-        <div>Current test step: {currentTestStepKey}</div>
-        {/* <div>Suite params: {JSON.stringify(currentSuite.params)}</div> */}
-        {/* <div>Session Params: {JSON.stringify(resultStore?.data.find(s => s.id === currentTestSessionId)?.params)}</div> */}
-      </Stack>
+      <Card sx={{ mb: 3, bgcolor: "background.default" }}>
+        <CardContent sx={{ p: 2 }}>
+          <Stack direction="column" spacing={1}>
+            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
+              <strong>Session ID:</strong> {currentTestSessionId || 'None'}
+            </div>
+            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
+              <strong>Current Test:</strong> {currentTestKey || 'None'}
+            </div>
+            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
+              <strong>Current Step:</strong> {currentTestStepKey || 'None'}
+            </div>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {props.suite.tests.map((c, i) => {
         return <span key={i}>{c.component}</span>;
       })}
-
-      {/* <div>
-        <pre>{JSON.stringify(resultStore, null, 2)}</pre>
-      </div> */}
     </>
   );
 }

@@ -11,8 +11,14 @@ export default async function DashboardPagesLayout(props: { children: React.Reac
         toolbarAccount: AccountStatus,
         toolbarActions: ToolbarActions,
       }}
+      sx={{
+        "& .MuiDrawer-paper": {
+          borderRight: "none",
+          boxShadow: "0 0 20px rgba(0, 0, 0, 0.05)",
+        },
+      }}
     >
-      <PageContainer>{props.children}</PageContainer>
+      <PageContainer sx={{ bgcolor: "background.default" }}>{props.children}</PageContainer>
     </DashboardLayout>
   );
 }

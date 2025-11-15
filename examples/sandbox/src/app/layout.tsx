@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import React from "react";
 import { Branding, Navigation } from "@toolpad/core";
-import { Dashboard, Person, Search, ThumbsUpDown } from "@mui/icons-material";
+import { Code, Dashboard, Person, Science, Shield, Storage } from "@mui/icons-material";
 import { LinearProgress } from "@mui/material";
 import { NextAppProvider } from "@toolpad/core/nextjs";
 import { SessionProvider } from "next-auth/react";
@@ -17,17 +17,18 @@ export const metadata: Metadata = {
 
 const NAVIGATION: Navigation = [
   {
+    segment: "",
     title: "Dashboard",
     icon: <Dashboard />,
   },
   {
-    title: "Auth Code Flow",
+    title: "Authorization Code Flow",
     kind: "header",
   },
   {
     segment: "fhir",
     title: "All Resources",
-    icon: <Search />,
+    icon: <Storage />,
   },
   {
     segment: "fhir/Patient",
@@ -41,22 +42,22 @@ const NAVIGATION: Navigation = [
   {
     segment: "query",
     title: "Query",
-    icon: <Search />,
+    icon: <Code />,
   },
   {
-    title: "Tests",
+    title: "Testing",
     kind: "header",
   },
   {
     segment: "tests/scopes",
     title: "Scope Negotiation",
-    icon: <ThumbsUpDown />,
+    icon: <Science />,
   },
 ];
 
 const BRANDING: Branding = {
-  title: "FAST Security Sandbox",
-  logo: "",
+  title: "FAST Security",
+  logo: <Shield sx={{ fontSize: 32, color: "primary.main" }} />,
 };
 
 export default async function RootLayout(props: { children: React.ReactNode }) {

@@ -1,6 +1,7 @@
 "use client";
 
-import { Container, FormGroup, Stack, TextField, Typography } from "@mui/material";
+import { Box, Card, CardContent, Chip, Stack, TextField, Typography } from "@mui/material";
+import { Science } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import React from "react";
 import ScopesSupportedTest, { getScopesSupportedTest } from "./scopes-supported";
@@ -66,25 +67,36 @@ export default function ScopesPage() {
   );
 
   const setup = (
-    <>
-      <Typography variant="h6">Test Setup</Typography>
-      <Container maxWidth="xl" sx={{ marginY: 2 }}>
+    <Card>
+      <CardContent sx={{ p: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Test Setup
+        </Typography>
         <Stack direction="column" spacing={2}>
-          <FormGroup>
-            <TextField
-              label="FHIR Server"
-              value={fhirServer}
-              onChange={(e) => setFhirServer(e.target.value)}
-            />
-          </FormGroup>
+          <TextField
+            label="FHIR Server"
+            value={fhirServer}
+            onChange={(e) => setFhirServer(e.target.value)}
+            fullWidth
+            variant="outlined"
+          />
         </Stack>
-      </Container>
-    </>
+      </CardContent>
+    </Card>
   );
 
   return (
-    <>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <Science color="success" />
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Scope Negotiation Tests
+          </Typography>
+          <Chip label="Testing" color="success" size="small" />
+        </Box>
+      </Box>
       <TestSuite suite={testSuite} setup={setup} />
-    </>
+    </Box>
   );
 }

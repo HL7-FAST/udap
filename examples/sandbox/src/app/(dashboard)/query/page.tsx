@@ -1,9 +1,8 @@
-
-
 "use client";
 
-import { useState } from "react";
-import { Box, Button, Paper, TextField, Typography } from "@mui/material";
+import { useRef, useState } from "react";
+import { Alert, Box, Button, Card, CardContent, Chip, Paper, TextField, Typography } from "@mui/material";
+import { Code, Send } from "@mui/icons-material";
 import Editor from "@monaco-editor/react";
 
 export default function QueryPage() {
@@ -15,6 +14,7 @@ export default function QueryPage() {
   const [result, setResult] = useState<string>("// Query result will appear here");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleQuery = async () => {
     setLoading(true);
@@ -30,72 +30,90 @@ export default function QueryPage() {
       setResult(`// Error: ${errorMessage}`);
     } finally {
       setLoading(false);
+      // Return focus to input after query completes with a small delay
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 200);
     }
   };
 
   return (
     <Box sx={{ p: 3 }}>
-
-      <Typography variant="body1" sx={{ mb: 2 }}>
-        This page is for convenience to query the <code>/api/fhir</code> endpoint (or anything, really).
-        Queries to this endpoint will be proxied to the FHIR server that is registered with the default <code>client_credentials</code> UDAP client.
-        It will automatically obtain an access token using the registered client.
-      </Typography>
-
-      <Typography variant="body1" sx={{ mb: 2 }}>
-        Check your browser&apos;s developer tools network traffic to compare the requests made here with those made using the <code>authorization_code</code> flow on the Patients page.
-      </Typography>
-
-      <Typography variant="h5" gutterBottom>
-        FHIR Query
-      </Typography>
-
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-          <TextField
-            fullWidth
-            label="FHIR Endpoint URL"
-            value={queryUrl}
-            onChange={(e) => setQueryUrl(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !loading) {
-                handleQuery();
-              }
-            }}
-            placeholder="http://localhost:3000/api/fhir/Patient"
-            disabled={loading}
-          />
-          <Button
-            variant="contained"
-            onClick={handleQuery}
-            disabled={loading}
-            sx={{ minWidth: 120 }}
-          >
-            {loading ? "Querying..." : "Query"}
-          </Button>
-        </Box>
-
-        {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            Error: {error}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <Code color="primary" />
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            FHIR Query Interface
           </Typography>
-        )}
-      </Paper>
-
-      <Paper sx={{ p: 2, height: "600px" }}>
-        <Typography variant="h6" gutterBottom>
-          Result
+          <Chip label="Client Credentials" color="secondary" size="small" />
+        </Box>
+        <Typography variant="body1" color="text.secondary" paragraph>
+          Query the <code>/api/fhir</code> endpoint using the client credentials flow. 
+          Requests are proxied to the FHIR server with automatic access token management.
         </Typography>
-        <Editor
-          height="calc(100% - 40px)"
-          defaultLanguage="json"
-          value={result}
-          options={{
-            readOnly: true,
-            scrollBeyondLastLine: false,
-            fontSize: 14,
-          }}
-        />
+        <Alert severity="info" sx={{ mb: 2 }}>
+          💡 Compare network traffic in your browser&apos;s developer tools with the authorization code flow on the Patients page.
+        </Alert>
+      </Box>
+
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Request
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <TextField
+              fullWidth
+              label="FHIR Endpoint URL"
+              value={queryUrl}
+              onChange={(e) => setQueryUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !loading) {
+                  handleQuery();
+                }
+              }}
+              placeholder="http://localhost:3000/api/fhir/Patient"
+              disabled={loading}
+              variant="outlined"
+              inputRef={inputRef}
+            />
+            <Button
+              variant="contained"
+              onClick={handleQuery}
+              disabled={loading}
+              startIcon={<Send />}
+              sx={{ minWidth: 140, height: 56 }}
+            >
+              {loading ? "Querying..." : "Send"}
+            </Button>
+          </Box>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      <Paper sx={{ p: 3, height: "600px", bgcolor: "background.default" }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Response
+        </Typography>
+        <Box sx={{ height: "calc(100% - 48px)", borderRadius: 1, overflow: "hidden" }}>
+          <Editor
+            height="100%"
+            defaultLanguage="json"
+            value={result}
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              fontSize: 14,
+              lineNumbers: "on",
+              renderLineHighlight: "none",
+            }}
+          />
+        </Box>
       </Paper>
     </Box>
   );
