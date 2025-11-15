@@ -1,5 +1,6 @@
 export const CERT_STORE_SERVER_ID: string = "server";
-export const CLIENT_STORE_DEFAULT_ID: string = "default";
+export const AUTHORIZATION_CODE_CLIENT_ID: string = "authorization-code-client";
+export const CLIENT_CREDENTIALS_CLIENT_ID: string = "client-credentials-client";
 export const COOKIE_CURRENT_FHIR_SERVER = "currentFhirServer";
 export const TEST_SESSION_STORE_ID: string = "test-session-store";
 export const TEST_IS_RUNNING_STORE_ID: string = "test-is-running";

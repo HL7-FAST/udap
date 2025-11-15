@@ -43,18 +43,6 @@ export const useCurrentFhirServer = create<CurrentFhirServer>((set) => ({
   },
 }));
 
-export interface AvailableFhirServers {
-  fhirServers: string[];
-  setFhirServers: (fhirServers: string[]) => void;
-}
-
-export const useAvailableFhirServers = create<AvailableFhirServers>((set) => ({
-  fhirServers: [],
-  setFhirServers: (fhirServers) => {
-    set({ fhirServers });
-  },
-}));
-
 export interface CurrentServerCapabilityStatement {
   curentCapabilityStatement: CapabilityStatement | undefined;
   setCurrentCapabilityStatement: (capabilityStatement?: CapabilityStatement) => void;

@@ -21,7 +21,7 @@ const NAVIGATION: Navigation = [
     icon: <Dashboard />,
   },
   {
-    title: "FHIR Operations",
+    title: "Auth Code Flow",
     kind: "header",
   },
   {
@@ -33,6 +33,15 @@ const NAVIGATION: Navigation = [
     segment: "fhir/Patient",
     title: "Patients",
     icon: <Person />,
+  },
+  {
+    title: "Client Credentials Flow",
+    kind: "header",
+  },
+  {
+    segment: "query",
+    title: "Query",
+    icon: <Search />,
   },
   {
     title: "Tests",

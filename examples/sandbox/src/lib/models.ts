@@ -13,7 +13,7 @@ export interface UdapClientRequest {
   clientName: string;
   contacts: string[];
   scopes: string[];
-  redirectUris: string[];
+  redirectUris?: string[];
   logoUri?: string;
 }
 
@@ -23,13 +23,14 @@ export interface UdapClient {
   iss: string;
   sub: string;
   aud: string;
-  authorization: string;
-  token: string;
-  userinfo: string;
-  fhirServers?: string[];
-  redirectUris: string[];
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  userinfoEndpoint?: string;
+  fhirServer: string;
+  redirectUris?: string[];
   responseTypes: string[];
   scopes: string[];
+  grantType: "authorization_code" | "client_credentials";
 }
 
 export interface UdapMetadata {

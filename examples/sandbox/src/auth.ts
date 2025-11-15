@@ -2,19 +2,20 @@ import "next-auth/jwt";
 import NextAuth from "next-auth";
 import { NextAuthConfig } from "next-auth";
 import { OAuthUserConfig } from "next-auth/providers";
+import { AUTHORIZATION_CODE_CLIENT_ID } from "./lib/constants";
 import { UdapClient, UdapProfile } from "@/lib/models";
 import UdapProvider from "@/lib/udap-provider";
-import { getDefaultClient } from "@/lib/client-store";
+import { getClient } from "@/lib/client-store";
 
 export async function getAuthConfig(): Promise<NextAuthConfig> {
   // console.log('Getting auth config...');
 
   let client: UdapClient | undefined;
   try {
-    client = await getDefaultClient();
+    client = await getClient(AUTHORIZATION_CODE_CLIENT_ID);
     // console.log('NextAuth client:', client);
   } catch (e) {
-    console.log("NextAuth getDefaultClient error:", e);
+    console.log("NextAuth getClient error:", e);
   }
 
   if (!client) {
@@ -51,21 +52,21 @@ export async function getAuthConfig(): Promise<NextAuthConfig> {
       token_endpoint_auth_method: "private_key_jwt",
     },
     authorization: {
-      url: client.authorization,
+      url: client.authorizationEndpoint,
       params: {
         scope: client.scopes?.join(" "),
         redirect_uri: client.redirectUris ? client.redirectUris[0] : "",
       },
     },
-    issuer: new URL(client.authorization).origin,
+    issuer: new URL(client.authorizationEndpoint).origin,
     token: {
-      url: client.token,
+      url: client.tokenEndpoint,
       // clientPrivateKey: cryptoKey, // seems to become a regular Object so instanceof CryptoKey fails in oauth4webapi PrivateKeyJwt
 
       // TODO: Revisit if token request param overriding is working again (seems to be currently broken in nextjs beta)
     },
     userinfo: {
-      url: client.userinfo,
+      url: client.userinfoEndpoint,
     },
   };
 

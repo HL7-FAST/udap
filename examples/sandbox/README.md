@@ -1,28 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UDAP Sandbox Application
+
+This is a basic testing application that demonstrates registering two UDAP clients and querying a FHIR server using both the `authorization_code` and `client_credentials` grant types.
+
+The application is built with [Next.js](https://nextjs.org/) and uses [NextAuth.js](https://next-auth.js.org/) for client side authentication.
+
+
+## Requirements
+- Node.js v22 or later
+- A package manager such as bun, npm, or pnpm (tested with bun)
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
 
-```bash
-npm run dev
+```sh
+bun i
 # or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm i
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run the development server:
 
-You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
+```sh
+bun dev
+# or
+npm run dev
+```
 
-## Learn More
+Run in production mode:
 
-To learn more about Next.js, take a look at the following resources:
+```sh
+bun run build
+bun start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The `authorization_code` flow can be tested by running the application, logging in, and navigating to the "Patients" page.
+
+The `client_credentials` flow can be tested by navigating to the "FHIR Query" page, where you can enter FHIR queries that will be executed using the `client_credentials` UDAP client.
+
+There is also a basic testing suite that can test client registration and has a small set of tests for scope negotiation.

@@ -1,51 +1,62 @@
-import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import Client, { FhirResource } from "fhir-kit-client";
-import { auth } from "@/auth";
-import { COOKIE_CURRENT_FHIR_SERVER } from "@/lib/constants";
-import { getBadRequestResponse } from "@/lib/fhir";
+import { CLIENT_CREDENTIALS_CLIENT_ID } from "@/lib/constants";
+import { getInternalServerErrorResponse } from "@/lib/fhir";
+import { getClient } from "@/lib/client-store";
+import { getAccessToken } from "@/lib/udap-actions";
 
-async function getFhirServer(request: NextRequest): Promise<string | undefined> {
-  const cookieStore = await cookies();
-  let fhirServer = cookieStore.get(COOKIE_CURRENT_FHIR_SERVER)?.value;
+// async function getFhirServer(request: NextRequest): Promise<string | undefined> {
+//   const cookieStore = await cookies();
+//   let fhirServer = cookieStore.get(COOKIE_CURRENT_FHIR_SERVER)?.value;
 
-  const searchParams = new URLSearchParams(request.nextUrl.searchParams);
+//   const searchParams = new URLSearchParams(request.nextUrl.searchParams);
 
-  // query parameter overrides any possible cookie value
-  if (searchParams.has("server")) {
-    fhirServer = searchParams.get("server") ?? fhirServer;
-  }
+//   // query parameter overrides any possible cookie value
+//   if (searchParams.has("server")) {
+//     fhirServer = searchParams.get("server") ?? fhirServer;
+//   }
 
-  return fhirServer;
-}
+//   return fhirServer;
+// }
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> },
 ) {
   const { slug } = await params;
-  const session = await auth();
+  // const session = await auth();
 
-  const fhirServer = await getFhirServer(request);
-  console.log("fhirServer:", fhirServer);
+  // const fhirServer = await getFhirServer(request);
+  // console.log("fhirServer:", fhirServer);
 
-  if (!fhirServer) {
-    return getBadRequestResponse("No FHIR server specified");
+  // if (!fhirServer) {
+  //   return getBadRequestResponse("No FHIR server specified");
+  // }
+
+  // console.log("session:", session);
+
+  // Using the default client_credentials client for server-to-server FHIR access
+  const udapClient = await getClient(CLIENT_CREDENTIALS_CLIENT_ID);
+  if (!udapClient) {
+    return getInternalServerErrorResponse("No UDAP client available");
   }
 
-  const client = new Client({ baseUrl: fhirServer });
-  if (session?.accessToken) {
-    client.bearerToken = session.accessToken;
+  const tokenRes = await getAccessToken(udapClient);
+  if (!tokenRes || !tokenRes.access_token) {
+    return getInternalServerErrorResponse("Failed to obtain access token");
   }
 
-  // console.log('client:', client.customHeaders);
+  const fhirClient = new Client({ 
+    baseUrl: udapClient.fhirServer,
+    bearerToken: tokenRes.access_token,
+  });
 
   let req: Promise<FhirResource>;
 
   if (slug.length === 2) {
-    req = client.read({ resourceType: slug[0], id: slug[1] });
+    req = fhirClient.read({ resourceType: slug[0], id: slug[1] });
   } else {
-    req = client.search({ resourceType: slug[0] });
+    req = fhirClient.search({ resourceType: slug[0] });
   }
 
   try {

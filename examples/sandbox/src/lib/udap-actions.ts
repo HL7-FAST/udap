@@ -1,7 +1,8 @@
 "use server";
 
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import * as forge from "node-forge";
+import { TokenEndpointResponse } from "oauth4webapi";
 import {
   P12Certificate,
   UdapClient,
@@ -13,7 +14,8 @@ import {
   UdapSoftwareStatement,
   UdapX509Header,
 } from "./models";
-import { getPrivateKey, getX509Certficate } from "./cert-store";
+import { getPrivateKey, getServerCertificate, getX509Certficate } from "./cert-store";
+import { cacheAccessToken, getCachedAccessToken } from "./client-store";
 
 export async function registerClient(
   regReq: UdapClientRequest,
@@ -38,20 +40,20 @@ export async function registerClient(
 
   // register client
   const regRes = await sendRegistrationRequest(udapMeta.registration_endpoint, regBody);
-  // regRes.fhirServers = [regReq.fhirServer];
   const client: UdapClient = {
     id: regRes.client_id,
     name: regRes.client_name,
     iss: regRes.iss,
     sub: regRes.sub,
     aud: regRes.aud,
-    authorization: udapMeta.authorization_endpoint,
-    token: udapMeta.token_endpoint,
-    userinfo: udapMeta.userinfo_endpoint,
-    fhirServers: [regReq.fhirServer],
+    authorizationEndpoint: udapMeta.authorization_endpoint,
+    tokenEndpoint: udapMeta.token_endpoint,
+    userinfoEndpoint: udapMeta.userinfo_endpoint,
+    fhirServer: regReq.fhirServer,
     redirectUris: regRes.redirect_uris,
     responseTypes: regRes.response_types,
     scopes: regRes.scope?.split(" "),
+    grantType: regReq.grantTypes.includes("authorization_code") ? "authorization_code" : "client_credentials",
   };
 
   console.timeEnd("Client registration complete");
@@ -176,4 +178,86 @@ export async function getClientAssertion(
   // console.log('Client assertion:', token);
 
   return token;
+}
+
+async function getCachedToken(clientId: string): Promise<string | null> {
+  const cachedToken = await getCachedAccessToken(clientId);
+  if (cachedToken) {
+    console.log(`Using cached token for client ${clientId}`);
+
+    // Verify token is still valid
+    const decoded = jwt.decode(cachedToken, { complete: true }) as jwt.Jwt | null;
+    if (!decoded) {
+      return null;
+    }
+
+    const exp = (decoded.payload as JwtPayload).exp;
+    const now = Math.floor(new Date().getTime() / 1000);
+    console.log(`Cached token exp: ${exp}, now: ${now}`);
+    if (!exp || exp < now + 10) {
+      console.log(`Cached token for client ${clientId} is expired or about to expire`);
+      return null;
+    }
+    
+    return cachedToken;
+  }
+  return null;
+}
+
+
+/**
+ * Retrieves an access token response for the given UdapClient
+ */
+export async function getAccessToken(client: UdapClient, code?: string, redirectUri?: string): Promise<TokenEndpointResponse> {
+
+  // If client_credentials flow, check for cached valid token first
+  if (client.grantType === "client_credentials") {
+    const cachedToken = await getCachedToken(client.id);
+    if (cachedToken) {
+      console.log(`Using cached token for client ${client.id}`);
+      return { access_token: cachedToken, token_type: "bearer" };
+    }
+  }
+
+  console.log(`Getting access token for client ${client.id} (${client.grantType})...`);
+
+  const cert = await getServerCertificate();
+  if (!cert) {
+    throw new Error("No server certificate loaded");
+  }
+
+  const tokenParams = {
+    grant_type: client.grantType,
+    code: code || "",
+    client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    client_assertion: await getClientAssertion(client.id, client.tokenEndpoint, cert),
+    // code_verifier: codeVerifier || "",
+    udap: "1",
+    redirect_uri: redirectUri || "",
+  };
+
+
+  const tokenResponse = await fetch(client.tokenEndpoint, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams(tokenParams).toString(),
+  });
+
+  const tokenJson = await tokenResponse.json();
+  if (!tokenResponse.ok) {
+    throw new Error(
+      `Failed to get token: (${tokenResponse.status}) ${tokenJson.error}: ${tokenJson.error_description}`,
+    );
+  }
+
+  // Cache token if client_credentials flow
+  if (client.grantType === "client_credentials" && tokenJson.access_token) {
+    await cacheAccessToken(client.id, tokenJson.access_token);
+  }
+
+  return tokenJson;
+
 }

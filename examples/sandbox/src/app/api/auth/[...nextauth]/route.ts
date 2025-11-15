@@ -5,7 +5,9 @@ import { SerializeOptions, serialize } from "cookie";
 import { getAuthConfig, handlers } from "@/auth";
 import { getServerCertificate } from "@/lib/cert-store";
 import { UdapProfile } from "@/lib/models";
-import { discoverUdapEndpoint, getClientAssertion } from "@/lib/udap-actions";
+import { discoverUdapEndpoint, getAccessToken } from "@/lib/udap-actions";
+import { getClient } from "@/lib/client-store";
+import { AUTHORIZATION_CODE_CLIENT_ID } from "@/lib/constants";
 
 export async function GET(request: NextRequest): Promise<Response> {
   // console.log("GET auth: ", request.nextUrl.pathname, request.url);
@@ -60,32 +62,41 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   let hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
   hostUrl = hostUrl.endsWith("/") ? hostUrl : hostUrl + "/";
+  const redirectUri = hostUrl + "api/auth/callback/udap";
 
-  const tokenParams = {
-    grant_type: "authorization_code",
-    code: request.nextUrl.searchParams.get("code") || "",
-    client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-    client_assertion: await getClientAssertion(options.clientId, options.token.url, cert),
-    redirect_uri: hostUrl + "api/auth/callback/udap",
-    // code_verifier: codeVerifier || "",
-    udap: "1",
-  };
+  // const tokenParams = {
+  //   grant_type: "authorization_code",
+  //   code: request.nextUrl.searchParams.get("code") || "",
+  //   client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+  //   client_assertion: await getClientAssertion(options.clientId, options.token.url, cert),
+  //   redirect_uri: hostUrl + "api/auth/callback/udap",
+  //   // code_verifier: codeVerifier || "",
+  //   udap: "1",
+  // };
 
-  const tokenResponse = await fetch(options.token.url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams(tokenParams).toString(),
-  });
+  // const tokenResponse = await fetch(options.token.url, {
+  //   method: "POST",
+  //   headers: {
+  //     "Accept": "application/json",
+  //     "Content-Type": "application/x-www-form-urlencoded",
+  //   },
+  //   body: new URLSearchParams(tokenParams).toString(),
+  // });
 
-  const tokenJson = await tokenResponse.json();
-  if (!tokenResponse.ok) {
-    throw new Error(
-      `Failed to get token: (${tokenResponse.status}) ${tokenJson.error}: ${tokenJson.error_description}`,
-    );
-  }
+  // const tokenJson = await tokenResponse.json();
+  // if (!tokenResponse.ok) {
+  //   throw new Error(
+  //     `Failed to get token: (${tokenResponse.status}) ${tokenJson.error}: ${tokenJson.error_description}`,
+  //   );
+  // }
   // console.log("GET auth token:", tokenJson);
+
+  const client = await getClient(AUTHORIZATION_CODE_CLIENT_ID);
+  if (!client) {
+    throw new Error("No UDAP client available");
+  }
+
+  const tokenJson = await getAccessToken(client, request.nextUrl.searchParams.get("code") || "", redirectUri);
 
   // get user info
   let userInfoJson;
@@ -110,7 +121,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     accessToken: tokenJson.access_token,
   };
 
-  console.log("GET auth session token:", token);
+  // console.log("GET auth session token:", token);
 
   // Update the session with the new token
   const sessionToken = await encode({
