@@ -27,7 +27,7 @@ RUN mkdocs build -d /app/docs
 
 FROM base AS final
 
-# Install ca-certificates and openssl for certificate management
+# Install ca-certificates for certificate management
 RUN apk add --no-cache ca-certificates
 
 WORKDIR /app

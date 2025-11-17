@@ -1,33 +1,118 @@
 # Community Resources
 
-This is a non-exhaustive list of community resources available for working with the FAST Security Reference Implementation and UDAP in general.
+Discover community-built implementations, tools, and tutorials for working with the FAST Security Reference Implementation and UDAP.
 
+!!! info "Community Contributions"
+    This is a curated list of community resources. Have something to add? [Open an issue or PR](https://github.com/HL7-FAST/udap){:target="_blank"} on GitHub!
 
-## Implementations
+## :material-application: Reference Implementations
 
-The FAST identity matching implementation guide has client and server reference implementations that use the FAST Security server RI to (optionally) obtain generated certificates, register clients, and complete both `authorization_code` and `client_credentials` flows.
+The FAST Identity Matching Implementation Guide includes reference implementations that demonstrate full UDAP integration:
 
-- [FAST Identity Matching Server](https://github.com/HL7-FAST/identity-matching) (Java HAPI FHIR server)
-- [FAST Identity Matching Client](https://github.com/HL7-FAST/identity-matching-ui) (Angular+Express web app)
+<div class="grid cards" markdown>
 
-The identity matching client demostrates a confidential client where no auth tokens are stored in the browser.
+-   :material-server:{ .lg .middle } **Identity Matching Server**
 
-## Examples in This Repository
+    ---
 
-The FAST Security server RI contains an `examples` directory in the root of the project.
+    Java HAPI FHIR server with UDAP support
 
-### Docker FAST Identity Matching Stack
+    - Authorization code flow
+    - Client credentials flow
+    - Dynamic client registration
 
-The Docker compose file located at `examples/docker/compose-identity-matching.yml` sets up the security server along with the [FAST Identity Matching Server](https://github.com/HL7-FAST/identity-matching) and the [FAST Identity Matching Client](https://github.com/HL7-FAST/identity-matching-ui).
+    [:fontawesome-brands-github: View Repository](https://github.com/HL7-FAST/identity-matching){:target="_blank"}
 
+-   :material-application-outline:{ .lg .middle } **Identity Matching Client**
 
-### Next.js Example App
+    ---
 
-The `examples/sandbox` directory contains a simple Next.js application that registers two different clients. One client uses the `authorization_code` flow and stores the access token in the browser. The other client uses the `client_credentials` flow to obtain obtain access tokens for server-to-server communication.
+    Angular + Express web application
 
+    - Confidential client pattern
+    - Server-side token management
+    - No browser token storage
 
-## FhirLabs UdapEd
+    [:fontawesome-brands-github: View Repository](https://github.com/HL7-FAST/identity-matching-ui){:target="_blank"}
 
-The [UdapEd tool](https://udaped.fhirlabs.net) is a web-based application that, among many other features, allows users to go step-by-step through the process of registering a UDAP client and obtaining access tokens from a UDAP server.
+</div>
 
-Joe Shook (author of the UdapEd tool) also has an extensive tutorial for setting up a FHIR and UDAP auth server: <https://github.com/JoeShook/udap-dotnet-tutorial>
+## :material-folder-open: Examples in This Repository
+
+The FAST Security server includes example implementations in the `examples/` directory.
+
+### :simple-docker: Docker FAST Identity Matching Stack
+
+!!! example "Full Stack Example"
+    Location: `examples/docker/compose-identity-matching.yml`
+
+Complete Docker Compose setup that orchestrates:
+
+- :material-shield-lock: FAST Security Server
+- :material-server: Identity Matching FHIR Server
+- :material-application: Identity Matching UI Client
+
+**Start the stack:**
+
+```bash title="Run full stack"
+docker compose -f examples/docker/compose-identity-matching.yml up
+```
+
+### :material-react: Next.js Example Application
+
+!!! example "Next.js Integration"
+    Location: `examples/sandbox/`
+
+A Next.js application demonstrating two client patterns:
+
+=== "Authorization Code Flow"
+
+    - Browser-based authentication
+    - Access token in browser session
+    - User context flows
+
+=== "Client Credentials Flow"
+
+    - Server-to-server authentication
+    - Backend token management
+    - Service account flows
+
+**Run the example:**
+
+```bash title="Start Next.js app"
+cd examples/sandbox
+bun install
+bun dev
+```
+
+## :material-tools: Community Tools
+
+### UdapEd - Interactive UDAP Tool
+
+[:material-launch: Open UdapEd](https://udaped.fhirlabs.net){:target="_blank" .md-button }
+
+A comprehensive web-based tool developed by Joe Shook for UDAP testing and education:
+
+- Step-by-step client registration
+- Step-by-step access token acquisition
+- Many other UDAP utilities
+
+## :material-school: Tutorials
+
+### Complete UDAP Server Tutorial
+
+[:fontawesome-brands-github: UDAP .NET Tutorial](https://github.com/JoeShook/udap-dotnet-tutorial){:target="_blank" .md-button .md-button--primary }
+
+Comprehensive guide by Joe Shook covering:
+
+- Setting up a FHIR server
+- Implementing UDAP authentication
+- Integrating with IdentityServer
+- Trust anchor management
+- Production deployment considerations
+
+## :material-puzzle: Integration Examples
+
+Looking for integration guides with specific platforms?
+
+[:octicons-arrow-right-24: Check out our Integration Tutorials](integration/index.md)

@@ -1,75 +1,99 @@
 # Getting Started
 
-A hosted instance of this server is available at <https://udap-security.fast.hl7.org>. This guide is for running the server locally.
+!!! tip "Hosted Instance"
+    A hosted instance of this server is available at <https://udap-security.fast.hl7.org>. 
+    
+    This guide is for running the server **locally** for development or testing purposes.
 
-## Requirements
+## :material-package-variant: Requirements
 
-To run the server locally, you will need to have the following installed:
+=== "Local Development"
 
-- [.NET 9](https://dotnet.microsoft.com/)
-- (optional) Microsoft SQL Server
-- (optional) Python for building documentation from the `docs` directory
+    To run the server locally, you will need:
 
-To run the server in a container, you will need a locally installed container manager such as:
+    - :simple-dotnet: [**.NET 9 SDK**](https://dotnet.microsoft.com/) - Required
+    - :fontawesome-solid-database: **Microsoft SQL Server** - Optional (SQLite is used by default)
+    - :simple-python: **Python 3.x** - Optional (for building documentation)
 
-- [Docker](https://www.docker.com/)
-- [Podman](https://podman.io/)
+=== "Container Runtime"
+
+    To run the server in a container, you will need a container manager such as:
+
+    - :simple-docker: [**Docker**](https://www.docker.com/)
+    - :simple-podman: [**Podman**](https://podman.io/)
 
 
-## Starting the Server Locally
+## :material-play-circle: Starting the Server Locally
 
-Run the server in the root directory of the project with `dotnet run` specifying the project file:
+Run the server from the root directory of the project:
 
-```sh
+```bash title="Start the server"
 dotnet run --project IdentityServer/IdentityServer.csproj
 ```
 
-This will start the server on <https://localhost:5001> by default.
+!!! success "Server Started"
+    The server will start on **<https://localhost:5001>** by default.
 
-If this is the first time running the server, you will likely need to create a self-signed certificate.  This can be done by running the following command:
+### :material-certificate: Development Certificates
 
-```sh
+!!! warning "First Time Setup"
+    If this is your first time running the server, you'll likely need to create and trust a development certificate.
+
+**Create the certificate:**
+
+```bash title="Generate dev certificate"
 dotnet dev-certs https
 ```
-Additionally, you can trust the certificate by running the following command:
-```sh
+
+**Trust the certificate:**
+
+```bash title="Trust the certificate"
 dotnet dev-certs https --trust
 ```
 
-More information on self-signed certificates and development certificates can be found in the [.NET documentation](https://learn.microsoft.com/en-us/dotnet/core/additional-tools/self-signed-certificates-guide).
+!!! info "Learn More"
+    For more information on development certificates, see the [.NET documentation](https://learn.microsoft.com/en-us/dotnet/core/additional-tools/self-signed-certificates-guide).
 
 
-## Running in a Container
+## :simple-docker: Running in a Container
 
-You can also run the server in a container.  These instructions use [Docker](https://www.docker.com/), but they should also generally work with other container managers such as [Podman](https://podman.io/).
+You can also run the server in a container.
 
-### Using Pre-built Image
+!!! note "Container Manager Compatibility"
+    These instructions use Docker, but should work with other OCI-compatible container managers like Podman.
 
-A pre-built Docker image is available on Docker Hub. You can use Docker Compose or run the container directly. To use Docker Compose run the following from the root directory of the project:
+=== "Docker Compose"
 
-```sh
-docker compose up
-```
+    The easiest way to run the server is using Docker Compose:
 
-To run the container directly, you can pull the image from Docker Hub and run it with the following command:
+    ```bash title="Start with Docker Compose"
+    docker compose up
+    ```
 
-```sh
-docker run -p 5001:443 -e ASPNETCORE_URLS="https://+:443" hlseven/fast-udap-security
-```
+    This will use the pre-built image from Docker Hub and start the server with all necessary configuration.
 
-### Building the Docker Image Locally
+=== "Pre-built Image"
 
+    Pull and run the pre-built image directly:
 
-Or, you can build the Docker image locally by navigating to the root directory of the project and running:
+    ```bash title="Run pre-built container"
+    docker run -p 5001:443 -e ASPNETCORE_URLS="https://+:443" hlseven/fast-udap-security
+    ```
 
-```sh
-docker build -f IdentityServer/Dockerfile -t fast-security .
-```
+    The server will be available at `https://localhost:5001`.
 
-Once the image is built, you can run the container with:
+=== "Build Locally"
 
-```sh
-docker run -p 5001:443 fast-security
-```
+    Build the Docker image from source:
+
+    ```bash title="Build Docker image"
+    docker build -f IdentityServer/Dockerfile -t fast-security .
+    ```
+
+    Then run your locally-built image:
+
+    ```bash title="Run local container"
+    docker run -p 5001:443 fast-security
+    ```
 
 

@@ -1,14 +1,26 @@
 # Configuration
 
-The server can be configured using the `appsettings.json` file (or the `appsettings.Development.json` or `appsettings.Local.json` files). Examples of setting these values can be found in the existing `appsettings.json` files as well as the `docker-compose.yml` and `docker-compose.override.yml` files.
+The server uses standard .NET configuration patterns with support for multiple configuration sources.
 
-The following table describes the configuration options available to set in the `AppConfig` section of the `appsettings.json` file (or through environment variables).
+!!! info "Configuration Files"
+    Configuration can be set in:
+    
+    - `appsettings.json` - Base configuration
+    - `appsettings.Development.json` - Development overrides
+    - `appsettings.Local.json` - Local overrides (not tracked in git)
+    - Environment variables - Runtime configuration
+    - `docker-compose.yml` - Container configuration
 
-| Setting | Value(s) | Default | Description |
-| ------- | -------- | ------- | ----------- |
-| `DatabaseProvider` | `Sqlite`, `SqlServer`  | `Sqlite` | The database provider to use for data persistence.  This should correspond to the connection string set in the `ConnectionStrings.DefaultConnection` property. |
-| `UdapIdpBaseUrl` | Server base URL | | The base URL for the server (eg: `https://localhost:5001`) used for forming the `registration_endpoint` in the `.well-known/udap` statement. |
-| `SeedData` | `true`, `false` | `false` | Sets whether to seed the database with initial data. See the [Seeding Data](#seeding-data) section for more information. |
-| `SystemAdminPassword` | string | `admin`  | The password for the default system admin user. |
-| `UdapAdminPassword` | string | `udap` | The password for the default UDAP admin user. |
-| `UserPassword` | string | `user` | The password for the default user that has no admin privileges, but can be used for testing access token generation in clients. |
+## :material-cog: AppConfig Settings
+
+The following settings are available in the `AppConfig` section:
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `DatabaseProvider` | `Sqlite` \| `SqlServer` | `Sqlite` | :fontawesome-solid-database: Database provider for persistence. Must match the connection string in `ConnectionStrings.DefaultConnection`. |
+| `UdapIdpBaseUrl` | string | `https://localhost:5001` | :material-link: Base URL for the server (e.g., `https://localhost:5001`). Used for the `registration_endpoint` in `.well-known/udap`. |
+| `SeedData` | `true` \| `false` | `false` | :material-database-import: Whether to seed initial data on startup. See [Seeding Data](seeding-data.md). |
+| `SystemAdminPassword` | string | `admin` | :material-shield-account: Password for the default system administrator user. |
+| `UdapAdminPassword` | string | `udap` | :material-shield-key: Password for the default UDAP administrator user. |
+| `UserPassword` | string | `user` | :material-account: Password for the default test user (no admin privileges). |
+

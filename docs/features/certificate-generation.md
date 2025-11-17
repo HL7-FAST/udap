@@ -1,33 +1,82 @@
 # Generating Certificates
 
-The server features an API endpoint that allows users to dynamically generate client certificates using a configured certificate authority (CA) certificate.  A local CA (intuitively named `LocalCA`) is configured by default for running the server locally.  The [hosted instance of the server](https://udap-security.fast.hl7.org) uses a configured root CA named `FastCA` that is also by default a trusted anchor.
+The server provides an API endpoint for dynamically generating client certificates signed by a configured Certificate Authority (CA).
 
-The API endpoint is located at `/api/cert/generate` and accepts a POST request with a JSON body that specifies the certificate parameters.  The following is an example request body:
+!!! info "Available Certificate Authorities"
+    - **LocalCA** - Default CA for local development
+    - **FastCA** - Production CA used by the [hosted instance](https://udap-security.fast.hl7.org)
+    - **FhirLabs** - SureFhirLabs CA for interoperability testing
+
+## :material-api: API Endpoint
+
+The certificate generation endpoint accepts POST requests with certificate parameters. To generate a certificate from the hosted instance, use the following endpoint:
 
 ```
 POST https://udap-security.fast.hl7.org/api/cert/generate
 ```
-```json
-{
-  "altNames": [
-    "http://localhost:8080/fhir"
-  ],
-  "password": "udap-test"
-}
+
+!!! note Local Development
+    If running the server locally, replace the URL with your local server address (e.g., `https://localhost:5001/api/cert/generate`).
+
+### :material-code-json: Request Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `altNames` | `string[]` | Yes | List of URIs to include as Subject Alternative Names (SANs) |
+| `password` | `string` | Yes | Password to protect the private key |
+| `provider` | `Local` \| `FhirLabs` | No | CA provider (default: `Local`) |
+
+### :material-file-certificate: Response
+
+Returns a **PKCS#12 (.pfx/.p12)** file containing:
+
+- :material-certificate: Client certificate
+- :material-key: Private key (password protected)
+- :material-certificate-outline: Certificate chain
+
+## :material-play-box-multiple: Examples
+
+=== "Local Development"
+
+    Generate a certificate using the `LocalCA` chain (or `FastCA` if using the hosted instance):
+
+    ```json title="Request Body"
+    {
+      "altNames": [
+        "http://localhost:8080/fhir"
+      ],
+      "password": "udap-test"
+    }
+    ```
+
+    !!! tip "Local/FAST CA Trust"
+        The `LocalCA` and `FastCA` certificates are automatically trusted in the default configuration.
+
+=== "FhirLabs CA"
+
+    Generate a certificate using the SureFhirLabs CA:
+
+    ```json title="Request Body"
+    {
+      "altNames": [
+        "http://localhost:8080/fhir"
+      ],
+      "password": "udap-test",
+      "provider": "FhirLabs"
+    }
+    ```
+
+    !!! note "UdapEd Compatible"
+        Certificates from FhirLabs CA are also compatible with the [UdapEd tool](https://udaped.fhirlabs.net).
+
+## :material-bash: Using cURL
+
+```bash title="Generate and save certificate"
+curl -X POST https://udap-security.fast.hl7.org/api/cert/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "altNames": ["http://localhost:8080/fhir"],
+    "password": "udap-test"
+  }' \
+  --output mycert.pfx
 ```
-
-The `altNames` property is a list of URIs that will be included as Subject Alternative Names (SANs) in the generated certificate.  The `password` property is the password that will be used to protect the private key of the generated certificate.  This endpoint returns a PKCS#12 (PFX) file.
-
-You can also generate a certificate that instead of the `LocalCA` or `FastCA` anchors will use the SureFhirLabs CA.  This functionality is also available on the [UdapEd tool](https://udaped.fhirlabs.net). The request body for generating a certificate with the SureFhirLabs CA is as follows:
-
-```json
-{
-  "altNames": [
-    "http://localhost:8080/fhir"
-  ],
-  "password": "udap-test",
-  "provider": "FhirLabs"
-}
-```
-
-The `provider` property specifies the CA to use for generating the certificate.  Valid values for this property are `Local` and `FhirLabs`.  If the property is omitted, the default value is `Local`.
