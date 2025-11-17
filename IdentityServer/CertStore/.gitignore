@@ -14,5 +14,5 @@
 !/LocalCA/crl/*.crl
 !/LocalCA/intermediates
 !/LocalCA/intermediates/LocalSubCA.crt
-!/SureFireLabs
-!/SureFireLabs/*
+!/SureFhirLabs
+!/SureFhirLabs/*

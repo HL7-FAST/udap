@@ -1,13 +1,26 @@
 site_name: FAST Security RI Documentation
 nav:
   - Home: index.md
-  - Getting Started: getting-started.md
-  - Configuration: configuration.md
-  - Seeding Data: seeding-data.md
-  - Integrating Clients and Servers: integration.md
+  - Server Setup:
+    - setup/index.md
+    - Getting Started: setup/getting-started.md
+    - Configuration: setup/configuration.md
+    - Seeding Data: setup/seeding-data.md
+  - Server Features:
+    - features/index.md
+    - Generating Certificates: features/certificate-generation.md
+  - Developer Guides:
+    - guides/index.md
+    - Community Resources: guides/community.md
+    - Integration Tutorials:
+      - guides/integration/index.md
+      - HAPI FHIR Server: guides/integration/hapi.md
 theme:
   name: material
   features:
     - content.code.copy
+    - navigation.indexes
+    - navigation.path
+    - navigation.sections
 markdown_extensions:
   - pymdownx.superfences
