@@ -34,7 +34,7 @@ namespace IdentityServer.Pages
                     "connect-src 'self' ws://localhost:* wss://localhost:* https://cdnjs.cloudflare.com; " +
                     "object-src 'none'; " +
                     "frame-ancestors 'none'; " +
-                    "sandbox allow-forms allow-same-origin allow-scripts allow-popups; " +
+                    "sandbox allow-forms allow-same-origin allow-scripts allow-popups allow-modals; " +
                     "base-uri 'self';";
                 // also consider adding upgrade-insecure-requests once you have HTTPS in place for production
                 //csp += "upgrade-insecure-requests;";

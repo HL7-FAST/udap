@@ -31,6 +31,19 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.2.0/mdb.umd.min.js" integrity="sha512-VY+mj3DzW3U/KhQue1SvfKGS9QEPyJZcAUQE6D5ZJf4IRe9eDc4J/eQC604+2xDovoEqTbXtJjus0w3zV1VPZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('[data-confirm]').forEach(element => {
+                element.addEventListener('click', function(e) {
+                    if (!confirm(this.getAttribute('data-confirm'))) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                });
+            });
+        });
+    </script>
+
     @RenderSection("scripts", required: false)
 </body>
 
