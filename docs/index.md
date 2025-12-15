@@ -1,6 +1,6 @@
 # FAST Security Reference Implementation
 
-Welcome to the documentation for the **FAST Security Reference Implementation** (RI). This project provides an open-source implementation of the [FAST Security Implementation Guide](https://build.fhir.org/ig/HL7/fhir-udap-security-ig) for UDAP-based authentication and authorization in FHIR ecosystems.
+Welcome to the documentation for the **FAST Security Reference Implementation** (RI). This project provides an open-source implementation of the [FAST Security Implementation Guide STU2](https://build.fhir.org/ig/HL7/fhir-udap-security-ig) for UDAP-based authentication and authorization in FHIR ecosystems.
 
 !!! info "Hosted Instance Available"
     A public hosted instance of the server is available in the HL7 Foundry at:

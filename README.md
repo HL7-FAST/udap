@@ -1,6 +1,6 @@
 # FAST Security Reference Implementation
 
-This project is a reference implementation for the [FAST Security Implementation Guide](http://build.fhir.org/ig/HL7/fhir-udap-security-ig/).  It is built using the [Duende IdentityServer](https://duendesoftware.com/products/identityserver) and [UDAP .NET](https://github.com/udap-tools/udap-dotnet) libraries.
+This project is a reference implementation for the [FAST Security Implementation Guide STU2](http://build.fhir.org/ig/HL7/fhir-udap-security-ig/).  It is built using the [Duende IdentityServer](https://duendesoftware.com/products/identityserver) and [UDAP .NET](https://github.com/udap-tools/udap-dotnet) libraries.
 
 ## Hosted Instance
 
