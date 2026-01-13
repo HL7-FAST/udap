@@ -83,6 +83,11 @@ namespace IdentityServer
 
             builder.Services.AddIdentityServer(options =>
                 {
+                    if (!string.IsNullOrEmpty(appConfig.IssuerUri))
+                    {
+                        options.IssuerUri = appConfig.IssuerUri;
+                    }
+
                     options.Events.RaiseErrorEvents = true;
                     options.Events.RaiseInformationEvents = true;
                     options.Events.RaiseFailureEvents = true;
@@ -197,7 +202,9 @@ namespace IdentityServer
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor
+                    | ForwardedHeaders.XForwardedProto
+                    | ForwardedHeaders.XForwardedHost;
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
             });
@@ -216,6 +223,13 @@ namespace IdentityServer
 
         public static WebApplication ConfigurePipeline(this WebApplication app)
         {
+            var appConfig = app.Configuration.GetOption<AppConfig>(nameof(AppConfig));
+
+            if (!string.IsNullOrEmpty(appConfig.PathBase))
+            {
+                app.UsePathBase(appConfig.PathBase);
+            }
+
             app.UseForwardedHeaders();
             app.UseSerilogRequestLogging();
 

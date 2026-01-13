@@ -7,18 +7,22 @@ using Udap.Server.Validation;
 
 namespace IdentityServer.Middleware
 {
-
-    public class UdapMiddleware(RequestDelegate next, ILogger<UdapMiddleware> logger, IResourceStore resourceStore, IScopeExpander scopeExpander)
+    public class UdapMiddleware
     {
-        public async Task Invoke(HttpContext context)
+        private readonly RequestDelegate _next;
+        private readonly ILogger<UdapMiddleware> _logger;
+
+        public UdapMiddleware(RequestDelegate next, ILogger<UdapMiddleware> logger)
         {
+            _next = next;
+            _logger = logger;
+        }
 
-            // check if this request will result in zero allowed scopes for a new client
-            // if so... reject it before bothering to do any cert validation
-
+        public async Task Invoke(HttpContext context, IResourceStore resourceStore, IScopeExpander scopeExpander)
+        {
             if (context.Request.Path.Value != null && context.Request.Path.Value.Contains("/connect/register"))
             {
-                logger.LogDebug("Checking for allowed scopes for new client registration");
+                _logger.LogDebug("Checking for allowed scopes for new client registration");
                 context.Request.EnableBuffering();
                 UdapRegisterRequest request;
                 JwtSecurityToken jwt;
@@ -30,7 +34,7 @@ namespace IdentityServer.Middleware
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error reading request body");
+                    _logger.LogError(ex, "Error reading request body");
                     context.Response.StatusCode = StatusCodes.Status400BadRequest;
                     await context.Response.WriteAsJsonAsync(new UdapDynamicClientRegistrationErrorResponse
                     (
@@ -45,7 +49,7 @@ namespace IdentityServer.Middleware
                 var scopes = jwt.Claims.Where(c => c.Type == JwtClaimTypes.Scope).FirstOrDefault() ?? throw new ArgumentNullException(nameof(jwt.Claims));
                 if (string.IsNullOrWhiteSpace(scopes.Value))
                 {
-                    logger.LogError("No scopes requested");
+                    _logger.LogError("No scopes requested");
 
                     context.Response.StatusCode = StatusCodes.Status400BadRequest;
                     await context.Response.WriteAsJsonAsync(new UdapDynamicClientRegistrationErrorResponse
@@ -62,11 +66,11 @@ namespace IdentityServer.Middleware
                 var allowedScopes = resources.ApiScopes.Where(s => explodedScopes.Contains(s.Name)).Select(s => s.Name).ToList()
                                         .Union(resources.IdentityResources.Where(s => explodedScopes.Contains(s.Name)).Select(s => s.Name).ToList());
                 
-                logger.LogDebug("Allowed Scopes: {Scopes}", allowedScopes);
+                _logger.LogDebug("Allowed Scopes: {Scopes}", allowedScopes);
 
                 if (!allowedScopes.Any())
                 {
-                    logger.LogError("No allowed scopes for new client registration");
+                    _logger.LogError("No allowed scopes for new client registration");
 
                     context.Response.StatusCode = StatusCodes.Status400BadRequest;
                     await context.Response.WriteAsJsonAsync(new UdapDynamicClientRegistrationErrorResponse
@@ -80,7 +84,7 @@ namespace IdentityServer.Middleware
                 context.Request.Body.Position = 0;
             }
 
-            await next(context);
+            await _next(context);
         }
         
     }

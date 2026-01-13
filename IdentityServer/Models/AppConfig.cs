@@ -9,6 +9,8 @@
         public string DatabaseProvider { get; set; } = "Sqlite";
         public bool SeedData { get; set; }
         public string UdapIdpBaseUrl { get; set; }
+        public string PathBase { get; set; }
+        public string IssuerUri { get; set; }
 
         public string FhirLabsJitCertUrl { get; set; }
         public string DefaultCertPassword { get; set; } = "udap-test";
