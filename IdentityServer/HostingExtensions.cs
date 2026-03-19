@@ -17,9 +17,11 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.DataProtection;
 using Udap.Client.Configuration;
 using Udap.Common;
+using Udap.Common.Certificates;
 using Udap.Server.Configuration;
 using Udap.Server.Storage.DbContexts;
 using Udap.Server.Security.Authentication.TieredOAuth;
+using Udap.Server.Storage.Stores;
 using IdentityServer.Middleware;
 
 namespace IdentityServer
@@ -68,11 +70,25 @@ namespace IdentityServer
                 .AddUdapResponseGenerators()
                 .AddSmartV2Expander();
 
+            // Fix: Decorate the UDAP client registration store to handle FindTieredClientById
+            // returning a default TieredClient instead of null when called with an IdP URL
+            builder.Services.Decorate<IUdapClientRegistrationStore, CustomUdapClientRegistrationStore>();
+
+            // For development/testing, allow untrusted certs when calling out to other servers (e.g., for DCR)
+            if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Local"))
+            {
+                builder.Services.AddHttpClient<CertificateDownloadCache>()
+                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                    {
+                        ServerCertificateCustomValidationCallback =
+                            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                    });
+            }
 
             builder.Services.AddDataProtection().PersistKeysToDbContext<UdapDbContext>();
 
             builder.Services.Configure<UdapClientOptions>(builder.Configuration.GetSection("UdapClientOptions"));
-            builder.Services.Configure<UdapFileCertStoreManifest>(builder.Configuration.GetSection(Udap.Common.Constants.UDAP_FILE_STORE_MANIFEST));
+            builder.Services.Configure<UdapFileCertStoreManifest>(builder.Configuration.GetSection(Udap.Common.Constants.UdapFileCertStoreManifestSectionName));
 
             builder.Services.AddAuthentication()
                 .AddTieredOAuth(options =>

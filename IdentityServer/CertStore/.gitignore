@@ -16,3 +16,8 @@
 !/LocalCA/intermediates/LocalSubCA.crt
 !/SureFhirLabs
 !/SureFhirLabs/*
+
+!/issued
+!/issued/localhost5001.pfx
+!/issued/udap-security.fast.hl7.org.pfx
+!/issued/idp2.securedcontrols.net.server.pfx

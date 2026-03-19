@@ -13,7 +13,7 @@ Full documentation can be found in the [docs](./docs) directory.  A hosted versi
 
 ## Requirements
 
-- .NET 9
+- .NET 10
 - (optional) Microsoft SQL Server
 - (optional) Docker
 - (optional) Python for building documentation from the `docs` directory
