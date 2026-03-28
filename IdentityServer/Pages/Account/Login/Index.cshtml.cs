@@ -54,6 +54,12 @@ namespace IdentityServer.Pages.Login
                 return RedirectToPage("/ExternalLogin/Challenge", new { scheme = View.ExternalLoginScheme, returnUrl });
             }
 
+            if (View.TieredProvider != null)
+            {
+                return RedirectToPage("/UdapTieredLogin/Challenge",
+                    new { scheme = View.TieredProvider.AuthenticationScheme, returnUrl });
+            }
+
             return Page();
         }
 
