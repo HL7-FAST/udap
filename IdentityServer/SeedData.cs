@@ -275,18 +275,36 @@ namespace IdentityServer
         {
             Log.Debug("Seeding FHIR scopes");
 
-            // Seed initial FHIR scopes
-            Func<string, bool> treatmentSpecification = r => r is "Patient" or "AllergyIntolerance" or "Condition" or "Encounter";
-            var scopeProperties = new Dictionary<string, string> { { "smart_version", "v1" } };
+            var compartments = new[] { "patient", "user", "system" };
 
-            await SeedFhirScopes(configContext, Hl7ModelInfoExtensions.BuildHl7FhirV1Scopes("patient", treatmentSpecification), scopeProperties);
-            await SeedFhirScopes(configContext, Hl7ModelInfoExtensions.BuildHl7FhirV1Scopes("user", treatmentSpecification), scopeProperties);
-            await SeedFhirScopes(configContext, Hl7ModelInfoExtensions.BuildHl7FhirV1Scopes("system", treatmentSpecification), scopeProperties);
+            var v1Properties = new Dictionary<string, string> { { "smart_version", "v1" } };
+            foreach (var compartment in compartments)
+            {
+                var v1Scopes = Hl7ModelInfoExtensions.BuildHl7FhirV1Scopes(compartment);
+                AddV1WriteWildcard(v1Scopes, compartment);
+                await SeedFhirScopes(configContext, v1Scopes, v1Properties);
+            }
 
-            scopeProperties = new Dictionary<string, string> { { "smart_version", "v2" } };
-            await SeedFhirScopes(configContext, Hl7ModelInfoExtensions.BuildHl7FhirV2Scopes("patient", treatmentSpecification), scopeProperties);
-            await SeedFhirScopes(configContext, Hl7ModelInfoExtensions.BuildHl7FhirV2Scopes("user", treatmentSpecification), scopeProperties);
-            await SeedFhirScopes(configContext, Hl7ModelInfoExtensions.BuildHl7FhirV2Scopes("system", treatmentSpecification), scopeProperties);
+            var v2Properties = new Dictionary<string, string> { { "smart_version", "v2" } };
+            foreach (var compartment in compartments)
+            {
+                var v2Scopes = Hl7ModelInfoExtensions.BuildHl7FhirV2Scopes(compartment);
+                AddV2WriteWildcards(v2Scopes, compartment);
+                await SeedFhirScopes(configContext, v2Scopes, v2Properties);
+            }
+        }
+
+        private static void AddV1WriteWildcard(HashSet<string> scopes, string compartment)
+        {
+            scopes.UnionWith(Hl7ModelInfoExtensions.BuildHl7FhirV1Scopes(compartment, suffix: "write"));
+        }
+
+        private static void AddV2WriteWildcards(HashSet<string> scopes, string compartment)
+        {
+            foreach (var verb in new[] { "c", "u", "d", "cu", "cud", "cruds" })
+            {
+                scopes.UnionWith(Hl7ModelInfoExtensions.BuildHl7FhirV2Scopes(compartment, suffix: verb));
+            }
         }
 
 
@@ -330,7 +348,7 @@ namespace IdentityServer
                     var apiScope = new ApiScope(scopeName);
                     apiScope.ShowInDiscoveryDocument = false;
 
-                    if (apiScope.Name.StartsWith("patient/*."))
+                    if (apiScope.Name.StartsWith("user/*."))
                     {
                         apiScope.ShowInDiscoveryDocument = true;
                     }
