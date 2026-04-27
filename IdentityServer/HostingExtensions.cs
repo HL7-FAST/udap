@@ -50,6 +50,8 @@ namespace IdentityServer
                         options.DefaultSystemScopes = udapServerOptions.DefaultSystemScopes;
                         options.DefaultUserScopes = udapServerOptions.DefaultUserScopes;
                         options.ForceStateParamOnAuthorizationCode = udapServerOptions.ForceStateParamOnAuthorizationCode;
+                        options.RequireConsent = udapServerOptions.RequireConsent;
+                        options.AllowRememberConsent = udapServerOptions.AllowRememberConsent;
                     },
                     storeOptionAction: options =>
                     _ = appConfig.DatabaseProvider switch

@@ -330,6 +330,7 @@ namespace IdentityServer
                     }
 
                     apiScope.Properties.Add("udap_prefix", "system");
+                    apiScope.UserClaims.Add("fhirUser");
 
                     foreach (var scopeProperty in scopeProperties)
                     {
@@ -354,6 +355,7 @@ namespace IdentityServer
                     }
 
                     apiScope.Properties.Add("udap_prefix", "user");
+                    apiScope.UserClaims.Add("fhirUser");
 
                     foreach (var scopeProperty in scopeProperties)
                     {
@@ -377,6 +379,7 @@ namespace IdentityServer
                     }
 
                     apiScope.Properties.Add("udap_prefix", "patient");
+                    apiScope.UserClaims.Add("fhirUser");
 
                     foreach (var scopeProperty in scopeProperties)
                     {
