@@ -1,4 +1,4 @@
-import { StorageStateOptions } from "@toolpad/core/persistence";
+import { StorageStateOptions } from "../use-local-storage-state";
 import {
   CURRENT_TEST_KEY_STORE_ID,
   CURRENT_TEST_SESSION_ID_STORE_ID,

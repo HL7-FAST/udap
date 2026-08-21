@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import Client, { FhirResource } from "fhir-kit-client";
+import { Client, FhirResource } from "fhir-kit-client";
 import { CLIENT_CREDENTIALS_CLIENT_ID } from "@/lib/constants";
 import { getInternalServerErrorResponse } from "@/lib/fhir";
 import { getClient } from "@/lib/client-store";

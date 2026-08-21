@@ -1,162 +1,101 @@
-import * as React from "react";
-import { Box, Card, CardContent, Chip, Link, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+"use client";
+import { Box, Card, CardActionArea, CardContent, Chip, Grid, Stack, Typography } from "@mui/material";
 import { AccountCircle, Science, VpnKey } from "@mui/icons-material";
 import NextLink from "next/link";
+import { ReactNode } from "react";
+import { FlowColor } from "@/components/page-header";
+
+interface FlowCard {
+  title: string;
+  tag: string;
+  color: FlowColor;
+  icon: ReactNode;
+  description: string;
+  links: { label: string; href: string }[];
+}
+
+const FLOWS: FlowCard[] = [
+  {
+    title: "Authorization Code Flow",
+    tag: "User-level",
+    color: "primary",
+    icon: <AccountCircle />,
+    description:
+      "Test user-level access with the authorization code grant type. This flow requires user authentication and is ideal for applications that need to act on behalf of a user.",
+    links: [
+      { label: "All Resources", href: "/fhir" },
+      { label: "Patients", href: "/fhir/Patient" },
+    ],
+  },
+  {
+    title: "Client Credentials Flow",
+    tag: "System-level",
+    color: "secondary",
+    icon: <VpnKey />,
+    description:
+      "Test system-level access with the client credentials grant type. This flow enables server-to-server authentication without user interaction.",
+    links: [{ label: "Query", href: "/query" }],
+  },
+  {
+    title: "Scope Negotiation Tests",
+    tag: "Testing",
+    color: "success",
+    icon: <Science />,
+    description:
+      "Explore how different scopes are handled and negotiated during the authentication process. Test various scope combinations and see how the system responds.",
+    links: [{ label: "Scope Negotiation", href: "/tests/scopes" }],
+  },
+];
 
 export default function DashboardPage() {
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+      <Stack spacing={0.5} sx={{ mb: 3 }}>
+        <Typography variant="h4" component="h1">
           FAST Security Sandbox
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Test and explore UDAP authentication flows in a sandbox environment
         </Typography>
-      </Box>
+      </Stack>
 
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card 
-            sx={{ 
-              height: "100%",
-              transition: "all 0.3s ease",
-              "&:hover": { 
-                transform: "translateY(-4px)",
-                boxShadow: 6,
-              },
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Box
-                  sx={{
-                    bgcolor: "primary.main",
-                    color: "white",
-                    borderRadius: 2,
-                    p: 1.5,
-                    display: "flex",
-                    mr: 2,
-                  }}
-                >
-                  <AccountCircle fontSize="large" />
-                </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Authorization Code Flow
+        {FLOWS.map((flow) => (
+          <Grid key={flow.title} size={{ xs: 12, md: 6 }}>
+            <Card sx={{ height: "100%" }}>
+              <CardActionArea component={NextLink} href={flow.links[0].href} sx={{ height: "100%" }}>
+                <CardContent>
+                  <Stack direction="row" spacing={2} sx={{ alignItems: "center", mb: 2 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        p: 1.25,
+                        borderRadius: 2,
+                        color: `${flow.color}.main`,
+                        bgcolor: `rgba(var(--mui-palette-${flow.color}-mainChannel) / 0.12)`,
+                        "& svg": { fontSize: 28 },
+                      }}
+                    >
+                      {flow.icon}
+                    </Box>
+                    <Stack spacing={0.5} sx={{ alignItems: "flex-start" }}>
+                      <Typography variant="h6" component="h2">
+                        {flow.title}
+                      </Typography>
+                      <Chip label={flow.tag} size="small" color={flow.color} variant="outlined" />
+                    </Stack>
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {flow.description}
                   </Typography>
-                  <Chip label="User-level" size="small" color="primary" sx={{ mt: 0.5 }} />
-                </Box>
-              </Box>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Test user-level access with the authorization code grant type. This flow requires
-                user authentication and is ideal for applications that need to act on behalf of a user.
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Test on:{" "}
-                <Link component={NextLink} href="/fhir" sx={{ color: "primary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
-                  All Resources
-                </Link>
-                {" • "}
-                <Link component={NextLink} href="/fhir/Patient" sx={{ color: "primary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
-                  Patients
-                </Link>
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card 
-            sx={{ 
-              height: "100%",
-              transition: "all 0.3s ease",
-              "&:hover": { 
-                transform: "translateY(-4px)",
-                boxShadow: 6,
-              },
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Box
-                  sx={{
-                    bgcolor: "secondary.main",
-                    color: "white",
-                    borderRadius: 2,
-                    p: 1.5,
-                    display: "flex",
-                    mr: 2,
-                  }}
-                >
-                  <VpnKey fontSize="large" />
-                </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Client Credentials Flow
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: `${flow.color}.main` }}>
+                    {flow.links.map((l) => l.label).join(" · ")}
                   </Typography>
-                  <Chip label="System-level" size="small" color="secondary" sx={{ mt: 0.5 }} />
-                </Box>
-              </Box>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Test system-level access with the client credentials grant type. This flow enables
-                server-to-server authentication without user interaction.
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Test on:{" "}
-                <Link component={NextLink} href="/query" sx={{ color: "secondary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
-                  Query
-                </Link>
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <Card 
-            sx={{ 
-              transition: "all 0.3s ease",
-              "&:hover": { 
-                transform: "translateY(-4px)",
-                boxShadow: 6,
-              },
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Box
-                  sx={{
-                    bgcolor: "success.main",
-                    color: "white",
-                    borderRadius: 2,
-                    p: 1.5,
-                    display: "flex",
-                    mr: 2,
-                  }}
-                >
-                  <Science fontSize="large" />
-                </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Scope Negotiation Tests
-                  </Typography>
-                  <Chip label="Testing" size="small" color="success" sx={{ mt: 0.5 }} />
-                </Box>
-              </Box>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Explore how different scopes are handled and negotiated during the authentication process.
-                Test various scope combinations and see how the system responds.
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Test on:{" "}
-                <Link component={NextLink} href="/tests/scopes" sx={{ color: "success.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
-                  Scope Negotiation
-                </Link>
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
     </Box>
   );

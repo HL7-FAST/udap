@@ -1,12 +1,12 @@
 "use client";
 
-import { Button, Card, CardContent, Stack } from "@mui/material";
+import { Button, Card, CardContent, Stack, Typography } from "@mui/material";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
-import { useDialogs, useLocalStorageState } from "@toolpad/core";
-import React, { useEffect, useState } from "react";
-import RawOutputDialog from "../dialogs/raw-dialog";
+import React, { useState } from "react";
+import RawOutputDialog, { RawOutput } from "../dialogs/raw-dialog";
+import { useLocalStorageState } from "@/lib/use-local-storage-state";
 import {
   CURRENT_TEST_KEY_STORE_ID,
   CURRENT_TEST_SESSION_ID_STORE_ID,
@@ -65,13 +65,9 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
   const [, setLastTestResultId] = useLocalStorageState<string>(LAST_TEST_RESULT_ID_STORE_ID);
   const [cancelRequested, setCancelRequested] = useState(false);
   // const [isRunning, setIsRunning] = useState(false);
-  const [currentSuite, setCurrentSuite] = useState<T>(props.suite);
+  const currentSuite = props.suite;
 
-  const dialog = useDialogs();
-
-  useEffect(() => {
-    setCurrentSuite(props.suite);
-  }, [props.suite]);
+  const [rawOutput, setRawOutput] = useState<RawOutput | null>(null);
 
   async function runTests(
     sessionId: string,
@@ -189,22 +185,21 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
 
   function viewSessionData(): void {
     const formattedData = JSON.stringify(resultStore, null, 2);
-    dialog.open(RawOutputDialog, {
-      title: "Test Session Data",
-      data: formattedData,
-    });
+    setRawOutput({ title: "Test Session Data", data: formattedData });
   }
 
   return (
     <>
       <Card sx={{ mb: 3 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Markdown 
-            remarkPlugins={[remarkGfm]} 
+        <CardContent>
+          <Markdown
+            remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
             components={{
               p: ({ children }) => (
-                <div style={{ marginBottom: '1rem', color: 'inherit' }}>{children}</div>
+                <Typography variant="body1" sx={{ "&:not(:last-child)": { mb: 2 } }}>
+                  {children}
+                </Typography>
               ),
             }}
           >
@@ -216,7 +211,7 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
       {props.setup}
 
       <Card sx={{ mt: 3, mb: 3 }}>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent>
           <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
             <Button
               variant="contained"
@@ -227,48 +222,39 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
             >
               Run Tests
             </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => cancelTests()}
-              disabled={!testIsRunning}
-            >
+            <Button variant="text" onClick={() => cancelTests()} disabled={!testIsRunning}>
               Cancel
             </Button>
           </Stack>
-          <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
+          <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", gap: 1 }}>
             <Button variant="outlined" onClick={() => viewSessionData()}>
               View Session Data
             </Button>
             <Button variant="outlined" onClick={() => createNewSession()} disabled={!!testIsRunning}>
               New Session
             </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => clearSessionData(currentTestSessionId)}
-            >
+            <Button variant="outlined" onClick={() => clearSessionData(currentTestSessionId)}>
               Clear Session
             </Button>
-            <Button variant="outlined" color="error" onClick={() => clearAllSessions()}>
+            <Button variant="text" color="error" onClick={() => clearAllSessions()}>
               Clear All
             </Button>
           </Stack>
         </CardContent>
       </Card>
 
-      <Card sx={{ mb: 3, bgcolor: "background.default" }}>
-        <CardContent sx={{ p: 2 }}>
-          <Stack direction="column" spacing={1}>
-            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
-              <strong>Session ID:</strong> {currentTestSessionId || 'None'}
-            </div>
-            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
-              <strong>Current Test:</strong> {currentTestKey || 'None'}
-            </div>
-            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
-              <strong>Current Step:</strong> {currentTestStepKey || 'None'}
-            </div>
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ py: 2, "&:last-child": { pb: 2 } }}>
+          <Stack direction="row" spacing={4} sx={{ flexWrap: "wrap", rowGap: 1 }}>
+            {[
+              ["Session ID", currentTestSessionId],
+              ["Current Test", currentTestKey],
+              ["Current Step", currentTestStepKey],
+            ].map(([label, value]) => (
+              <Typography key={label} variant="body2" color="text.secondary">
+                <strong>{label}:</strong> {value || "None"}
+              </Typography>
+            ))}
           </Stack>
         </CardContent>
       </Card>
@@ -276,6 +262,8 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
       {props.suite.tests.map((c, i) => {
         return <span key={i}>{c.component}</span>;
       })}
+
+      <RawOutputDialog output={rawOutput} onClose={() => setRawOutput(null)} />
     </>
   );
 }

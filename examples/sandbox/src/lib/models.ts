@@ -1,7 +1,6 @@
 import { X509Certificate } from "crypto";
 import { Profile } from "next-auth";
 import * as forge from "node-forge";
-import { DataModel } from "@toolpad/core/Crud";
 import { DomainResource } from "fhir/r4";
 
 export type P12Certificate = forge.pkcs12.Pkcs12Pfx;
@@ -108,7 +107,4 @@ export interface UdapRegistrationResponse {
 
 export type UdapProfile = Profile;
 
-// export interface FhirResult extends DataModel {
-//   resource: DomainResource;
-// }
-export type FhirResult = DomainResource & DataModel;
+export type FhirResult = DomainResource & { id: string };

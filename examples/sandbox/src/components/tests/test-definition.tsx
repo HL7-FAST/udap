@@ -1,38 +1,42 @@
 import {
-  Alert,
-  AlertTitle,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Button,
-  Collapse,
-  Container,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
   IconButton,
   List,
   ListItem,
-  ListItemButton,
+  ListItemIcon,
+  ListItemText,
   Stack,
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useDialogs, useLocalStorageState } from "@toolpad/core";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import {
   Check,
   Dangerous,
   DataObject,
-  DescriptionOutlined,
+  ExpandMore,
   Info,
   Input,
   Output,
   QuestionMark,
-  Science,
   SkipNext,
   Warning,
 } from "@mui/icons-material";
-import RawOutputDialog from "../dialogs/raw-dialog";
+import RawOutputDialog, { RawOutput } from "../dialogs/raw-dialog";
 import CollapsibleMarkdown from "../collapsible-markdown";
+import { useLocalStorageState } from "@/lib/use-local-storage-state";
 import { TestResult, TestResultStatus, TestStepResult } from "@/lib/tests/test-result";
 import {
   CURRENT_TEST_KEY_STORE_ID,
   CURRENT_TEST_SESSION_ID_STORE_ID,
+  CURRENT_TEST_STEP_KEY_STORE_ID,
   LAST_TEST_RESULT_ID_STORE_ID,
   TEST_SESSION_STORE_ID,
 } from "@/lib/constants";
@@ -58,38 +62,28 @@ export default function TestDefinition<T extends TestDefinitionModel>(
   );
   const [currentTestSessionId] = useLocalStorageState<string>(CURRENT_TEST_SESSION_ID_STORE_ID);
   const [currentTestKey] = useLocalStorageState<string>(CURRENT_TEST_KEY_STORE_ID);
-  const [currentTestStepKey] = useLocalStorageState<string>(CURRENT_TEST_KEY_STORE_ID);
-  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [currentTestStepKey] = useLocalStorageState<string>(CURRENT_TEST_STEP_KEY_STORE_ID);
   const [lastTestResultId] = useLocalStorageState<string>(LAST_TEST_RESULT_ID_STORE_ID);
-  const [openTestResults, setOpenIndexes] = useState<number[]>([]);
 
-  const dialog = useDialogs();
+  const [rawOutput, setRawOutput] = useState<RawOutput | null>(null);
 
-  useEffect(() => {
-    setTestResults([]);
-    if (!currentTestSessionId) {
-      return;
-    }
-    const results = getTestResultsForSession(currentTestSessionId, props.test.testKey);
-    if (results) {
-      setTestResults(results);
-    }
-  }, [
-    props.test.testKey,
-    currentTestKey,
-    currentTestStepKey,
-    currentTestSessionId,
-    lastTestResultId,
-    resultStore,
-  ]);
-
-  function toggleTestResultCollapse(index: number) {
-    setOpenIndexes((prevOpenIndexes) =>
-      prevOpenIndexes.includes(index)
-        ? prevOpenIndexes.filter((i) => i !== index)
-        : [...prevOpenIndexes, index],
-    );
-  }
+  const testResults = useMemo<TestResult[]>(
+    () =>
+      currentTestSessionId
+        ? (getTestResultsForSession(currentTestSessionId, props.test.testKey) ?? [])
+        : [],
+    // The key and result id values are not read here, but a change in any of them means the
+    // session store has new results to show.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      props.test.testKey,
+      currentTestKey,
+      currentTestStepKey,
+      currentTestSessionId,
+      lastTestResultId,
+      resultStore,
+    ],
+  );
 
   function getTestResultIcon(status: TestResultStatus): ReactNode {
     switch (status) {
@@ -125,143 +119,123 @@ export default function TestDefinition<T extends TestDefinitionModel>(
 
   function viewOutput(data: unknown, title: string): void {
     const formattedData = JSON.stringify(data, null, 2);
-    dialog.open(RawOutputDialog, {
-      title: title,
-      data: formattedData,
-    });
+    setRawOutput({ title, data: formattedData });
+  }
+
+  function iconAction(title: string, icon: ReactNode, data: unknown, dialogTitle: string) {
+    return (
+      <Tooltip title={data ? title : `No ${title.toLowerCase()} available`}>
+        <span>
+          <IconButton size="small" disabled={!data} onClick={() => viewOutput(data, dialogTitle)}>
+            {icon}
+          </IconButton>
+        </span>
+      </Tooltip>
+    );
   }
 
   return (
-    <>
-      <h3>{props.test.name}</h3>
+    <Card sx={{ mb: 3 }}>
+      <CardHeader
+        title={props.test.name}
+        subheader={
+          <CollapsibleMarkdown
+            markdown={props.test.description || "No description for this test provided."}
+          />
+        }
+        slotProps={{
+          title: { variant: "h6", component: "h2" },
+          subheader: { component: "div", variant: "body2", sx: { mt: 0.5 } },
+        }}
+      />
+      <Divider />
 
-      <Alert severity="info" variant="outlined" sx={{ marginY: 2, minWidth: 1 }} icon={<Science />}>
-        <AlertTitle>Test Description</AlertTitle>
-        <CollapsibleMarkdown
-          markdown={props.test.description || "No description for this test provided."}
-        />
-      </Alert>
-      {
-        <Container
-          maxWidth="xl"
+      {testResults.length === 0 && (
+        <CardContent>
+          <Typography variant="body2" color="text.secondary">
+            No results for this test yet.
+          </Typography>
+        </CardContent>
+      )}
+
+      {testResults.map((result, i) => (
+        <Accordion
+          key={result.id ?? i}
+          disableGutters
+          square
+          elevation={0}
           sx={{
-            border: 1,
-            borderColor: "divider",
-            borderRadius: 1,
-            padding: 1,
+            "&:before": { display: "none" },
+            "&:not(:last-of-type)": { borderBottom: 1, borderColor: "divider" },
           }}
         >
-          {(testResults || []).map((result, i) => (
-            <List key={i} component="div" sx={{ width: "100%", bgcolor: "background.paper" }}>
-              <ListItemButton onClick={() => toggleTestResultCollapse(i)}>
-                <Stack direction="row" spacing={2} width="100%">
-                  {getTestResultIcon(result.status)}
-                  {/* <span>{result.id}</span> */}
-                  <span>
-                    {result.dateStarted.toLocaleString()} -{" "}
-                    {result.dateCompleted?.toLocaleString() || "In Progress"}
-                  </span>
-                  <span>
-                    {(result.messages || []).join("\n").slice(0, 100) ||
-                      `${(result.steps || []).length} steps` ||
-                      `No steps or messages`}
-                  </span>
-                </Stack>
-              </ListItemButton>
-              <Collapse in={openTestResults.includes(i)} unmountOnExit>
-                <Stack direction="column" spacing={2} sx={{ marginY: 2 }}>
-                  <Stack direction="row" spacing={2}>
-                    <Button
-                      variant="contained"
-                      onClick={() => viewOutput(result, "Test Result Data")}
-                      startIcon={<DataObject />}
-                    >
-                      View Test Result Data
-                    </Button>
-                  </Stack>
-                  <List component="div" disablePadding>
-                    {(result.steps || []).map((step, j) => (
-                      <ListItem
-                        key={j}
-                        sx={{
-                          borderColor: "grey.300",
-                          borderWidth: 1,
-                          borderStyle: "solid",
-                          borderRadius: 4,
-                          marginY: 2,
-                          padding: 2,
-                        }}
-                      >
-                        <Stack direction="row" spacing={2} alignItems="flex-start" width={1}>
-                          <Stack direction="column" spacing={2} alignItems="flex-start">
-                            <Tooltip
-                              title={step.result ? "View step result" : "No step result available"}
-                            >
-                              <span>
-                                <IconButton
-                                  disabled={!step.result}
-                                  onClick={() => viewOutput(step, "Step Result Data")}
-                                >
-                                  {getTestStepResultIcon(step.result)}
-                                </IconButton>
-                              </span>
-                            </Tooltip>
-                            <Tooltip
-                              title={step.input ? "View step input" : "No step input available"}
-                            >
-                              <span>
-                                <IconButton
-                                  disabled={!step.input}
-                                  onClick={() => viewOutput(step.input, "Step Input")}
-                                >
-                                  <Input />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
-                            <Tooltip
-                              title={step.output ? "View step output" : "No step output available"}
-                            >
-                              <span>
-                                <IconButton
-                                  disabled={!step.output}
-                                  onClick={() => viewOutput(step.output, "Step Output")}
-                                >
-                                  <Output />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
-                          </Stack>
-
-                          <Stack direction="column" spacing={2} alignItems="flex-start" width={1}>
-                            <Typography variant="h6">{step.name}</Typography>
-                            <Alert
-                              severity="info"
-                              variant="outlined"
-                              sx={{ marginY: 2, minWidth: 1 }}
-                              icon={<DescriptionOutlined />}
-                            >
-                              <AlertTitle>Step Result</AlertTitle>
-                              <CollapsibleMarkdown markdown={step.description} trimLength={100} />
-                            </Alert>
-                            <CollapsibleMarkdown
-                              markdown={step.message || "No message provided."}
-                              trimLength={250}
-                            />
-                          </Stack>
-                        </Stack>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Stack>
-              </Collapse>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center", minWidth: 0 }}>
+              {getTestResultIcon(result.status)}
+              <Typography variant="body2">
+                {new Date(result.dateStarted).toLocaleString()}
+                {" \u2013 "}
+                {result.dateCompleted
+                  ? new Date(result.dateCompleted).toLocaleTimeString()
+                  : "In progress"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" noWrap>
+                {(result.messages || []).join(" ").slice(0, 100) ||
+                  `${(result.steps || []).length} steps`}
+              </Typography>
+            </Stack>
+          </AccordionSummary>
+          <AccordionDetails sx={{ pt: 0 }}>
+            <Button
+              size="small"
+              startIcon={<DataObject />}
+              onClick={() => viewOutput(result, "Test Result Data")}
+            >
+              View result data
+            </Button>
+            <List disablePadding>
+              {(result.steps || []).map((step, j, steps) => (
+                <ListItem
+                  key={step.id ?? j}
+                  disableGutters
+                  divider={j < steps.length - 1}
+                  sx={{ alignItems: "flex-start", pr: 14 }}
+                  secondaryAction={
+                    <Stack direction="row">
+                      {iconAction("Step result", <DataObject />, step.result, "Step Result Data")}
+                      {iconAction("Step input", <Input />, step.input, "Step Input")}
+                      {iconAction("Step output", <Output />, step.output, "Step Output")}
+                    </Stack>
+                  }
+                >
+                  <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                    {getTestStepResultIcon(step.result)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={step.name}
+                    secondary={
+                      <>
+                        <Typography variant="caption" color="text.secondary" component="p">
+                          {step.description}
+                        </Typography>
+                        <CollapsibleMarkdown
+                          markdown={step.message || "No message provided."}
+                          trimLength={250}
+                        />
+                      </>
+                    }
+                    slotProps={{
+                      primary: { variant: "subtitle2" },
+                      secondary: { component: "div", sx: { mt: 0.5 } },
+                    }}
+                  />
+                </ListItem>
+              ))}
             </List>
-          ))}
-
-          {testResults.length === 0 && (
-            <Typography variant="h6">No results for this test yet.</Typography>
-          )}
-        </Container>
-      }
-    </>
+          </AccordionDetails>
+        </Accordion>
+      ))}
+      <RawOutputDialog output={rawOutput} onClose={() => setRawOutput(null)} />
+    </Card>
   );
 }

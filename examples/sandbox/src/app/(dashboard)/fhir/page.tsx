@@ -1,9 +1,10 @@
 "use client";
 
-import { Alert, Box, Card, CardContent, Chip, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
+import { Alert, Box, Card, CardContent, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
 import { Storage } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useAvailableResourceTypes } from "@/lib/states";
+import PageHeader from "@/components/page-header";
 
 export default function FhirQueryPage() {
   const resourceTypes = useAvailableResourceTypes((state) => state.resourceTypes);
@@ -16,23 +17,17 @@ export default function FhirQueryPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-          <Storage color="primary" />
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            FHIR Resources
-          </Typography>
-          <Chip label="Authorization Code" color="primary" size="small" />
-        </Box>
-        <Typography variant="body1" color="text.secondary">
-          Browse and manage FHIR resources using the authorization code flow
-        </Typography>
-      </Box>
+      <PageHeader
+        icon={<Storage />}
+        title="FHIR Resources"
+        tag="Authorization Code"
+        description="Browse and manage FHIR resources using the authorization code flow"
+      />
 
       {resourceTypes.length > 0 ? (
         <Card>
-          <CardContent sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          <CardContent>
+            <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
               Select Resource Type
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>

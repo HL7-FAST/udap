@@ -1,7 +1,7 @@
 import { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
 import { NextRequest } from "next/server";
 import { encode } from "@auth/core/jwt";
-import { SerializeOptions, serialize } from "cookie";
+import { SerializeOptions, stringifySetCookie } from "cookie";
 import { getAuthConfig, handlers } from "@/auth";
 import { getServerCertificate } from "@/lib/cert-store";
 import { UdapProfile } from "@/lib/models";
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   const responseHeaders = new Headers();
 
-  const cookieHeader = serialize(sessionCookie.name, sessionCookie.value, sessionCookie.options);
+  const cookieHeader = stringifySetCookie({ name: sessionCookie.name, value: sessionCookie.value, ...sessionCookie.options });
   responseHeaders.set("Set-Cookie", cookieHeader);
   responseHeaders.set("Location", redirect);
   // const response = NextResponse.redirect(redirect, { headers: responseHeaders });

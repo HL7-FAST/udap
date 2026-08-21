@@ -21,6 +21,7 @@ export async function getAuthConfig(): Promise<NextAuthConfig> {
   if (!client) {
     return {
       providers: [],
+      trustHost: true,
     };
   }
 

@@ -123,9 +123,9 @@ export function getScopeRegistrationTest(
         }
         if (missingInFhir.length > 0) {
           if (step.message) {
-            step.message += "\n\n";
+            step.message = (step.message ?? "") + "\n\n";
           }
-          step.message += formatMarkdownDescription(`
+          step.message = (step.message ?? "") + formatMarkdownDescription(`
             Supported by the auth server but not the FHIR server: \`[${missingInFhir.join(", ")}]\`
             `);
         }

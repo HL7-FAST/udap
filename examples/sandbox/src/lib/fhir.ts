@@ -1,4 +1,4 @@
-import Client from "fhir-kit-client";
+import { Client } from "fhir-kit-client";
 import { CapabilityStatement, OperationOutcome } from "fhir/r4";
 
 export async function getServerCapabilityStatement(
@@ -9,7 +9,7 @@ export async function getServerCapabilityStatement(
   if (cs.resourceType !== "CapabilityStatement") {
     console.error("Did not receive a CapabilityStatement.  Received:", cs);
   }
-  return cs as CapabilityStatement;
+  return cs as unknown as CapabilityStatement;
 }
 
 export function getResourceTypes(capabilityStatement: CapabilityStatement): string[] {
@@ -22,7 +22,7 @@ export type OperationOutcomeSeverity = "fatal" | "error" | "warning" | "informat
 export function getOperationOutcomeResponse(
   diagnostics: string,
   severity: OperationOutcomeSeverity,
-  code: string = "processing",
+  code: OperationOutcome["issue"][number]["code"] = "processing",
   status: number = 200,
 ): Response {
   const outcome: OperationOutcome = {
@@ -48,7 +48,7 @@ export function getOperationOutcomeResponse(
 export function getBadRequestResponse(
   diagnostics: string,
   severity: OperationOutcomeSeverity = "error",
-  code: string = "processing",
+  code: OperationOutcome["issue"][number]["code"] = "processing",
 ) {
   return getOperationOutcomeResponse(diagnostics, severity, code, 400);
 }
@@ -56,7 +56,7 @@ export function getBadRequestResponse(
 export function getInternalServerErrorResponse(
   diagnostics: string,
   severity: OperationOutcomeSeverity = "error",
-  code: string = "processing",
+  code: OperationOutcome["issue"][number]["code"] = "processing",
 ): Response {
   return getOperationOutcomeResponse(diagnostics, severity, code, 500);
 }

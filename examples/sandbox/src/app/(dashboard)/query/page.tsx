@@ -1,14 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Alert, Box, Button, Card, CardContent, Chip, Paper, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
 import { Code, Send } from "@mui/icons-material";
-import Editor from "@monaco-editor/react";
+import CodeEditor from "@/components/code-editor";
+import PageHeader from "@/components/page-header";
 
 export default function QueryPage() {
-  const defaultUrl = typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.host}/api/fhir/Patient`
-    : "http://localhost:3000/api/fhir/Patient";
+  const defaultUrl =
+    typeof window !== "undefined"
+      ? `${window.location.protocol}//${window.location.host}/api/fhir/Patient`
+      : "http://localhost:3000/api/fhir/Patient";
 
   const [queryUrl, setQueryUrl] = useState(defaultUrl);
   const [result, setResult] = useState<string>("// Query result will appear here");
@@ -39,29 +41,30 @@ export default function QueryPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-          <Code color="primary" />
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            FHIR Query Interface
-          </Typography>
-          <Chip label="Client Credentials" color="secondary" size="small" />
-        </Box>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Query the <code>/api/fhir</code> endpoint using the client credentials flow. 
-          Requests are proxied to the FHIR server with automatic access token management.
-        </Typography>
-        <Alert severity="info" sx={{ mb: 2 }}>
-          💡 Compare network traffic in your browser&apos;s developer tools with the authorization code flow on the Patients page.
+      <PageHeader
+        icon={<Code />}
+        title="FHIR Query Interface"
+        tag="Client Credentials"
+        color="secondary"
+        description={
+          <>
+            Query the <code>/api/fhir</code> endpoint using the client credentials flow. Requests
+            are proxied to the FHIR server with automatic access token management.
+          </>
+        }
+      >
+        <Alert severity="info">
+          Compare network traffic in your browser&apos;s developer tools with the authorization
+          code flow on the Patients page.
         </Alert>
-      </Box>
+      </PageHeader>
 
       <Card sx={{ mb: 3 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+        <CardContent>
+          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
             Request
           </Typography>
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start" }}>
             <TextField
               fullWidth
               label="FHIR Endpoint URL"
@@ -73,8 +76,8 @@ export default function QueryPage() {
                 }
               }}
               placeholder="http://localhost:3000/api/fhir/Patient"
+              helperText="Press Enter to send"
               disabled={loading}
-              variant="outlined"
               inputRef={inputRef}
             />
             <Button
@@ -82,11 +85,11 @@ export default function QueryPage() {
               onClick={handleQuery}
               disabled={loading}
               startIcon={<Send />}
-              sx={{ minWidth: 140, height: 56 }}
+              sx={{ minWidth: 140, height: 56, flexShrink: 0 }}
             >
               {loading ? "Querying..." : "Send"}
             </Button>
-          </Box>
+          </Stack>
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {error}
@@ -95,26 +98,14 @@ export default function QueryPage() {
         </CardContent>
       </Card>
 
-      <Paper sx={{ p: 3, height: "600px", bgcolor: "background.default" }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          Response
-        </Typography>
-        <Box sx={{ height: "calc(100% - 48px)", borderRadius: 1, overflow: "hidden" }}>
-          <Editor
-            height="100%"
-            defaultLanguage="json"
-            value={result}
-            options={{
-              readOnly: true,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              fontSize: 14,
-              lineNumbers: "on",
-              renderLineHighlight: "none",
-            }}
-          />
-        </Box>
-      </Paper>
+      <Card>
+        <CardContent>
+          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+            Response
+          </Typography>
+          <CodeEditor height="60vh" value={result} />
+        </CardContent>
+      </Card>
     </Box>
   );
 }

@@ -1,13 +1,14 @@
 "use client";
 
-import { Box, Card, CardContent, Chip, Stack, TextField, Typography } from "@mui/material";
+import { Box, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
 import { Science } from "@mui/icons-material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import React from "react";
 import ScopesSupportedTest, { getScopesSupportedTest } from "./scopes-supported";
 import ScopeRegistrationTest, { getScopeRegistrationTest } from "./scope-registration";
 import { TestSuiteParams, getTestSuite } from "@/lib/tests/test-suite";
 import TestSuite from "@/components/tests/test-suite";
+import PageHeader from "@/components/page-header";
 import { useCurrentFhirServer } from "@/lib/states";
 import { formatMarkdownDescription } from "@/lib/utils";
 
@@ -16,15 +17,10 @@ export interface ScopeNegotiationTestSuiteParams extends TestSuiteParams {
 }
 
 export default function ScopesPage() {
-  const [fhirServer, setFhirServer] = useState<string>("");
-
+  // The field starts out following the selected client's server and detaches once the user edits it.
+  const [fhirServerOverride, setFhirServer] = useState<string | null>(null);
   const currentFhirServer = useCurrentFhirServer((state) => state.currentFhirServer);
-
-  useEffect(() => {
-    if (!fhirServer) {
-      setFhirServer(currentFhirServer);
-    }
-  }, [currentFhirServer, fhirServer, setFhirServer]);
+  const fhirServer = fhirServerOverride ?? currentFhirServer;
 
   const supportedScopesTest = getScopesSupportedTest({
     fhirServer: fhirServer,
@@ -68,8 +64,8 @@ export default function ScopesPage() {
 
   const setup = (
     <Card>
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+      <CardContent>
+        <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
           Test Setup
         </Typography>
         <Stack direction="column" spacing={2}>
@@ -78,7 +74,7 @@ export default function ScopesPage() {
             value={fhirServer}
             onChange={(e) => setFhirServer(e.target.value)}
             fullWidth
-            variant="outlined"
+            helperText="Base URL of the FHIR server whose UDAP metadata the tests query"
           />
         </Stack>
       </CardContent>
@@ -87,15 +83,7 @@ export default function ScopesPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-          <Science color="success" />
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Scope Negotiation Tests
-          </Typography>
-          <Chip label="Testing" color="success" size="small" />
-        </Box>
-      </Box>
+      <PageHeader icon={<Science />} title="Scope Negotiation Tests" tag="Testing" color="success" />
       <TestSuite suite={testSuite} setup={setup} />
     </Box>
   );
