@@ -60,7 +60,7 @@ namespace IdentityServer.Middleware
                     return;
                 }
 
-                var resources = await resourceStore.GetAllEnabledResourcesAsync();
+                var resources = await resourceStore.GetAllEnabledResourcesAsync(context.RequestAborted);
                 var expandedScopes = scopeExpander.Expand(scopes.Value.Split(" ")).ToList();
                 var explodedScopes = scopeExpander.WildCardExpand(expandedScopes, resources.ApiScopes.Select(a => a.Name).ToList()).ToList();
                 var allowedScopes = resources.ApiScopes.Where(s => explodedScopes.Contains(s.Name)).Select(s => s.Name).ToList()

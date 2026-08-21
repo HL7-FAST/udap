@@ -72,10 +72,6 @@ namespace IdentityServer
                 .AddUdapResponseGenerators()
                 .AddSmartV2Expander();
 
-            // Fix: Decorate the UDAP client registration store to handle FindTieredClientById
-            // returning a default TieredClient instead of null when called with an IdP URL
-            builder.Services.Decorate<IUdapClientRegistrationStore, CustomUdapClientRegistrationStore>();
-
             // For development/testing, allow untrusted certs when calling out to other servers (e.g., for DCR)
             if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Local"))
             {

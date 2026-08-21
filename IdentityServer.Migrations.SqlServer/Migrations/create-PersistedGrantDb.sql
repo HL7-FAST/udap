@@ -9,8 +9,6 @@ END;
 GO
 
 BEGIN TRANSACTION;
-GO
-
 CREATE TABLE [DeviceCodes] (
     [UserCode] nvarchar(200) NOT NULL,
     [DeviceCode] nvarchar(200) NOT NULL,
@@ -23,7 +21,6 @@ CREATE TABLE [DeviceCodes] (
     [Data] nvarchar(max) NOT NULL,
     CONSTRAINT [PK_DeviceCodes] PRIMARY KEY ([UserCode])
 );
-GO
 
 CREATE TABLE [Keys] (
     [Id] nvarchar(450) NOT NULL,
@@ -36,7 +33,6 @@ CREATE TABLE [Keys] (
     [Data] nvarchar(max) NOT NULL,
     CONSTRAINT [PK_Keys] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE TABLE [PersistedGrants] (
     [Id] bigint NOT NULL IDENTITY,
@@ -52,7 +48,6 @@ CREATE TABLE [PersistedGrants] (
     [Data] nvarchar(max) NOT NULL,
     CONSTRAINT [PK_PersistedGrants] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE TABLE [ServerSideSessions] (
     [Id] int NOT NULL IDENTITY,
@@ -67,65 +62,51 @@ CREATE TABLE [ServerSideSessions] (
     [Data] nvarchar(max) NOT NULL,
     CONSTRAINT [PK_ServerSideSessions] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE UNIQUE INDEX [IX_DeviceCodes_DeviceCode] ON [DeviceCodes] ([DeviceCode]);
-GO
 
 CREATE INDEX [IX_DeviceCodes_Expiration] ON [DeviceCodes] ([Expiration]);
-GO
 
 CREATE INDEX [IX_Keys_Use] ON [Keys] ([Use]);
-GO
 
 CREATE INDEX [IX_PersistedGrants_ConsumedTime] ON [PersistedGrants] ([ConsumedTime]);
-GO
 
 CREATE INDEX [IX_PersistedGrants_Expiration] ON [PersistedGrants] ([Expiration]);
-GO
 
 CREATE UNIQUE INDEX [IX_PersistedGrants_Key] ON [PersistedGrants] ([Key]) WHERE [Key] IS NOT NULL;
-GO
 
 CREATE INDEX [IX_PersistedGrants_SubjectId_ClientId_Type] ON [PersistedGrants] ([SubjectId], [ClientId], [Type]);
-GO
 
 CREATE INDEX [IX_PersistedGrants_SubjectId_SessionId_Type] ON [PersistedGrants] ([SubjectId], [SessionId], [Type]);
-GO
 
 CREATE INDEX [IX_ServerSideSessions_DisplayName] ON [ServerSideSessions] ([DisplayName]);
-GO
 
 CREATE INDEX [IX_ServerSideSessions_Expires] ON [ServerSideSessions] ([Expires]);
-GO
 
 CREATE UNIQUE INDEX [IX_ServerSideSessions_Key] ON [ServerSideSessions] ([Key]);
-GO
 
 CREATE INDEX [IX_ServerSideSessions_SessionId] ON [ServerSideSessions] ([SessionId]);
-GO
 
 CREATE INDEX [IX_ServerSideSessions_SubjectId] ON [ServerSideSessions] ([SubjectId]);
-GO
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20240112011437_InitialInitialIdentityServerPersistedGrantDbMigration', N'8.0.1');
-GO
+VALUES (N'20240112011437_InitialInitialIdentityServerPersistedGrantDbMigration', N'10.0.11');
 
 COMMIT;
 GO
 
 BEGIN TRANSACTION;
-GO
+ALTER TABLE [ServerSideSessions] DROP CONSTRAINT [PK_ServerSideSessions];
 
-DECLARE @var0 sysname;
-SELECT @var0 = [d].[name]
+DECLARE @var nvarchar(max);
+SELECT @var = QUOTENAME([d].[name])
 FROM [sys].[default_constraints] [d]
 INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
 WHERE ([d].[parent_object_id] = OBJECT_ID(N'[ServerSideSessions]') AND [c].[name] = N'Id');
-IF @var0 IS NOT NULL EXEC(N'ALTER TABLE [ServerSideSessions] DROP CONSTRAINT [' + @var0 + '];');
+IF @var IS NOT NULL EXEC(N'ALTER TABLE [ServerSideSessions] DROP CONSTRAINT ' + @var + ';');
 ALTER TABLE [ServerSideSessions] ALTER COLUMN [Id] bigint NOT NULL;
-GO
+
+ALTER TABLE [ServerSideSessions] ADD CONSTRAINT [PK_ServerSideSessions] PRIMARY KEY ([Id]);
 
 CREATE TABLE [PushedAuthorizationRequests] (
     [Id] bigint NOT NULL IDENTITY,
@@ -134,17 +115,58 @@ CREATE TABLE [PushedAuthorizationRequests] (
     [Parameters] nvarchar(max) NOT NULL,
     CONSTRAINT [PK_PushedAuthorizationRequests] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE INDEX [IX_PushedAuthorizationRequests_ExpiresAtUtc] ON [PushedAuthorizationRequests] ([ExpiresAtUtc]);
-GO
 
 CREATE UNIQUE INDEX [IX_PushedAuthorizationRequests_ReferenceValueHash] ON [PushedAuthorizationRequests] ([ReferenceValueHash]);
-GO
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20240206182419_Update_Duende_v7_0InitialIdentityServerPersistedGrantDbMigration', N'8.0.1');
+VALUES (N'20240206182419_Update_Duende_v7_0InitialIdentityServerPersistedGrantDbMigration', N'10.0.11');
+
+COMMIT;
 GO
+
+BEGIN TRANSACTION;
+CREATE TABLE [SamlLogoutSessions] (
+    [Id] bigint NOT NULL IDENTITY,
+    [LogoutId] nvarchar(200) NOT NULL,
+    [SerializedSession] nvarchar(max) NOT NULL,
+    [ExpiresAtUtc] datetime2 NOT NULL,
+    [Version] bigint NOT NULL,
+    CONSTRAINT [PK_SamlLogoutSessions] PRIMARY KEY ([Id])
+);
+
+CREATE TABLE [SamlSigninStates] (
+    [Id] bigint NOT NULL IDENTITY,
+    [StateId] uniqueidentifier NOT NULL,
+    [SerializedState] nvarchar(max) NOT NULL,
+    [ExpiresAtUtc] datetime2 NOT NULL,
+    [ServiceProviderEntityId] nvarchar(200) NOT NULL,
+    CONSTRAINT [PK_SamlSigninStates] PRIMARY KEY ([Id])
+);
+
+CREATE TABLE [SamlLogoutSessionRequestIndices] (
+    [Id] bigint NOT NULL IDENTITY,
+    [RequestId] nvarchar(200) NOT NULL,
+    [SamlLogoutSessionId] bigint NOT NULL,
+    CONSTRAINT [PK_SamlLogoutSessionRequestIndices] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_SamlLogoutSessionRequestIndices_SamlLogoutSessions_SamlLogoutSessionId] FOREIGN KEY ([SamlLogoutSessionId]) REFERENCES [SamlLogoutSessions] ([Id]) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX [IX_SamlLogoutSessionRequestIndices_RequestId] ON [SamlLogoutSessionRequestIndices] ([RequestId]);
+
+CREATE INDEX [IX_SamlLogoutSessionRequestIndices_SamlLogoutSessionId] ON [SamlLogoutSessionRequestIndices] ([SamlLogoutSessionId]);
+
+CREATE INDEX [IX_SamlLogoutSessions_ExpiresAtUtc] ON [SamlLogoutSessions] ([ExpiresAtUtc]);
+
+CREATE UNIQUE INDEX [IX_SamlLogoutSessions_LogoutId] ON [SamlLogoutSessions] ([LogoutId]);
+
+CREATE INDEX [IX_SamlSigninStates_ExpiresAtUtc] ON [SamlSigninStates] ([ExpiresAtUtc]);
+
+CREATE UNIQUE INDEX [IX_SamlSigninStates_StateId] ON [SamlSigninStates] ([StateId]);
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260820162815_Update_Duende_v8_0InitialIdentityServerPersistedGrantDbMigration', N'10.0.11');
 
 COMMIT;
 GO

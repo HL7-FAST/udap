@@ -26,7 +26,7 @@ namespace IdentityServer.Pages.Ciba
 
         public async Task<IActionResult> OnGet(string id)
         {
-            LoginRequest = await _backchannelAuthenticationInteraction.GetLoginRequestByInternalIdAsync(id);
+            LoginRequest = await _backchannelAuthenticationInteraction.GetLoginRequestByInternalIdAsync(id, HttpContext.RequestAborted);
             if (LoginRequest == null)
             {
                 _logger.LogWarning("Invalid backchannel login id {id}", id);

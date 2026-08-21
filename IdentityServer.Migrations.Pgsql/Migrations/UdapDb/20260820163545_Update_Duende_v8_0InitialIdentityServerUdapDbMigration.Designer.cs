@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Udap.Server.Storage.DbContexts;
@@ -11,9 +12,11 @@ using Udap.Server.Storage.DbContexts;
 namespace IdentityServer.Migrations.Pgsql.Migrations.UdapDb
 {
     [DbContext(typeof(UdapDbContext))]
-    partial class UdapDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820163545_Update_Duende_v8_0InitialIdentityServerUdapDbMigration")]
+    partial class Update_Duende_v8_0InitialIdentityServerUdapDbMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -9,8 +9,6 @@ END;
 GO
 
 BEGIN TRANSACTION;
-GO
-
 CREATE TABLE [ApiResources] (
     [Id] int NOT NULL IDENTITY,
     [Enabled] bit NOT NULL,
@@ -26,7 +24,6 @@ CREATE TABLE [ApiResources] (
     [NonEditable] bit NOT NULL,
     CONSTRAINT [PK_ApiResources] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE TABLE [ApiScopes] (
     [Id] int NOT NULL IDENTITY,
@@ -43,7 +40,6 @@ CREATE TABLE [ApiScopes] (
     [NonEditable] bit NOT NULL,
     CONSTRAINT [PK_ApiScopes] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE TABLE [Clients] (
     [Id] int NOT NULL IDENTITY,
@@ -99,7 +95,6 @@ CREATE TABLE [Clients] (
     [NonEditable] bit NOT NULL,
     CONSTRAINT [PK_Clients] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE TABLE [IdentityProviders] (
     [Id] int NOT NULL IDENTITY,
@@ -114,7 +109,6 @@ CREATE TABLE [IdentityProviders] (
     [NonEditable] bit NOT NULL,
     CONSTRAINT [PK_IdentityProviders] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE TABLE [IdentityResources] (
     [Id] int NOT NULL IDENTITY,
@@ -130,7 +124,6 @@ CREATE TABLE [IdentityResources] (
     [NonEditable] bit NOT NULL,
     CONSTRAINT [PK_IdentityResources] PRIMARY KEY ([Id])
 );
-GO
 
 CREATE TABLE [ApiResourceClaims] (
     [Id] int NOT NULL IDENTITY,
@@ -139,7 +132,6 @@ CREATE TABLE [ApiResourceClaims] (
     CONSTRAINT [PK_ApiResourceClaims] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ApiResourceClaims_ApiResources_ApiResourceId] FOREIGN KEY ([ApiResourceId]) REFERENCES [ApiResources] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ApiResourceProperties] (
     [Id] int NOT NULL IDENTITY,
@@ -149,7 +141,6 @@ CREATE TABLE [ApiResourceProperties] (
     CONSTRAINT [PK_ApiResourceProperties] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ApiResourceProperties_ApiResources_ApiResourceId] FOREIGN KEY ([ApiResourceId]) REFERENCES [ApiResources] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ApiResourceScopes] (
     [Id] int NOT NULL IDENTITY,
@@ -158,7 +149,6 @@ CREATE TABLE [ApiResourceScopes] (
     CONSTRAINT [PK_ApiResourceScopes] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ApiResourceScopes_ApiResources_ApiResourceId] FOREIGN KEY ([ApiResourceId]) REFERENCES [ApiResources] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ApiResourceSecrets] (
     [Id] int NOT NULL IDENTITY,
@@ -171,7 +161,6 @@ CREATE TABLE [ApiResourceSecrets] (
     CONSTRAINT [PK_ApiResourceSecrets] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ApiResourceSecrets_ApiResources_ApiResourceId] FOREIGN KEY ([ApiResourceId]) REFERENCES [ApiResources] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ApiScopeClaims] (
     [Id] int NOT NULL IDENTITY,
@@ -180,7 +169,6 @@ CREATE TABLE [ApiScopeClaims] (
     CONSTRAINT [PK_ApiScopeClaims] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ApiScopeClaims_ApiScopes_ScopeId] FOREIGN KEY ([ScopeId]) REFERENCES [ApiScopes] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ApiScopeProperties] (
     [Id] int NOT NULL IDENTITY,
@@ -190,7 +178,6 @@ CREATE TABLE [ApiScopeProperties] (
     CONSTRAINT [PK_ApiScopeProperties] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ApiScopeProperties_ApiScopes_ScopeId] FOREIGN KEY ([ScopeId]) REFERENCES [ApiScopes] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientClaims] (
     [Id] int NOT NULL IDENTITY,
@@ -200,7 +187,6 @@ CREATE TABLE [ClientClaims] (
     CONSTRAINT [PK_ClientClaims] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientClaims_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientCorsOrigins] (
     [Id] int NOT NULL IDENTITY,
@@ -209,7 +195,6 @@ CREATE TABLE [ClientCorsOrigins] (
     CONSTRAINT [PK_ClientCorsOrigins] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientCorsOrigins_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientGrantTypes] (
     [Id] int NOT NULL IDENTITY,
@@ -218,7 +203,6 @@ CREATE TABLE [ClientGrantTypes] (
     CONSTRAINT [PK_ClientGrantTypes] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientGrantTypes_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientIdPRestrictions] (
     [Id] int NOT NULL IDENTITY,
@@ -227,7 +211,6 @@ CREATE TABLE [ClientIdPRestrictions] (
     CONSTRAINT [PK_ClientIdPRestrictions] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientIdPRestrictions_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientPostLogoutRedirectUris] (
     [Id] int NOT NULL IDENTITY,
@@ -236,7 +219,6 @@ CREATE TABLE [ClientPostLogoutRedirectUris] (
     CONSTRAINT [PK_ClientPostLogoutRedirectUris] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientPostLogoutRedirectUris_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientProperties] (
     [Id] int NOT NULL IDENTITY,
@@ -246,7 +228,6 @@ CREATE TABLE [ClientProperties] (
     CONSTRAINT [PK_ClientProperties] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientProperties_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientRedirectUris] (
     [Id] int NOT NULL IDENTITY,
@@ -255,7 +236,6 @@ CREATE TABLE [ClientRedirectUris] (
     CONSTRAINT [PK_ClientRedirectUris] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientRedirectUris_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientScopes] (
     [Id] int NOT NULL IDENTITY,
@@ -264,7 +244,6 @@ CREATE TABLE [ClientScopes] (
     CONSTRAINT [PK_ClientScopes] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientScopes_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [ClientSecrets] (
     [Id] int NOT NULL IDENTITY,
@@ -277,7 +256,6 @@ CREATE TABLE [ClientSecrets] (
     CONSTRAINT [PK_ClientSecrets] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_ClientSecrets_Clients_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [Clients] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [IdentityResourceClaims] (
     [Id] int NOT NULL IDENTITY,
@@ -286,7 +264,6 @@ CREATE TABLE [IdentityResourceClaims] (
     CONSTRAINT [PK_IdentityResourceClaims] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_IdentityResourceClaims_IdentityResources_IdentityResourceId] FOREIGN KEY ([IdentityResourceId]) REFERENCES [IdentityResources] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE TABLE [IdentityResourceProperties] (
     [Id] int NOT NULL IDENTITY,
@@ -296,93 +273,173 @@ CREATE TABLE [IdentityResourceProperties] (
     CONSTRAINT [PK_IdentityResourceProperties] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_IdentityResourceProperties_IdentityResources_IdentityResourceId] FOREIGN KEY ([IdentityResourceId]) REFERENCES [IdentityResources] ([Id]) ON DELETE CASCADE
 );
-GO
 
 CREATE UNIQUE INDEX [IX_ApiResourceClaims_ApiResourceId_Type] ON [ApiResourceClaims] ([ApiResourceId], [Type]);
-GO
 
 CREATE UNIQUE INDEX [IX_ApiResourceProperties_ApiResourceId_Key] ON [ApiResourceProperties] ([ApiResourceId], [Key]);
-GO
 
 CREATE UNIQUE INDEX [IX_ApiResources_Name] ON [ApiResources] ([Name]);
-GO
 
 CREATE UNIQUE INDEX [IX_ApiResourceScopes_ApiResourceId_Scope] ON [ApiResourceScopes] ([ApiResourceId], [Scope]);
-GO
 
 CREATE INDEX [IX_ApiResourceSecrets_ApiResourceId] ON [ApiResourceSecrets] ([ApiResourceId]);
-GO
 
 CREATE UNIQUE INDEX [IX_ApiScopeClaims_ScopeId_Type] ON [ApiScopeClaims] ([ScopeId], [Type]);
-GO
 
 CREATE UNIQUE INDEX [IX_ApiScopeProperties_ScopeId_Key] ON [ApiScopeProperties] ([ScopeId], [Key]);
-GO
 
 CREATE UNIQUE INDEX [IX_ApiScopes_Name] ON [ApiScopes] ([Name]);
-GO
 
 CREATE UNIQUE INDEX [IX_ClientClaims_ClientId_Type_Value] ON [ClientClaims] ([ClientId], [Type], [Value]);
-GO
 
 CREATE UNIQUE INDEX [IX_ClientCorsOrigins_ClientId_Origin] ON [ClientCorsOrigins] ([ClientId], [Origin]);
-GO
 
 CREATE UNIQUE INDEX [IX_ClientGrantTypes_ClientId_GrantType] ON [ClientGrantTypes] ([ClientId], [GrantType]);
-GO
 
 CREATE UNIQUE INDEX [IX_ClientIdPRestrictions_ClientId_Provider] ON [ClientIdPRestrictions] ([ClientId], [Provider]);
-GO
 
 CREATE UNIQUE INDEX [IX_ClientPostLogoutRedirectUris_ClientId_PostLogoutRedirectUri] ON [ClientPostLogoutRedirectUris] ([ClientId], [PostLogoutRedirectUri]);
-GO
 
 CREATE UNIQUE INDEX [IX_ClientProperties_ClientId_Key] ON [ClientProperties] ([ClientId], [Key]);
-GO
 
 CREATE UNIQUE INDEX [IX_ClientRedirectUris_ClientId_RedirectUri] ON [ClientRedirectUris] ([ClientId], [RedirectUri]);
-GO
 
 CREATE UNIQUE INDEX [IX_Clients_ClientId] ON [Clients] ([ClientId]);
-GO
 
 CREATE UNIQUE INDEX [IX_ClientScopes_ClientId_Scope] ON [ClientScopes] ([ClientId], [Scope]);
-GO
 
 CREATE INDEX [IX_ClientSecrets_ClientId] ON [ClientSecrets] ([ClientId]);
-GO
 
 CREATE UNIQUE INDEX [IX_IdentityProviders_Scheme] ON [IdentityProviders] ([Scheme]);
-GO
 
 CREATE UNIQUE INDEX [IX_IdentityResourceClaims_IdentityResourceId_Type] ON [IdentityResourceClaims] ([IdentityResourceId], [Type]);
-GO
 
 CREATE UNIQUE INDEX [IX_IdentityResourceProperties_IdentityResourceId_Key] ON [IdentityResourceProperties] ([IdentityResourceId], [Key]);
-GO
 
 CREATE UNIQUE INDEX [IX_IdentityResources_Name] ON [IdentityResources] ([Name]);
-GO
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20240112011433_InitialIdentityServerConfigurationDbMigration', N'8.0.1');
-GO
+VALUES (N'20240112011433_InitialIdentityServerConfigurationDbMigration', N'10.0.11');
 
 COMMIT;
 GO
 
 BEGIN TRANSACTION;
-GO
-
 ALTER TABLE [Clients] ADD [PushedAuthorizationLifetime] int NULL;
-GO
 
 ALTER TABLE [Clients] ADD [RequirePushedAuthorization] bit NOT NULL DEFAULT CAST(0 AS bit);
-GO
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20240206182415_Update_Duende_v7_0IdentityServerConfigurationDbMigration', N'8.0.1');
+VALUES (N'20240206182415_Update_Duende_v7_0IdentityServerConfigurationDbMigration', N'10.0.11');
+
+COMMIT;
 GO
+
+BEGIN TRANSACTION;
+CREATE TABLE [SamlServiceProviders] (
+    [Id] int NOT NULL IDENTITY,
+    [EntityId] nvarchar(200) NOT NULL,
+    [DisplayName] nvarchar(200) NULL,
+    [Description] nvarchar(1000) NULL,
+    [Enabled] bit NOT NULL,
+    [ClockSkewSeconds] float NULL,
+    [RequestMaxAgeSeconds] float NULL,
+    [AssertionLifetimeSeconds] float NULL,
+    [RequireSignedAuthnRequests] bit NULL,
+    [RequireSignedLogoutResponses] bit NULL,
+    [AllowIdpInitiated] bit NOT NULL,
+    [DefaultNameIdFormat] nvarchar(2000) NULL,
+    [EmailNameIdClaimType] nvarchar(200) NULL,
+    [SigningBehavior] int NULL,
+    [AllowedSignatureAlgorithms] nvarchar(max) NULL,
+    [Created] datetime2 NOT NULL,
+    [Updated] datetime2 NULL,
+    [LastAccessed] datetime2 NULL,
+    [NonEditable] bit NOT NULL,
+    CONSTRAINT [PK_SamlServiceProviders] PRIMARY KEY ([Id])
+);
+
+CREATE TABLE [SamlAllowedScopes] (
+    [Id] int NOT NULL IDENTITY,
+    [Scope] nvarchar(200) NOT NULL,
+    [SamlServiceProviderId] int NOT NULL,
+    CONSTRAINT [PK_SamlAllowedScopes] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_SamlAllowedScopes_SamlServiceProviders_SamlServiceProviderId] FOREIGN KEY ([SamlServiceProviderId]) REFERENCES [SamlServiceProviders] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [SamlAssertionConsumerServices] (
+    [Id] int NOT NULL IDENTITY,
+    [Location] nvarchar(400) NOT NULL,
+    [Binding] nvarchar(200) NOT NULL,
+    [Index] int NOT NULL,
+    [IsDefault] bit NOT NULL,
+    [SamlServiceProviderId] int NOT NULL,
+    CONSTRAINT [PK_SamlAssertionConsumerServices] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_SamlAssertionConsumerServices_SamlServiceProviders_SamlServiceProviderId] FOREIGN KEY ([SamlServiceProviderId]) REFERENCES [SamlServiceProviders] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [SamlAuthnContextMappings] (
+    [Id] int NOT NULL IDENTITY,
+    [OidcValue] nvarchar(250) NOT NULL,
+    [SamlAuthnContextClassRef] nvarchar(500) NOT NULL,
+    [SamlServiceProviderId] int NOT NULL,
+    CONSTRAINT [PK_SamlAuthnContextMappings] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_SamlAuthnContextMappings_SamlServiceProviders_SamlServiceProviderId] FOREIGN KEY ([SamlServiceProviderId]) REFERENCES [SamlServiceProviders] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [SamlCertificates] (
+    [Id] int NOT NULL IDENTITY,
+    [Data] nvarchar(4000) NOT NULL,
+    [Use] int NOT NULL,
+    [SamlServiceProviderId] int NOT NULL,
+    CONSTRAINT [PK_SamlCertificates] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_SamlCertificates_SamlServiceProviders_SamlServiceProviderId] FOREIGN KEY ([SamlServiceProviderId]) REFERENCES [SamlServiceProviders] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [SamlClaimMappings] (
+    [Id] int NOT NULL IDENTITY,
+    [ClaimType] nvarchar(250) NOT NULL,
+    [SamlAttributeName] nvarchar(250) NOT NULL,
+    [SamlServiceProviderId] int NOT NULL,
+    CONSTRAINT [PK_SamlClaimMappings] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_SamlClaimMappings_SamlServiceProviders_SamlServiceProviderId] FOREIGN KEY ([SamlServiceProviderId]) REFERENCES [SamlServiceProviders] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [SamlRequestedClaimTypes] (
+    [Id] int NOT NULL IDENTITY,
+    [ClaimType] nvarchar(250) NOT NULL,
+    [SamlServiceProviderId] int NOT NULL,
+    CONSTRAINT [PK_SamlRequestedClaimTypes] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_SamlRequestedClaimTypes_SamlServiceProviders_SamlServiceProviderId] FOREIGN KEY ([SamlServiceProviderId]) REFERENCES [SamlServiceProviders] ([Id]) ON DELETE CASCADE
+);
+
+CREATE TABLE [SamlSingleLogoutServices] (
+    [Id] int NOT NULL IDENTITY,
+    [Location] nvarchar(400) NOT NULL,
+    [Binding] nvarchar(200) NOT NULL,
+    [SamlServiceProviderId] int NOT NULL,
+    CONSTRAINT [PK_SamlSingleLogoutServices] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_SamlSingleLogoutServices_SamlServiceProviders_SamlServiceProviderId] FOREIGN KEY ([SamlServiceProviderId]) REFERENCES [SamlServiceProviders] ([Id]) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX [IX_SamlAllowedScopes_SamlServiceProviderId_Scope] ON [SamlAllowedScopes] ([SamlServiceProviderId], [Scope]);
+
+CREATE UNIQUE INDEX [IX_SamlAssertionConsumerServices_SamlServiceProviderId_Location] ON [SamlAssertionConsumerServices] ([SamlServiceProviderId], [Location]);
+
+CREATE UNIQUE INDEX [IX_SamlAuthnContextMappings_SamlServiceProviderId_OidcValue] ON [SamlAuthnContextMappings] ([SamlServiceProviderId], [OidcValue]);
+
+CREATE INDEX [IX_SamlCertificates_SamlServiceProviderId] ON [SamlCertificates] ([SamlServiceProviderId]);
+
+CREATE UNIQUE INDEX [IX_SamlClaimMappings_SamlServiceProviderId_ClaimType] ON [SamlClaimMappings] ([SamlServiceProviderId], [ClaimType]);
+
+CREATE UNIQUE INDEX [IX_SamlRequestedClaimTypes_SamlServiceProviderId_ClaimType] ON [SamlRequestedClaimTypes] ([SamlServiceProviderId], [ClaimType]);
+
+CREATE UNIQUE INDEX [IX_SamlServiceProviders_EntityId] ON [SamlServiceProviders] ([EntityId]);
+
+CREATE UNIQUE INDEX [IX_SamlSingleLogoutServices_SamlServiceProviderId_Binding] ON [SamlSingleLogoutServices] ([SamlServiceProviderId], [Binding]);
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260820162812_Update_Duende_v8_0IdentityServerConfigurationDbMigration', N'10.0.11');
 
 COMMIT;
 GO
