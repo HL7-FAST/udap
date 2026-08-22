@@ -3,40 +3,32 @@
 @{
 }
 
-<div class="admin-page">
-    <div class="mb-4">
-        <h2 class="display-6 mb-3">
-            <i class="fa-solid fa-wrench text-primary me-2"></i>
-            UDAP Administration
-        </h2>
-        <p class="text-muted">Manage UDAP-specific configuration and trust relationships</p>
-    </div>
+<partial name="_PageHeader" model='new PageHeader("fa-gear", "UDAP Administration", "Manage UDAP trust communities and anchors")' />
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card elevation-2">
-                <div class="card-header">
-                    <i class="fa-solid fa-list me-2"></i>
-                    UDAP Configuration
-                </div>
-                <div class="list-group list-group-flush">
-                    <a class="list-group-item list-group-item-action d-flex align-items-center" asp-page="/Udap/Anchors/Index">
-                        <i class="fa-solid fa-certificate text-primary me-3 fs-4"></i>
-                        <div>
-                            <div class="fw-semibold">Trust Anchors</div>
-                            <small class="text-muted">Manage root certificates and trust anchors</small>
-                        </div>
-                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
-                    </a>
-                    <a class="list-group-item list-group-item-action d-flex align-items-center" asp-page="/Udap/Communities/Index">
-                        <i class="fa-solid fa-users text-primary me-3 fs-4"></i>
-                        <div>
-                            <div class="fw-semibold">Communities</div>
-                            <small class="text-muted">Configure trust communities and networks</small>
-                        </div>
-                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
-                    </a>
-                </div>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-list-check me-2" aria-hidden="true"></i>
+                UDAP Configuration
+            </div>
+            <div class="list-group list-group-flush">
+                <a data-mdb-ripple-init class="list-group-item list-group-item-action d-flex align-items-center gap-3" asp-page="/Udap/Anchors/Index">
+                    <i class="fa-solid fa-certificate text-primary fs-4" aria-hidden="true"></i>
+                    <div>
+                        <div class="fw-semibold">Trust Anchors</div>
+                        <small class="text-body-secondary">Manage root certificates and trust anchors</small>
+                    </div>
+                    <i class="fa-solid fa-chevron-right ms-auto text-body-secondary" aria-hidden="true"></i>
+                </a>
+                <a data-mdb-ripple-init class="list-group-item list-group-item-action d-flex align-items-center gap-3" asp-page="/Udap/Communities/Index">
+                    <i class="fa-solid fa-users text-primary fs-4" aria-hidden="true"></i>
+                    <div>
+                        <div class="fw-semibold">Communities</div>
+                        <small class="text-body-secondary">Configure trust communities and networks</small>
+                    </div>
+                    <i class="fa-solid fa-chevron-right ms-auto text-body-secondary" aria-hidden="true"></i>
+                </a>
             </div>
         </div>
     </div>

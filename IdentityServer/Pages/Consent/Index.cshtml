@@ -4,18 +4,14 @@
 }
 
 <div class="page-consent">
-    <div class="lead text-center mb-5">
+    <div class="text-center mb-4">
         @if (Model.View.ClientLogoUrl != null)
         {
-            <div class="client-logo mb-3">
-                <img src="@Model.View.ClientLogoUrl" alt="@Model.View.ClientName" class="rounded" style="max-width: 100px;">
-            </div>
+            <img src="@Model.View.ClientLogoUrl" alt="@Model.View.ClientName" class="client-logo rounded mb-3">
         }
-        <h1 class="display-6 mb-2">
-            @Model.View.ClientName
-        </h1>
-        <p class="text-muted fs-5">is requesting your permission</p>
-        <p class="text-muted">Uncheck the permissions you do not wish to grant.</p>
+        <h1 class="h3 mb-1">@Model.View.ClientName</h1>
+        <p class="text-body-secondary mb-0">is requesting your permission</p>
+        <p class="text-body-secondary mb-0">Uncheck the permissions you do not wish to grant.</p>
     </div>
 
     <div class="row justify-content-center">
@@ -31,9 +27,9 @@
                 @if (Model.View.IdentityScopes.Any())
                 {
                     <div class="mb-4">
-                        <div class="card elevation-2">
+                        <div class="card">
                             <div class="card-header">
-                                <i class="fa-solid fa-user"></i>
+                                <i class="fa-solid fa-user me-2" aria-hidden="true"></i>
                                 Personal Information
                             </div>
                             <ul class="list-group list-group-flush">
@@ -49,9 +45,9 @@
                 @if (Model.View.ApiScopes.Any())
                 {
                     <div class="mb-4">
-                        <div class="card elevation-2">
+                        <div class="card">
                             <div class="card-header">
-                                <i class="fa-solid fa-tasks"></i>
+                                <i class="fa-solid fa-list-check me-2" aria-hidden="true"></i>
                                 Application Access
                             </div>
                             <ul class="list-group list-group-flush">
@@ -65,14 +61,15 @@
                 }
 
                 <div class="mb-4">
-                    <div class="card elevation-2">
+                    <div class="card">
                         <div class="card-header">
-                            <i class="fa-solid fa-pencil"></i>
+                            <i class="fa-solid fa-pen-to-square me-2" aria-hidden="true"></i>
                             Description
                         </div>
                         <div class="card-body">
                             <div class="form-outline" data-mdb-input-init>
-                                <input class="form-control" placeholder="Description or name of device" asp-for="Input.Description" autofocus>
+                                <input class="form-control" asp-for="Input.Description" autofocus>
+                                <label class="form-label" asp-for="Input.Description">Description or device name</label>
                             </div>
                         </div>
                     </div>
@@ -90,20 +87,20 @@
                     </div>
                 }
 
-                <div class="d-flex gap-3 mb-4">
-                    <button name="Input.button" value="yes" class="btn btn-primary btn-lg flex-fill" autofocus>
-                        <i class="fa-solid fa-check me-2"></i>Yes, Allow
+                <div class="d-flex gap-2 mb-4">
+                    <button name="Input.button" value="yes" data-mdb-ripple-init class="btn btn-primary flex-fill" autofocus>
+                        <i class="fa-solid fa-check me-2" aria-hidden="true"></i>Yes, Allow
                     </button>
-                    <button name="Input.button" value="no" class="btn btn-secondary btn-lg flex-fill">
-                        <i class="fa-solid fa-times me-2"></i>No, Do Not Allow
+                    <button name="Input.button" value="no" data-mdb-ripple-init class="btn btn-outline-secondary flex-fill">
+                        <i class="fa-solid fa-xmark me-2" aria-hidden="true"></i>No, Do Not Allow
                     </button>
                 </div>
 
                 @if (Model.View.ClientUrl != null)
                 {
                     <div class="text-center">
-                        <a class="btn btn-outline-info" href="@Model.View.ClientUrl" target="_blank">
-                            <i class="fa-solid fa-info-circle me-2"></i>
+                        <a data-mdb-ripple-init class="btn btn-link" href="@Model.View.ClientUrl" target="_blank">
+                            <i class="fa-solid fa-circle-info me-2" aria-hidden="true"></i>
                             More about @Model.View.ClientName
                         </a>
                     </div>

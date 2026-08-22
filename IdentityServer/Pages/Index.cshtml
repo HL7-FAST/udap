@@ -3,76 +3,71 @@
 
 <div class="welcome-page">
     <div class="text-center mb-5">
-        <h1 class="display-5 mb-3">
+        <h1 class="display-6 fw-normal mb-2">
             FAST Security Reference Implementation Server
         </h1>
-        <p class="lead text-muted">
-            A reference implementation of the <a href="https://build.fhir.org/ig/HL7/fhir-udap-security-ig/" target="_blank">FAST Security Implementation Guide</a>
+        <p class="lead text-body-secondary">
+            A reference implementation of the <a href="https://build.fhir.org/ig/HL7/fhir-udap-security-ig/" target="_blank" rel="noopener">FAST Security Implementation Guide</a>
         </p>
     </div>
 
     <div class="row">
         <div class="col-md-6 mb-4">
-            <div class="card elevation-2">
+            <div class="card">
                 <div class="card-header">
-                    <i class="fa-solid fa-globe"></i>
+                    <i class="fa-solid fa-globe me-2" aria-hidden="true"></i>
                     Well-Known Endpoints
                 </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <a href="~/.well-known/openid-configuration" class="list-group-item list-group-item-action d-flex align-items-center">
-                            <i class="fa-solid fa-link text-primary me-3"></i>
-                            <div>
-                                <div class="fw-semibold">OpenID Configuration</div>
-                                <small class="text-muted">.well-known/openid-configuration</small>
-                            </div>
-                        </a>
-                        <a href="~/.well-known/udap" class="list-group-item list-group-item-action d-flex align-items-center">
-                            <i class="fa-solid fa-shield-halved text-primary me-3"></i>
-                            <div>
-                                <div class="fw-semibold">UDAP Configuration</div>
-                                <small class="text-muted">.well-known/udap</small>
-                            </div>
-                        </a>
-                    </div>
+                <div class="list-group list-group-flush">
+                    <a href="~/.well-known/openid-configuration" data-mdb-ripple-init class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                        <i class="fa-solid fa-link text-primary fs-4" aria-hidden="true"></i>
+                        <div>
+                            <div class="fw-semibold">OpenID Configuration</div>
+                            <small class="text-body-secondary">.well-known/openid-configuration</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-body-secondary" aria-hidden="true"></i>
+                    </a>
+                    <a href="~/.well-known/udap" data-mdb-ripple-init class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                        <i class="fa-solid fa-shield-halved text-primary fs-4" aria-hidden="true"></i>
+                        <div>
+                            <div class="fw-semibold">UDAP Configuration</div>
+                            <small class="text-body-secondary">.well-known/udap</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-body-secondary" aria-hidden="true"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-6 mb-4">
-            <div class="card elevation-2">
+            <div class="card">
                 <div class="card-header">
-                    <i class="fa-solid fa-user-shield"></i>
+                    <i class="fa-solid fa-user-shield me-2" aria-hidden="true"></i>
                     Administration
                 </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <a href="~/admin" class="list-group-item list-group-item-action d-flex align-items-center">
-                            <i class="fa-solid fa-cog text-primary me-3"></i>
-                            <div>
-                                <div class="fw-semibold">System Admin</div>
-                                <small class="text-muted">Configure system settings</small>
-                            </div>
-                        </a>
-                        <a href="~/udap" class="list-group-item list-group-item-action d-flex align-items-center">
-                            <i class="fa-solid fa-wrench text-primary me-3"></i>
-                            <div>
-                                <div class="fw-semibold">UDAP Admin</div>
-                                <small class="text-muted">Manage UDAP configuration</small>
-                            </div>
-                        </a>
-                    </div>
+                <div class="list-group list-group-flush">
+                    <a href="~/admin" data-mdb-ripple-init class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                        <i class="fa-solid fa-cog text-primary fs-4" aria-hidden="true"></i>
+                        <div>
+                            <div class="fw-semibold">System Admin</div>
+                            <small class="text-body-secondary">Configure system settings</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-body-secondary" aria-hidden="true"></i>
+                    </a>
+                    <a href="~/udap" data-mdb-ripple-init class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                        <i class="fa-solid fa-wrench text-primary fs-4" aria-hidden="true"></i>
+                        <div>
+                            <div class="fw-semibold">UDAP Admin</div>
+                            <small class="text-body-secondary">Manage UDAP configuration</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-body-secondary" aria-hidden="true"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="mt-4 p-4 bg-light rounded">
-        <p class="mb-0 text-center">
-            <i class="fa-solid fa-info-circle text-primary me-2"></i>
-            This server is built on <a href="https://duendesoftware.com/products/identityserver" target="_blank" class="text-decoration-none">
-                Duende IdentityServer <i class="fa-solid fa-external-link-alt fa-sm"></i> <small class="text-muted">(version @Model.Version)</small>
-            </a>
-        </p>
-    </div>
+    <p class="text-center text-body-secondary small mt-4">
+        Built on <a href="https://duendesoftware.com/products/identityserver" target="_blank" rel="noopener">Duende IdentityServer <i class="fa-solid fa-arrow-up-right-from-square fa-sm" aria-hidden="true"></i></a> (version @Model.Version)
+    </p>
 </div>

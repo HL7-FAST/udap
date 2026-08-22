@@ -33,7 +33,7 @@ namespace IdentityServer.Pages.Consent
         [BindProperty]
         public InputModel Input { get; set; }
 
-        public async Task<IActionResult> OnGet(string returnUrl)
+        public async Task<IActionResult> OnGet(string? returnUrl)
         {
             View = await BuildViewModelAsync(returnUrl);
             if (View == null)

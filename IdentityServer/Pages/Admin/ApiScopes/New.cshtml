@@ -3,83 +3,72 @@
 @{
 }
 
-<div class="clients-page">
-    <div class="mb-4">
-        <h2 class="display-6 mb-3">
-            <i class="fa-solid fa-plus-circle text-primary me-2"></i>
-            New API Scope
-        </h2>
-    </div>
+<partial name="_PageHeader" model='new PageHeader("fa-plus", "New API Scope")' />
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <partial name="_ValidationSummary" />
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <partial name="_ValidationSummary" />
 
-            <div class="card elevation-2">
-                <div class="card-header">
-                    <i class="fa-solid fa-list-check me-2"></i>
-                    Scope Details
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        <div class="mb-3">
-                            <label asp-for="@Model.InputModel.Name" class="form-label">Scope Name</label>
-                            <div class="form-outline" data-mdb-input-init>
-                                <input class="form-control form-control-lg" asp-for="@Model.InputModel.Name" placeholder="e.g., api.read" autofocus />
-                            </div>
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-list-check me-2" aria-hidden="true"></i>
+                Scope Details
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-4">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input class="form-control" asp-for="@Model.InputModel.Name" autofocus />
+                            <label class="form-label" asp-for="@Model.InputModel.Name">Scope Name</label>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label asp-for="@Model.InputModel.DisplayName" class="form-label">Display Name</label>
-                            <div class="form-outline" data-mdb-input-init>
-                                <input class="form-control form-control-lg" asp-for="@Model.InputModel.DisplayName" placeholder="Human-readable name" />
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label asp-for="@Model.InputModel.UserClaims" class="form-label">User Claims</label>
-                            <div class="form-outline" data-mdb-input-init>
-                                <input class="form-control" asp-for="@Model.InputModel.UserClaims" placeholder="Space delimited claims" />
-                            </div>
-                            <small class="text-muted">Enter claims separated by spaces (e.g., name email role)</small>
-                        </div>
-                        
-                        <hr class="my-4">
-                        <h5 class="mb-3">
-                            <i class="fa-solid fa-toggle-on me-2"></i>
-                            Scope Settings
-                        </h5>
-                        
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="@Model.InputModel.Enabled" id="enabledSwitch" />
-                                <label class="form-check-label fw-semibold" for="enabledSwitch">
-                                    Enabled
-                                </label>
-                            </div>
-                            <small class="text-muted ms-4">Allow clients to request this scope</small>
-                        </div>
+                    </div>
 
-                        <div class="mb-4">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="@Model.InputModel.ShowInDiscoveryDocument" id="discoverySwitch" />
-                                <label class="form-check-label fw-semibold" for="discoverySwitch">
-                                    Show in Discovery Document
-                                </label>
-                            </div>
-                            <small class="text-muted ms-4">Make this scope visible in the discovery endpoint</small>
+                    <div class="mb-4">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input class="form-control" asp-for="@Model.InputModel.DisplayName" />
+                            <label class="form-label" asp-for="@Model.InputModel.DisplayName">Display Name</label>
                         </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary btn-lg" type="submit">
-                                <i class="fa-solid fa-save me-2"></i>Create Scope
-                            </button>
-                            <a class="btn btn-secondary btn-lg" asp-page="/Admin/ApiScopes/Index">
-                                <i class="fa-solid fa-times me-2"></i>Cancel
-                            </a>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input class="form-control" asp-for="@Model.InputModel.UserClaims" />
+                            <label class="form-label" asp-for="@Model.InputModel.UserClaims">User Claims</label>
                         </div>
-                    </form>
-                </div>
+                        <div class="form-text">Enter claims separated by spaces (e.g., name email role).</div>
+                    </div>
+
+                    <h2 class="h6 text-body-secondary text-uppercase mt-4 mb-3">Scope Settings</h2>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="@Model.InputModel.Enabled" id="enabledSwitch" />
+                            <label class="form-check-label fw-semibold" for="enabledSwitch">
+                                Enabled
+                            </label>
+                        </div>
+                        <div class="form-text ms-4">Allow clients to request this scope.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="@Model.InputModel.ShowInDiscoveryDocument" id="discoverySwitch" />
+                            <label class="form-check-label fw-semibold" for="discoverySwitch">
+                                Show in Discovery Document
+                            </label>
+                        </div>
+                        <div class="form-text ms-4">Make this scope visible in the discovery endpoint.</div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button data-mdb-ripple-init class="btn btn-primary" type="submit">
+                            <i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i>Create
+                        </button>
+                        <a data-mdb-ripple-init class="btn btn-outline-secondary" asp-page="/Admin/ApiScopes/Index">
+                            <i class="fa-solid fa-xmark me-2" aria-hidden="true"></i>Cancel
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -3,105 +3,92 @@
 @{
 }
 
-<div>
-    <div class="mb-4">
-        <h2 class="display-6 mb-3">
-            <i class="fa-solid fa-certificate text-primary me-2"></i>
-            UDAP Trust Anchors
-        </h2>
-    </div>
+<partial name="_PageHeader" model='new PageHeader("fa-certificate", "UDAP Trust Anchors")' />
 
-    <div class="row mb-4">
-        <div class="col-lg-10">
-            <div class="card elevation-2">
-                <div class="card-body">
-                    <form class="row g-3 align-items-end">
-                        <div class="col-md-6">
-                            <label for="filter" class="form-label">Filter Trust Anchors</label>
-                            <div class="form-outline" data-mdb-input-init>
-                                <input class="form-control" placeholder="Search by name, thumbprint..." id="filter" name="filter" type="text" value="@Model.Filter" autofocus />
-                            </div>
+<div class="row mb-4">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-body">
+                <form class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input class="form-control" id="filter" name="filter" type="search" value="@Model.Filter" autofocus />
+                            <label class="form-label" for="filter">Filter by name or thumbprint</label>
                         </div>
-                        <div class="col-md-6">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary">
-                                    <i class="fa-solid fa-search me-2"></i>Search
-                                </button>
-                                <a asp-page="/Udap/Index" class="btn btn-secondary">
-                                    <i class="fa-solid fa-times me-2"></i>Cancel
-                                </a>
-                                <a asp-page="/Udap/Anchors/New" class="btn btn-success ms-auto">
-                                    <i class="fa-solid fa-plus me-2"></i>New Anchor
-                                </a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col">
-            <div class="card elevation-2">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th><i class="fa-solid fa-fingerprint me-2"></i>ID</th>
-                                <th><i class="fa-solid fa-users me-2"></i>Community</th>
-                                <th><i class="fa-solid fa-heading me-2"></i>Name</th>
-                                <th><i class="fa-solid fa-file-certificate me-2"></i>Certificate</th>
-                                <th><i class="fa-solid fa-fingerprint me-2"></i>Thumbprint</th>
-                                <th><i class="fa-solid fa-calendar-check me-2"></i>Valid From</th>
-                                <th><i class="fa-solid fa-calendar-xmark me-2"></i>Valid Until</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @foreach (var anchor in Model.Anchors)
-                            {
-                                <tr>
-                                    <td><span class="badge bg-secondary">@anchor.AnchorId</span></td>
-                                    <td>
-                                        <span class="badge bg-info rounded-pill">@anchor.Community.Name</span>
-                                    </td>
-                                    <td>@anchor.Name</td>
-                                    <td>
-                                        <code class="text-muted small">@anchor.Certificate.Substring(0, Math.Min(50, anchor.Certificate.Length))...</code>
-                                    </td>
-                                    <td>
-                                        <code class="text-muted small">@anchor.Thumbprint.Substring(0, Math.Min(20, anchor.Thumbprint.Length))...</code>
-                                    </td>
-                                    <td>
-                                        <small>@anchor.BeginDate.ToString("yyyy-MM-dd")</small>
-                                    </td>
-                                    <td>
-                                        <small>@anchor.EndDate.ToString("yyyy-MM-dd")</small>
-                                    </td>
-                                    <td class="text-center">
-                                        @if (anchor.Community.Name != "EmrDirect" && anchor.Community.Name != "FastCA")
-                                        {
-                                            <a asp-page="/Udap/Anchors/Delete" asp-route-id="@anchor.AnchorId" class="btn btn-sm btn-danger">
-                                                <i class="fa-solid fa-trash me-1"></i>Delete
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-warning text-dark">
-                                                <i class="fa-solid fa-lock me-1"></i>Protected
-                                            </span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <button data-mdb-ripple-init class="btn btn-outline-primary">
+                            <i class="fa-solid fa-magnifying-glass me-2" aria-hidden="true"></i>Search
+                        </button>
+                        <a asp-page="/Udap/Anchors/New" data-mdb-ripple-init class="btn btn-primary ms-auto">
+                            <i class="fa-solid fa-plus me-2" aria-hidden="true"></i>New Anchor
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">Trust anchors</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Community</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Certificate</th>
+                            <th scope="col">Thumbprint</th>
+                            <th scope="col">Valid From</th>
+                            <th scope="col">Valid Until</th>
+                            <th scope="col" class="text-center">Actions</th>
+                        </tr>
+                    </thead>
 
+                    <tbody>
+                        @foreach (var anchor in Model.Anchors)
+                        {
+                            <tr>
+                                <td>@anchor.AnchorId</td>
+                                <td>
+                                    <span class="badge badge-info">@anchor.Community.Name</span>
+                                </td>
+                                <td>@anchor.Name</td>
+                                <td>
+                                    <code class="small">@anchor.Certificate.Substring(0, Math.Min(50, anchor.Certificate.Length))...</code>
+                                </td>
+                                <td>
+                                    <code class="small">@anchor.Thumbprint.Substring(0, Math.Min(20, anchor.Thumbprint.Length))...</code>
+                                </td>
+                                <td>@anchor.BeginDate.ToString("yyyy-MM-dd")</td>
+                                <td>@anchor.EndDate.ToString("yyyy-MM-dd")</td>
+                                <td class="text-center">
+                                    @if (anchor.Community.Name != "EmrDirect" && anchor.Community.Name != "FastCA")
+                                    {
+                                        <a asp-page="/Udap/Anchors/Delete" asp-route-id="@anchor.AnchorId" data-mdb-ripple-init class="btn btn-sm btn-outline-danger">
+                                            <i class="fa-solid fa-trash me-1" aria-hidden="true"></i>Delete
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warning">
+                                            <i class="fa-solid fa-lock me-1" aria-hidden="true"></i>Protected
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Anchors.Any())
+            {
+                <partial name="_EmptyState" model="@("No trust anchors match this filter.")" />
+            }
+        </div>
+    </div>
+</div>

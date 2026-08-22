@@ -16,7 +16,7 @@ namespace IdentityServer.Pages.Udap.Communities
         public IEnumerable<CommunityModel> Communities { get; private set; }
         public string Filter { get; set; }
 
-        public async Task OnGetAsync(string filter)
+        public async Task OnGetAsync(string? filter)
         {
             Filter = filter;
             Communities = await _repository.GetAllAsync(filter);

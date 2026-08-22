@@ -1,0 +1,12 @@
+@model IdentityServer.Pages.Shared.PageHeader
+
+<header class="d-flex align-items-center gap-3 mb-4">
+    <span class="page-icon" aria-hidden="true"><i class="fa-solid @Model.Icon"></i></span>
+    <div>
+        <h1 class="h3 mb-0">@Model.Title</h1>
+        @if (!string.IsNullOrWhiteSpace(Model.Subtitle))
+        {
+            <p class="text-body-secondary mb-0">@Model.Subtitle</p>
+        }
+    </div>
+</header>

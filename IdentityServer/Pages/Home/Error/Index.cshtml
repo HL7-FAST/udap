@@ -1,35 +1,31 @@
 @page
 @model IdentityServer.Pages.Error.Index
 
-<div class="error-page">
-    <div class="lead">
-        <h1>Error</h1>
-    </div>
+<partial name="_PageHeader" model='new PageHeader("fa-circle-exclamation", "Error")' />
 
-    <div class="row">
-        <div class="col-sm-6">
-            <div class="alert alert-danger">
-                Sorry, there was an error
+<div class="row">
+    <div class="col-lg-8">
+        <div class="alert alert-danger" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>Sorry, there was an error
 
-                @if (Model.View.Error != null)
-                {
-                    <strong>
-                        <em>
-                            : @Model.View.Error.Error
-                        </em>
-                    </strong>
-
-                    if (Model.View.Error.ErrorDescription != null)
-                    {
-                        <div>@Model.View.Error.ErrorDescription</div>
-                    }
-                }
-            </div>
-
-            @if (Model?.View?.Error?.RequestId != null)
+            @if (Model.View.Error != null)
             {
-                <div class="request-id">Request Id: @Model.View.Error.RequestId</div>
+                <strong>
+                    <em>
+                        : @Model.View.Error.Error
+                    </em>
+                </strong>
+
+                if (Model.View.Error.ErrorDescription != null)
+                {
+                    <div>@Model.View.Error.ErrorDescription</div>
+                }
             }
         </div>
+
+        @if (Model?.View?.Error?.RequestId != null)
+        {
+            <p class="text-body-secondary small">Request ID: <code>@Model.View.Error.RequestId</code></p>
+        }
     </div>
 </div>

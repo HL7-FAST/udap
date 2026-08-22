@@ -19,7 +19,7 @@ namespace IdentityServer.Pages.Error
             _environment = environment;
         }
 
-        public async Task OnGet(string errorId)
+        public async Task OnGet(string? errorId)
         {
             View = new ViewModel();
 

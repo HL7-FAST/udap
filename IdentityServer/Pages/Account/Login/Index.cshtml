@@ -2,12 +2,10 @@
 @model IdentityServer.Pages.Login.Index
 
 <div class="login-page">
-    <div class="lead text-center mb-5">
-        <h1 class="display-5 mb-3">
-            <i class="fa-solid fa-sign-in-alt text-primary me-2"></i>
-            Sign In
-        </h1>
-        <p class="text-muted fs-5">Choose how to login</p>
+    <div class="text-center mb-4">
+        <span class="page-icon" aria-hidden="true"><i class="fa-solid fa-right-to-bracket"></i></span>
+        <h1 class="h3 mb-1">Sign in</h1>
+        <p class="text-body-secondary mb-0">Choose how to sign in</p>
     </div>
 
     <div class="row justify-content-center">
@@ -21,31 +19,29 @@
         @if (Model.View.EnableLocalLogin)
         {
             <div class="col-lg-5 mb-4">
-                <div class="card elevation-2 h-100">
+                <div class="card h-100">
                     <div class="card-header">
-                        <h2 class="h5 mb-0">
-                            <i class="fa-solid fa-user-circle me-2"></i>
-                            Local Account
-                        </h2>
+                        <i class="fa-solid fa-user me-2" aria-hidden="true"></i>
+                        Local Account
                     </div>
 
                     <div class="card-body">
                         <form asp-page="/Account/Login/Index">
                             <input type="hidden" asp-for="Input.ReturnUrl" />
 
-                            <div class="mb-3">
-                                <label asp-for="Input.Username" class="form-label">Username</label>
+                            <div class="mb-4">
                                 <div class="form-outline" data-mdb-input-init>
-                                    <input class="form-control form-control-lg" placeholder="Enter your username" asp-for="Input.Username" autofocus>
+                                    <input class="form-control" asp-for="Input.Username" autocomplete="username" autofocus>
+                                    <label class="form-label" asp-for="Input.Username">Username</label>
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                <label asp-for="Input.Password" class="form-label">Password</label>
+                            <div class="mb-4">
                                 <div class="form-outline" data-mdb-input-init>
-                                    <input type="password" class="form-control form-control-lg" placeholder="Enter your password" asp-for="Input.Password" autocomplete="off">
+                                    <input type="password" class="form-control" asp-for="Input.Password" autocomplete="current-password">
+                                    <label class="form-label" asp-for="Input.Password">Password</label>
                                 </div>
                             </div>
-                            
+
                             @if (Model.View.AllowRememberLogin)
                             {
                                 <div class="mb-4">
@@ -57,13 +53,13 @@
                                     </div>
                                 </div>
                             }
-                            
+
                             <div class="d-grid gap-2">
-                                <button class="btn btn-primary btn-lg" name="Input.Button" value="login">
-                                    <i class="fa-solid fa-sign-in-alt me-2"></i>Sign In
+                                <button data-mdb-ripple-init class="btn btn-primary" name="Input.Button" value="login">
+                                    <i class="fa-solid fa-right-to-bracket me-2" aria-hidden="true"></i>Sign In
                                 </button>
-                                <button class="btn btn-outline-secondary" name="Input.Button" value="cancel">
-                                    <i class="fa-solid fa-times me-2"></i>Cancel
+                                <button data-mdb-ripple-init class="btn btn-outline-secondary" name="Input.Button" value="cancel">
+                                    <i class="fa-solid fa-xmark me-2" aria-hidden="true"></i>Cancel
                                 </button>
                             </div>
                         </form>
@@ -71,28 +67,20 @@
                 </div>
             </div>
         }
-        
+
         <div class="col-lg-5 mb-4">
-            <div class="card elevation-2 h-100">
+            <div class="card h-100">
                 <div class="card-header">
-                    <h2 class="h5 mb-0">
-                        <i class="fa-solid fa-info-circle me-2"></i>
-                        Test Credentials
-                    </h2>
+                    <i class="fa-solid fa-circle-info me-2" aria-hidden="true"></i>
+                    Test Credentials
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info border-0 mb-0">
-                        <h6 class="alert-heading">
-                            <i class="fa-solid fa-user me-2"></i>Basic User Account
-                        </h6>
-                        <hr>
-                        <p class="mb-1">
-                            <strong>Username:</strong> <code class="text-dark">user</code>
-                        </p>
-                        <p class="mb-0">
-                            <strong>Password:</strong> <code class="text-dark">user</code>
-                        </p>
-                    </div>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-body-secondary fw-normal">Username</dt>
+                        <dd class="col-sm-8"><code>user</code></dd>
+                        <dt class="col-sm-4 text-body-secondary fw-normal">Password</dt>
+                        <dd class="col-sm-8 mb-0"><code>user</code></dd>
+                    </dl>
                 </div>
             </div>
         </div>
@@ -100,22 +88,20 @@
         @if (Model.View.TieredProvider != null)
         {
             <div class="col-lg-10 mb-4">
-                <div class="card elevation-2">
+                <div class="card">
                     <div class="card-header">
-                        <h2 class="h5 mb-0">
-                            <i class="fa-solid fa-layer-group me-2"></i>
-                            Tiered OAuth
-                        </h2>
+                        <i class="fa-solid fa-layer-group me-2" aria-hidden="true"></i>
+                        Tiered OAuth
                     </div>
                     <div class="card-body">
                         @{
                             var provider = Model.View.TieredProvider;
                         }
-                        <a class="btn btn-primary btn-lg"
+                        <a data-mdb-ripple-init class="btn btn-primary"
                            asp-page="/UdapTieredLogin/Challenge"
                            asp-route-scheme="@provider.AuthenticationScheme"
                            asp-route-returnUrl="@(provider.ReturnUrl)">
-                            <i class="fa-solid fa-sign-in-alt me-2"></i>
+                            <i class="fa-solid fa-right-to-bracket me-2" aria-hidden="true"></i>
                             @provider.DisplayName
                         </a>
                     </div>
@@ -126,22 +112,20 @@
         @if (Model.View.VisibleExternalProviders.Any())
         {
             <div class="col-lg-10 mb-4">
-                <div class="card elevation-2">
+                <div class="card">
                     <div class="card-header">
-                        <h2 class="h5 mb-0">
-                            <i class="fa-solid fa-globe me-2"></i>
-                            External Account
-                        </h2>
+                        <i class="fa-solid fa-globe me-2" aria-hidden="true"></i>
+                        External Account
                     </div>
                     <div class="card-body">
                         <div class="d-flex flex-wrap gap-2">
                             @foreach (var provider in Model.View.VisibleExternalProviders)
                             {
-                                <a class="btn btn-outline-secondary btn-lg"
+                                <a data-mdb-ripple-init class="btn btn-outline-secondary"
                                    asp-page="/ExternalLogin/Challenge"
                                    asp-route-scheme="@provider.AuthenticationScheme"
                                    asp-route-returnUrl="@Model.Input.ReturnUrl">
-                                    <i class="fa-solid fa-external-link-alt me-2"></i>
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-2" aria-hidden="true"></i>
                                     @provider.DisplayName
                                 </a>
                             }
@@ -154,11 +138,9 @@
         @if (!Model.View.EnableLocalLogin && !Model.View.VisibleExternalProviders.Any())
         {
             <div class="col-lg-10">
-                <div class="alert alert-warning border-0 elevation-1">
-                    <h6 class="alert-heading">
-                        <i class="fa-solid fa-exclamation-triangle me-2"></i>
-                        Invalid Login Request
-                    </h6>
+                <div class="alert alert-warning" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>
+                    <strong>Invalid Login Request</strong>
                     <p class="mb-0">There are no login schemes configured for this request.</p>
                 </div>
             </div>

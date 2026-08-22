@@ -18,7 +18,7 @@ namespace IdentityServer.Pages.Udap.Anchors
         public IEnumerable<AnchorModel> Anchors { get; private set; }
         public string Filter { get; set; }
 
-        public async Task OnGetAsync(string filter)
+        public async Task OnGetAsync(string? filter)
         {
             Filter = filter;
             Anchors = await _repository.GetAllAsync(filter);

@@ -2,39 +2,53 @@
 @model IdentityServer.Pages.Create.Index
 
 <div class="login-page">
-    <div class="lead">
-        <h1>Create Account</h1>
-    </div>
+    <partial name="_PageHeader" model='new PageHeader("fa-user-plus", "Create account")' />
 
     <partial name="_ValidationSummary" />
 
-    <div class="row">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-page="/Account/Create/Index">
+                        <input type="hidden" asp-for="Input.ReturnUrl" />
 
-        <div class="col-sm-6">
-            <form asp-page="/Account/Create/Index">
-                <input type="hidden" asp-for="Input.ReturnUrl" />
+                        <div class="mb-4">
+                            <div class="form-outline" data-mdb-input-init>
+                                <input class="form-control" asp-for="Input.Username" autocomplete="username" autofocus>
+                                <label class="form-label" asp-for="Input.Username">Username</label>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="form-outline" data-mdb-input-init>
+                                <input type="password" class="form-control" asp-for="Input.Password" autocomplete="new-password">
+                                <label class="form-label" asp-for="Input.Password">Password</label>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="form-outline" data-mdb-input-init>
+                                <input type="text" class="form-control" asp-for="Input.Name">
+                                <label class="form-label" asp-for="Input.Name">Name</label>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="form-outline" data-mdb-input-init>
+                                <input type="email" class="form-control" asp-for="Input.Email" autocomplete="email">
+                                <label class="form-label" asp-for="Input.Email">Email</label>
+                            </div>
+                        </div>
 
-                <div class="form-group">
-                    <label asp-for="Input.Username"></label>
-                    <input class="form-control" placeholder="Username" asp-for="Input.Username" autofocus>
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            <button data-mdb-ripple-init class="btn btn-primary" name="Input.Button" value="create">
+                                <i class="fa-solid fa-user-plus me-2" aria-hidden="true"></i>Create
+                            </button>
+                            <button data-mdb-ripple-init class="btn btn-outline-secondary" name="Input.Button" value="cancel">
+                                <i class="fa-solid fa-xmark me-2" aria-hidden="true"></i>Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label asp-for="Input.Password"></label>
-                    <input type="password" class="form-control" placeholder="Password" asp-for="Input.Password" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label asp-for="Input.Name"></label>
-                    <input type="text" class="form-control" placeholder="Name" asp-for="Input.Name">
-                </div>
-                <div class="form-group">
-                    <label asp-for="Input.Email"></label>
-                    <input type="email" class="form-control" placeholder="Email" asp-for="Input.Email" >
-                </div>
-
-                <button class="btn btn-primary" name="Input.Button" value="create">Create</button>
-                <button class="btn btn-secondary" name="Input.Button" value="cancel">Cancel</button>
-            </form>
+            </div>
         </div>
-        
     </div>
 </div>

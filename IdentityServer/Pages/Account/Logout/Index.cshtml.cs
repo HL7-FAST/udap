@@ -25,7 +25,7 @@ namespace IdentityServer.Pages.Logout
             _events = events;
         }
 
-        public async Task<IActionResult> OnGet(string logoutId)
+        public async Task<IActionResult> OnGet(string? logoutId)
         {
             LogoutId = logoutId;
 

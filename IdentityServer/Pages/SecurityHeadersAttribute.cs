@@ -29,9 +29,10 @@ namespace IdentityServer.Pages
                 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
                 var csp = "default-src 'self'; " +
                     "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
-                    "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; " +
-                    "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com https://cdn.jsdelivr.net; " +
+                    "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
+                    "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
                     "connect-src 'self' ws://localhost:* wss://localhost:* https://cdnjs.cloudflare.com; " +
+                    "img-src 'self' data: https:; " +
                     "object-src 'none'; " +
                     "frame-ancestors 'none'; " +
                     "sandbox allow-forms allow-same-origin allow-scripts allow-popups allow-modals; " +

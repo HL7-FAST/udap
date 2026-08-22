@@ -1,95 +1,102 @@
 @using Duende.IdentityServer.Extensions
 @{
-    string name = null;
+    string? name = null;
     if (!true.Equals(ViewData["signed-out"]))
     {
         name = Context.User?.GetDisplayName();
     }
+
+    var path = Context.Request.Path.Value ?? "/";
+    string NavClass(string prefix) =>
+        (prefix == "/" ? path == "/" : path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            ? "nav-link active"
+            : "nav-link";
 }
 
-<!-- Material Design Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-  <div class="container-fluid">
-    <!-- Brand -->
-    <a class="navbar-brand d-flex align-items-center" href="~/">
-        <i class="fa-solid fa-shield-halved text-primary me-2 fs-4"></i>
-        <span class="fw-semibold">FAST Security RI</span>
-    </a>
+<nav class="navbar navbar-expand-lg app-navbar border-bottom">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="~/">
+            <i class="fa-solid fa-shield-halved text-primary me-2 fs-4" aria-hidden="true"></i>
+            <span class="fw-semibold">FAST Security RI</span>
+        </a>
 
-    <!-- Toggle button -->
-    <button
-        data-mdb-collapse-init
-        class="navbar-toggler"
-        type="button"
-        data-mdb-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-    >
-        <i class="fas fa-bars"></i>
-    </button>
+        <button
+            data-mdb-collapse-init
+            class="navbar-toggler"
+            type="button"
+            data-mdb-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
 
-    <!-- Collapsible wrapper -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <!-- Left links -->
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
-            <li class="nav-item">
-                <a class="nav-link" href="~/">
-                    <i class="fa-solid fa-home me-1"></i>
-                    Dashboard
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" asp-page="/Udap/Index">
-                    <i class="fa-solid fa-wrench me-1"></i>
-                    UDAP Admin
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link" asp-page="/Admin/Index">
-                    <i class="fa-solid fa-cog me-1"></i>
-                    Server Admin
-                </a>
-            </li>
-
-            @if (!string.IsNullOrWhiteSpace(name))
-            {
-                <li class="nav-item dropdown">
-                    <a
-                        data-mdb-dropdown-init
-                        class="nav-link dropdown-toggle" 
-                        href="#"
-                        id="navbarDropdownUser"
-                        role="button"
-                        aria-expanded="false"
-                    >
-                        <i class="fa-solid fa-user-circle me-1"></i>
-                        @name
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="@NavClass("/")" href="~/">
+                        <i class="fa-solid fa-house me-1" aria-hidden="true"></i>
+                        Dashboard
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdownUser">
-                        <li>
-                            <a class="dropdown-item" asp-page="/Account/Logout/Index">
-                                <i class="fa-solid fa-sign-out-alt me-2"></i>
-                                Logout
-                            </a>
-                        </li>
-                    </ul>
-                </li>            
-            }
-        </ul>
-      
-        <!-- Right elements -->
-        <div class="d-flex align-items-center gap-2">
-            <a class="btn btn-link text-muted" href="~/docs" target="_blank" title="Documentation" data-bs-toggle="tooltip" data-bs-placement="bottom">
-                <i class="fas fa-book fs-5"></i>
-            </a>
-            <a class="btn btn-link text-muted" href="https://github.com/HL7-FAST/udap" target="_blank" title="GitHub Repository" data-bs-toggle="tooltip" data-bs-placement="bottom">
-                <i class="fab fa-github fs-5"></i>
-            </a>
+                </li>
+                <li class="nav-item">
+                    <a class="@NavClass("/Udap")" asp-page="/Udap/Index">
+                        <i class="fa-solid fa-wrench me-1" aria-hidden="true"></i>
+                        UDAP Admin
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="@NavClass("/Admin")" asp-page="/Admin/Index">
+                        <i class="fa-solid fa-gear me-1" aria-hidden="true"></i>
+                        Server Admin
+                    </a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-1">
+                <button type="button" data-mdb-ripple-init class="btn btn-link btn-floating text-body-secondary" data-theme-toggle aria-label="Toggle dark mode" title="Toggle dark mode" data-mdb-tooltip-init data-mdb-placement="bottom">
+                    <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
+                    <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
+                </button>
+                <a data-mdb-ripple-init class="btn btn-link btn-floating text-body-secondary" href="~/docs" target="_blank" aria-label="Documentation" title="Documentation" data-mdb-tooltip-init data-mdb-placement="bottom">
+                    <i class="fa-solid fa-book fs-5" aria-hidden="true"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn btn-link btn-floating text-body-secondary" href="https://github.com/HL7-FAST/udap" target="_blank" rel="noopener" aria-label="GitHub repository" title="GitHub repository" data-mdb-tooltip-init data-mdb-placement="bottom">
+                    <i class="fa-brands fa-github fs-5" aria-hidden="true"></i>
+                </a>
+
+                @if (!string.IsNullOrWhiteSpace(name))
+                {
+                    <div class="dropdown ms-2">
+                        <button
+                            type="button"
+                            data-mdb-dropdown-init
+                            class="btn btn-outline-secondary dropdown-toggle"
+                            id="navbarDropdownUser"
+                            aria-expanded="false"
+                        >
+                            <i class="fa-solid fa-circle-user me-1" aria-hidden="true"></i>
+                            @name
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUser">
+                            <li>
+                                <a class="dropdown-item" asp-page="/Grants/Index">
+                                    <i class="fa-solid fa-key me-2" aria-hidden="true"></i>
+                                    Permissions
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" asp-page="/Account/Logout/Index">
+                                    <i class="fa-solid fa-right-from-bracket me-2" aria-hidden="true"></i>
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+            </div>
         </div>
     </div>
-  </div>
 </nav>

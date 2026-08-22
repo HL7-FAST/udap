@@ -3,46 +3,40 @@
 @{
 }
 
-<div class="ciba-page">
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Pending Backchannel Login Requests</h2>
-                </div>
-                <div class="card-body">
-                    @if (Model.Logins?.Any() == true)
+<partial name="_PageHeader" model='new PageHeader("fa-bell", "Pending Backchannel Login Requests")' />
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <caption class="visually-hidden">Pending backchannel login requests</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Client Id</th>
+                    <th scope="col">Binding Message</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Logins?.Any() == true)
+                {
+                    @foreach (var login in Model.Logins)
                     {
-                        <table class="table table-bordered table-striped table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Client Id</th>
-                                    <th>Binding Message</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var login in Model.Logins)
-                                {
-                                    <tr>
-                                        <td>@login.InternalId</td>
-                                        <td>@login.Client.ClientId</td>
-                                        <td>@login.BindingMessage</td>
-                                        <td>
-                                            <a asp-page="Consent" asp-route-id="@login.InternalId" class="btn btn-primary">Process</a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                        <tr>
+                            <td>@login.InternalId</td>
+                            <td>@login.Client.ClientId</td>
+                            <td>@login.BindingMessage</td>
+                            <td>
+                                <a asp-page="Consent" asp-route-id="@login.InternalId" data-mdb-ripple-init class="btn btn-sm btn-outline-primary">Process</a>
+                            </td>
+                        </tr>
                     }
-                    else
-                    {
-                        <div>No Pending Login Requests</div>
-                    }
-                </div>
-            </div>
-        </div>
+                }
+            </tbody>
+        </table>
     </div>
+    @if (Model.Logins?.Any() != true)
+    {
+        <partial name="_EmptyState" model="@("No pending login requests.")" />
+    }
 </div>

@@ -2,8 +2,8 @@
 @model ScopeViewModel
 
 <li class="list-group-item">
-    <label>
-        <input class="consent-scopecheck"
+    <div class="form-check">
+        <input class="form-check-input consent-scopecheck"
                type="checkbox"
                name="Input.ScopesConsented"
                id="scopes_@Model.Value"
@@ -16,20 +16,20 @@
                    name="Input.ScopesConsented"
                    value="@Model.Value" />
         }
-        <strong>@Model.DisplayName</strong>
-        @if (Model.Emphasize)
-        {
-            <i class="fa-solid fa-exclamation-circle"></i>
-        }
-    </label>
-    @if (Model.Required)
-    {
-        <span><em>(required)</em></span>
-    }
+        <label class="form-check-label" for="scopes_@Model.Value">
+            <strong>@Model.DisplayName</strong>
+            @if (Model.Emphasize)
+            {
+                <i class="fa-solid fa-triangle-exclamation text-warning ms-1" title="Important" aria-hidden="true"></i>
+            }
+            @if (Model.Required)
+            {
+                <span class="badge badge-secondary ms-2">required</span>
+            }
+        </label>
+    </div>
     @if (Model.Description != null)
     {
-        <div class="consent-description">
-            <label for="scopes_@Model.Value">@Model.Description</label>
-        </div>
+        <div class="form-text ms-4">@Model.Description</div>
     }
 </li>

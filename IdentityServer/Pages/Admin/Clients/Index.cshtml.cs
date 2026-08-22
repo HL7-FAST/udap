@@ -17,7 +17,7 @@ namespace IdentityServer.Pages.Admin.Clients
         public IEnumerable<ClientSummaryModel> Clients { get; private set; }
         public string Filter { get; set; }
 
-        public async Task OnGetAsync(string filter)
+        public async Task OnGetAsync(string? filter)
         {
             Filter = filter;
             Clients = await _repository.GetAllAsync(filter);

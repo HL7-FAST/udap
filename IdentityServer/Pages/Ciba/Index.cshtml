@@ -4,27 +4,27 @@
 }
 
 <div class="ciba-page">
-    <div class="lead">
+    <div class="text-center mb-4">
         @if (Model.LoginRequest.Client.LogoUri != null)
         {
-            <div class="client-logo"><img src="@Model.LoginRequest.Client.LogoUri"></div>
+            <img src="@Model.LoginRequest.Client.LogoUri" alt="@Model.LoginRequest.Client.ClientName" class="client-logo rounded mb-3">
         }
-        <h1>
-            @Model.LoginRequest.Client.ClientName
-            <small class="text-muted">is requesting your permission</small>
-        </h1>
-        
-        <h3>
-            Verify that this identifier matches what the client is displaying:
-            <em class="text-primary">@Model.LoginRequest.BindingMessage</em>
-        </h3>
+        <h1 class="h3 mb-1">@Model.LoginRequest.Client.ClientName</h1>
+        <p class="text-body-secondary mb-0">is requesting your permission</p>
+    </div>
 
-        <p>
-            Do you wish to continue?
-        </p>
-        <div>
-            <a class="btn btn-primary" asp-page="/Ciba/Consent" asp-route-id="@Model.LoginRequest.InternalId">Yes, Continue</a>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="alert alert-info" role="alert">
+                <i class="fa-solid fa-fingerprint me-2" aria-hidden="true"></i>
+                Verify that this identifier matches what the client is displaying: <strong>@Model.LoginRequest.BindingMessage</strong>
+            </div>
+
+            <p class="text-body-secondary">Do you wish to continue?</p>
+
+            <a data-mdb-ripple-init class="btn btn-primary" asp-page="/Ciba/Consent" asp-route-id="@Model.LoginRequest.InternalId">
+                <i class="fa-solid fa-check me-2" aria-hidden="true"></i>Yes, Continue
+            </a>
         </div>
-        
     </div>
 </div>

@@ -38,7 +38,7 @@ namespace IdentityServer.Pages.Device
         [BindProperty]
         public InputModel Input { get; set; }
 
-        public async Task<IActionResult> OnGet(string userCode)
+        public async Task<IActionResult> OnGet(string? userCode)
         {
             if (String.IsNullOrWhiteSpace(userCode))
             {

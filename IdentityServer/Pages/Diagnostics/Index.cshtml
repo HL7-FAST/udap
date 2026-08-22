@@ -1,60 +1,52 @@
 @page
 @model IdentityServer.Pages.Diagnostics.Index
 
-<div class="diagnostics-page">
-    <div class="lead">
-        <h1>Authentication Cookie</h1>
-    </div>
+<partial name="_PageHeader" model='new PageHeader("fa-stethoscope", "Authentication Cookie")' />
 
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Claims</h2>
-                </div>
-                <div class="card-body">
-                    <dl>
-                        @foreach (var claim in Model.View.AuthenticateResult.Principal.Claims)
-                        {
-                            <dt>@claim.Type</dt>
-                            <dd>@claim.Value</dd>
-                        }
-                    </dl>
-                </div>
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header"><i class="fa-solid fa-id-card me-2" aria-hidden="true"></i>Claims</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    @foreach (var claim in Model.View.AuthenticateResult.Principal.Claims)
+                    {
+                        <dt class="col-sm-4 text-body-secondary fw-normal">@claim.Type</dt>
+                        <dd class="col-sm-8"><code>@claim.Value</code></dd>
+                    }
+                </dl>
             </div>
         </div>
-        
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Properties</h2>
-                </div>
-                <div class="card-body">
-                    <dl>
-                        @foreach (var prop in Model.View.AuthenticateResult.Properties.Items)
-                        {
-                            <dt>@prop.Key</dt>
-                            <dd>@prop.Value</dd>
-                        }
-                        @if (Model.View.Clients.Any())
-                        {
-                            <dt>Clients</dt>
-                            <dd>
-                                @{
-                                    var clients = Model.View.Clients.ToArray();
-                                    for(var i = 0; i < clients.Length; i++)
+    </div>
+
+    <div class="col">
+        <div class="card">
+            <div class="card-header"><i class="fa-solid fa-gear me-2" aria-hidden="true"></i>Properties</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    @foreach (var prop in Model.View.AuthenticateResult.Properties.Items)
+                    {
+                        <dt class="col-sm-4 text-body-secondary fw-normal">@prop.Key</dt>
+                        <dd class="col-sm-8"><code>@prop.Value</code></dd>
+                    }
+                    @if (Model.View.Clients.Any())
+                    {
+                        <dt class="col-sm-4 text-body-secondary fw-normal">Clients</dt>
+                        <dd class="col-sm-8">
+                            @{
+                                var clients = Model.View.Clients.ToArray();
+                                for(var i = 0; i < clients.Length; i++)
+                                {
+                                    <text>@clients[i]</text>
+                                    if (i < clients.Length - 1)
                                     {
-                                        <text>@clients[i]</text>
-                                        if (i < clients.Length - 1)
-                                        {
-                                            <text>, </text>
-                                        }
+                                        <text>, </text>
                                     }
                                 }
-                            </dd>
-                        }
-                    </dl>
-                </div>
+                            }
+                        </dd>
+                    }
+                </dl>
             </div>
         </div>
     </div>
