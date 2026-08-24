@@ -43,6 +43,12 @@ namespace IdentityServer
             builder.Services.Configure<AppConfig>(builder.Configuration.GetRequiredSection(nameof(AppConfig)));
             var appConfig = builder.Configuration.GetOption<AppConfig>(nameof(AppConfig));
 
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.Limits.MaxRequestLineSize = Math.Max(options.Limits.MaxRequestLineSize, appConfig.MaxScopeLength * 2);
+            });
+
+
             builder.Services.AddUdapServer(
                     options =>
                     {
@@ -112,7 +118,7 @@ namespace IdentityServer
 
                     //options.UserInteraction.LoginUrl = "/udapaccount/login";
                     //options.UserInteraction.LogoutUrl = "/udapaccount/logout";
-                    options.InputLengthRestrictions.Scope = 7000;
+                    options.InputLengthRestrictions.Scope = appConfig.MaxScopeLength;
                 })
                 .AddServerSideSessions()
                 // this adds the config data from DB (clients, resources, CORS)
@@ -275,6 +281,8 @@ namespace IdentityServer
 
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
+            // must run before the UDAP scope enrichment middleware fills in a missing scope
+            app.UseRequireScope();
             app.UseIdentityServer();
             app.UseUdapServer();
 

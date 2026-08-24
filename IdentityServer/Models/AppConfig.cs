@@ -11,6 +11,7 @@
         public string UdapIdpBaseUrl { get; set; }
         public string PathBase { get; set; }
         public string IssuerUri { get; set; }
+        public int MaxScopeLength { get; set; } = 10000;
 
         public string FhirLabsJitCertUrl { get; set; }
         public string DefaultCertPassword { get; set; } = "udap-test";
