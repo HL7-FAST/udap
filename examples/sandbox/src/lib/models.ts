@@ -28,7 +28,10 @@ export interface UdapClient {
   fhirServer: string;
   redirectUris?: string[];
   responseTypes: string[];
+  /** Scopes granted by the server. Wildcards are expanded, so this list can be very long. */
   scopes: string[];
+  /** Scopes sent in the registration request, used for compact token requests. */
+  requestedScopes: string[];
   grantType: "authorization_code" | "client_credentials";
 }
 

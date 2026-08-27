@@ -8,10 +8,10 @@ export default function UdapProvider(
     id: "udap",
     name: "UDAP",
     type: "oidc",
-    checks: ["none"],
-
-    // TODO: implement PKCE code verifier check
-    // checks: ["pkce"],
+    // The security server requires PKCE (SSRAA v2.0) and a state parameter.
+    // Auth.js creates the challenge and cookies here; the custom /api/auth/callback/udap
+    // route reads them back because it handles the token exchange itself.
+    checks: ["pkce", "state"],
 
     // these will be provided later after running discovery against the resource server
     // issuer: 'https://localhost:5001',

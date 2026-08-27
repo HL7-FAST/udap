@@ -16,6 +16,7 @@ import {
 } from "./models";
 import { getPrivateKey, getServerCertificate, getX509Certficate } from "./cert-store";
 import { cacheAccessToken, getCachedAccessToken } from "./client-store";
+import { tokenRequestScopes } from "./utils";
 
 export async function registerClient(
   regReq: UdapClientRequest,
@@ -53,6 +54,7 @@ export async function registerClient(
     redirectUris: regRes.redirect_uris,
     responseTypes: regRes.response_types,
     scopes: regRes.scope?.split(" "),
+    requestedScopes: regReq.scopes,
     grantType: regReq.grantTypes.includes("authorization_code") ? "authorization_code" : "client_credentials",
   };
 
@@ -208,7 +210,7 @@ async function getCachedToken(clientId: string): Promise<string | null> {
 /**
  * Retrieves an access token response for the given UdapClient
  */
-export async function getAccessToken(client: UdapClient, code?: string, redirectUri?: string): Promise<TokenEndpointResponse> {
+export async function getAccessToken(client: UdapClient, code?: string, redirectUri?: string, codeVerifier?: string): Promise<TokenEndpointResponse> {
 
   // If client_credentials flow, check for cached valid token first
   if (client.grantType === "client_credentials") {
@@ -226,15 +228,22 @@ export async function getAccessToken(client: UdapClient, code?: string, redirect
     throw new Error("No server certificate loaded");
   }
 
-  const tokenParams = {
+  const tokenParams: Record<string, string> = {
     grant_type: client.grantType,
-    code: code || "",
     client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     client_assertion: await getClientAssertion(client.id, client.tokenEndpoint, cert),
-    // code_verifier: codeVerifier || "",
     udap: "1",
-    redirect_uri: redirectUri || "",
   };
+
+  if (client.grantType === "authorization_code") {
+    tokenParams.code = code || "";
+    tokenParams.redirect_uri = redirectUri || "";
+    if (codeVerifier) {
+      tokenParams.code_verifier = codeVerifier;
+    }
+  } else {
+    tokenParams.scope = tokenRequestScopes(client).join(" ");
+  }
 
 
   const tokenResponse = await fetch(client.tokenEndpoint, {

@@ -13,9 +13,9 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { ArrowBack, Storage } from "@mui/icons-material";
+import { ArrowBack, Login, Storage } from "@mui/icons-material";
 import { OperationOutcome } from "fhir/r4";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
@@ -46,6 +46,7 @@ export default function FhirPage() {
   const { slug } = useParams<{ slug: string[] }>();
   const router = useRouter();
   const [resourceType, id] = slug ?? [];
+  const signedIn = status === "authenticated" && !!session?.accessToken;
 
   // Results are tagged with the request they answer, so "loading" is derived instead of stored.
   const requestKey = `${fhirServer}|${resourceType}|${id ?? ""}|${session?.accessToken ?? ""}`;
@@ -58,7 +59,7 @@ export default function FhirPage() {
   }>({ key: "", items: [], resource: null });
 
   useEffect(() => {
-    if (!fhirServer || !resourceType || status === "loading") return;
+    if (!fhirServer || !resourceType || !signedIn) return;
     let cancelled = false;
     const request = id
       ? fetchOne(fhirServer, resourceType, id, session).then((resource) => ({
@@ -75,9 +76,9 @@ export default function FhirPage() {
     return () => {
       cancelled = true;
     };
-  }, [fhirServer, resourceType, id, session, status, requestKey]);
+  }, [fhirServer, resourceType, id, session, signedIn, requestKey]);
 
-  const loading = !!fhirServer && !!resourceType && result.key !== requestKey;
+  const loading = !!fhirServer && !!resourceType && (status === "loading" || (signedIn && result.key !== requestKey));
   const { items, total, resource, error } = result;
 
   const hasName = items.some((r) => "name" in r);
@@ -103,6 +104,17 @@ export default function FhirPage() {
       )}
       {!fhirServer ? (
         <Alert severity="error">FHIR Server not selected.</Alert>
+      ) : status === "unauthenticated" ? (
+        <Alert
+          severity="info"
+          action={
+            <Button color="inherit" size="small" startIcon={<Login />} sx={{ whiteSpace: "nowrap" }} onClick={() => signIn("udap")}>
+              Sign In
+            </Button>
+          }
+        >
+          Sign in with the Authorization Code flow to query {resourceType} resources on behalf of a user.
+        </Alert>
       ) : id ? (
         <>
           <Button

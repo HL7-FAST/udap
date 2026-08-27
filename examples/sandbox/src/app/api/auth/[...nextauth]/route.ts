@@ -1,7 +1,22 @@
 import { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
 import { NextRequest } from "next/server";
-import { encode } from "@auth/core/jwt";
+import { decode, encode } from "@auth/core/jwt";
 import { SerializeOptions, stringifySetCookie } from "cookie";
+import { RequestCookies } from "next/dist/server/web/spec-extension/cookies";
+
+async function readSealedCheckCookie(cookies: RequestCookies, name: string): Promise<string | undefined> {
+  // Auth.js prefixes the cookie name with __Secure- when the app runs over https.
+  const cookie = cookies.get(name) ?? cookies.get(`__Secure-${name}`);
+  if (!cookie?.value) {
+    return undefined;
+  }
+  const parsed = await decode<{ value?: string }>({
+    token: cookie.value,
+    secret: process.env.AUTH_SECRET || "changeMe",
+    salt: cookie.name,
+  });
+  return parsed?.value;
+}
 import { getAuthConfig, handlers } from "@/auth";
 import { getServerCertificate } from "@/lib/cert-store";
 import { UdapProfile } from "@/lib/models";
@@ -52,13 +67,14 @@ export async function GET(request: NextRequest): Promise<Response> {
     options.userinfo.url ??= wellKnown.userinfo_endpoint;
   }
 
-  // TODO: implement PKCE code verifier check
-
-  // const cookie = cookies.get("authjs.pkce.code_verifier");
-  // if (!cookie) {
-  //   throw new Error("No code verifier cookie");
-  // }
-  // const codeVerifier = cookie.value;
+  // Auth.js sealed the PKCE verifier and state into encrypted cookies when it built the
+  // authorize URL. Unseal them the same way Auth.js does (salt = cookie name).
+  const codeVerifier = await readSealedCheckCookie(cookies, "authjs.pkce.code_verifier");
+  const expectedState = await readSealedCheckCookie(cookies, "authjs.state");
+  const state = request.nextUrl.searchParams.get("state");
+  if (!expectedState || state !== expectedState) {
+    throw new Error("State parameter did not match the value sent with the authorization request");
+  }
 
   let hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
   hostUrl = hostUrl.endsWith("/") ? hostUrl : hostUrl + "/";
@@ -96,7 +112,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     throw new Error("No UDAP client available");
   }
 
-  const tokenJson = await getAccessToken(client, request.nextUrl.searchParams.get("code") || "", redirectUri);
+  const tokenJson = await getAccessToken(client, request.nextUrl.searchParams.get("code") || "", redirectUri, codeVerifier);
 
   // get user info
   let userInfoJson;

@@ -6,6 +6,7 @@ import { AUTHORIZATION_CODE_CLIENT_ID } from "./lib/constants";
 import { UdapClient, UdapProfile } from "@/lib/models";
 import UdapProvider from "@/lib/udap-provider";
 import { getClient } from "@/lib/client-store";
+import { tokenRequestScopes } from "@/lib/utils";
 
 export async function getAuthConfig(): Promise<NextAuthConfig> {
   // console.log('Getting auth config...');
@@ -55,7 +56,7 @@ export async function getAuthConfig(): Promise<NextAuthConfig> {
     authorization: {
       url: client.authorizationEndpoint,
       params: {
-        scope: client.scopes?.join(" "),
+        scope: tokenRequestScopes(client).join(" "),
         redirect_uri: client.redirectUris ? client.redirectUris[0] : "",
       },
     },
