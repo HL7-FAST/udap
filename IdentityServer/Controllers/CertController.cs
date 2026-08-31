@@ -1,29 +1,20 @@
 ﻿using IdentityServer.Models;
 using IdentityServer.Shared.x509;
+using IdentityServer.Telemetry;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Serilog;
-using System.Formats.Asn1;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace IdentityServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CertController : ControllerBase
+    public class CertController(IOptions<AppConfig> appConfig, UdapMetrics metrics) : ControllerBase
     {
 
-        private readonly AppConfig appConfig;
-        private readonly HttpContext httpContext;
-
-        public CertController(IOptions<AppConfig> appConfig, IHttpContextAccessor httpContextAccessor)
-        {
-            this.appConfig = appConfig.Value;
-            httpContext = httpContextAccessor.HttpContext;
-        }
-
+        private readonly AppConfig appConfig = appConfig.Value;
+        private readonly UdapMetrics metrics = metrics;
 
         [HttpPost("generate")]
         public async Task<IActionResult> Generate(CertGenerateRequest request)
@@ -31,23 +22,42 @@ namespace IdentityServer.Controllers
 
             if (request.AltNames == null || request.AltNames.Count < 1)
             {
-                return BadRequest("At least one altNames parameter is required");
+                Log.Warning("Certificate generation failed: no altNames provided");
+                return BadRequest("Certificate generation failed: no altNames provided");
             }
 
-            Log.Information($"Generating certificate for altNames: {string.Join(", ", request.AltNames)}");
+            Log.Information("Generating certificate for altNames: {AltNames}", string.Join(", ", request.AltNames));
             string password = request.Password ?? appConfig.DefaultCertPassword;
             request.Provider = request.Provider == 0 ? CertGenerationProvider.Local : request.Provider;
-
-            if (request.Provider == CertGenerationProvider.FhirLabs)
+            if (!Enum.IsDefined(request.Provider))
             {
-                return await ProxyToFhirLabs(request.AltNames, password);
+                Log.Warning("Invalid provider: {Provider}", request.Provider);
+                return BadRequest($"Invalid provider: {request.Provider}");
             }
 
-            return await GenerateCertificateAsync(request.AltNames, password);
+            try
+            {
+                var result = request.Provider == CertGenerationProvider.FhirLabs
+                    ? await ProxyToFhirLabs(request.AltNames, password)
+                    : await GenerateCertificateAsync(request.AltNames, password);
+
+                if (result is BadRequestObjectResult bad)
+                {
+                    Log.Warning("Certificate generation failed ({Provider}): {Reason}", request.Provider, bad.Value);
+                }
+                metrics.RecordCertGeneration(result is FileResult, request.Provider.ToString());
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Certificate generation failed ({Provider}): {Reason}", request.Provider, ex.Message);
+                metrics.RecordCertGeneration(false, request.Provider.ToString());
+                throw new InvalidOperationException($"Certificate generation failed for provider {request.Provider}.", ex);
+            }
         }
 
 
-        public async Task<IActionResult> GenerateCertificateAsync(List<string> altNames, string password)
+        private async Task<IActionResult> GenerateCertificateAsync(List<string> altNames, string password)
         {
 
             var rootCert = CertUtil.LoadFromFileOrEncoded(appConfig.RootCertFile, true, appConfig.RootCertPassword);
@@ -63,7 +73,7 @@ namespace IdentityServer.Controllers
             }
 
             var x500Builder = new X500DistinguishedNameBuilder();
-            x500Builder.AddCommonName(altNames.First());
+            x500Builder.AddCommonName(altNames[0]);
             x500Builder.AddOrganizationalUnitName("UDAP Testing");
             x500Builder.AddOrganizationName("FAST Security");
             x500Builder.AddLocalityName("Locality");
@@ -72,30 +82,31 @@ namespace IdentityServer.Controllers
 
             var distinguishedName = x500Builder.Build();
 
-            var certTooling = new CertificateTooling();
-
-
-            var rsaCertificate = certTooling.BuildUdapClientCertificate(
+            var rsaCertificate = CertificateTooling.BuildUdapClientCertificate(
                 intermediateCert,
                 rootCert,
-                intermediateCert.GetRSAPrivateKey()!,
-                distinguishedName,
-                altNames,
-                appConfig.IntermediateCrlUrl,
-                appConfig.IntermediateCertUrl,
-                DateTimeOffset.UtcNow.AddDays(-1),
-                DateTimeOffset.UtcNow.AddYears(2),
-                password
-            );
+                new ClientCertificateOptions(
+                    distinguishedName,
+                    altNames,
+                    CrlUrl: appConfig.IntermediateCrlUrl,
+                    AiaCertUrl: appConfig.IntermediateCertUrl,
+                    NotBefore: DateTimeOffset.UtcNow.AddDays(-1),
+                    NotAfter: DateTimeOffset.UtcNow.AddYears(2),
+                    Password: password));
+
+            if (rsaCertificate is null)
+            {
+                return BadRequest("Could not generate certificate");
+            }
 
             return File(rsaCertificate, "application/x-pkcs12", "client-cert.pfx");
         }
 
 
-        public async Task<IActionResult> ProxyToFhirLabs(List<string> altNames, string password)
+        private async Task<IActionResult> ProxyToFhirLabs(List<string> altNames, string password)
         {
 
-            Log.Information($"Proxy request to FhirLabs for altNames: {string.Join(", ", altNames)}");
+            Log.Information("Proxy request to FhirLabs for altNames: {AltNames}", string.Join(", ", altNames));
 
             string fhirLabsJitCertUrl = appConfig.FhirLabsJitCertUrl;
 
@@ -104,7 +115,7 @@ namespace IdentityServer.Controllers
             string url = $"{fhirLabsJitCertUrl}?{queryString}";
 
             var response = await new HttpClient().GetAsync(url);
-            Log.Information($"Response: {response.StatusCode}");
+            Log.Information("Response: {StatusCode}", response.StatusCode);
 
             var contentBase64 = await response.Content.ReadAsStringAsync();
             var bytes = Convert.FromBase64String(contentBase64);

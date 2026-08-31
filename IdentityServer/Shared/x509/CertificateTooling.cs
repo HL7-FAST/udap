@@ -8,35 +8,35 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace IdentityServer.Shared.x509;
-public class CertificateTooling
+
+public sealed record ClientCertificateOptions(
+    X500DistinguishedName DistinguishedName,
+    List<string> SubjectAltNames,
+    string? CrlUrl = null,
+    string? AiaCertUrl = null,
+    DateTimeOffset NotBefore = default,
+    DateTimeOffset NotAfter = default,
+    string Password = "udap-test");
+
+public static class CertificateTooling
 {
-    public byte[]? BuildUdapClientCertificate(
+    public static byte[]? BuildUdapClientCertificate(
             X509Certificate2 intermediateCert,
             X509Certificate2 caCert,
-            RSA intermediateKey,
-            X500DistinguishedName distinguishedName,
-            List<string> subjectAltNames,
-            string? crl,
-            string? buildAIAExtensionsPath = null,
-            DateTimeOffset notBefore = default,
-            DateTimeOffset notAfter = default,
-            string password = "udap-test")
+            ClientCertificateOptions options)
     {
+        var notBefore = options.NotBefore == default ? DateTimeOffset.UtcNow : options.NotBefore;
+        var notAfter = options.NotAfter == default ? DateTimeOffset.UtcNow.AddYears(2) : options.NotAfter;
+        var distinguishedName = options.DistinguishedName;
+        var subjectAltNames = options.SubjectAltNames;
+        var crl = options.CrlUrl;
+        var buildAIAExtensionsPath = options.AiaCertUrl;
+        var password = options.Password;
 
-        if (notBefore == default)
+        if (!intermediateCert.HasPrivateKey)
         {
-            notBefore = DateTimeOffset.UtcNow;
+            throw new ArgumentException("Intermediate certificate must include its private key.", nameof(intermediateCert));
         }
-
-        if (notAfter == default)
-        {
-            notAfter = DateTimeOffset.UtcNow.AddYears(2);
-        }
-
-
-        var intermediateCertWithKey = intermediateCert.HasPrivateKey ?
-            intermediateCert :
-            intermediateCert.CopyWithPrivateKey(intermediateKey);
 
         using RSA rsaKey = RSA.Create(2048);
 
@@ -82,7 +82,7 @@ public class CertificateTooling
         }
 
         var clientCert = clientCertRequest.Create(
-            intermediateCertWithKey,
+            intermediateCert,
             notBefore,
             notAfter,
             new ReadOnlySpan<byte>(RandomNumberGenerator.GetBytes(16)));
@@ -94,40 +94,28 @@ public class CertificateTooling
         var certPackage = new X509Certificate2Collection
         {
             clientCertWithKey,
-            new X509Certificate2(intermediateCert.Export(X509ContentType.Cert)),
-            new X509Certificate2(caCert.Export(X509ContentType.Cert))
+            X509CertificateLoader.LoadCertificate(intermediateCert.Export(X509ContentType.Cert)),
+            X509CertificateLoader.LoadCertificate(caCert.Export(X509ContentType.Cert))
         };
 
         return certPackage.Export(X509ContentType.Pkcs12, password);
     }
 
-    public byte[]? BuildClientCertificateECDSA(
+    public static byte[]? BuildClientCertificateECDSA(
         X509Certificate2 intermediateCert,
         X509Certificate2 caCert,
-        RSA intermediateKey,
-        X500DistinguishedName distinguishedName,
-        List<string> subjectAltNames,
-        string? crl,
-        string? buildAIAExtensionsPath,
-        DateTimeOffset notBefore = default,
-        DateTimeOffset notAfter = default,
-        string password = "udap-test")
+        ClientCertificateOptions options)
     {
+        var notBefore = options.NotBefore == default ? DateTimeOffset.UtcNow : options.NotBefore;
+        var notAfter = options.NotAfter == default ? DateTimeOffset.UtcNow.AddYears(2) : options.NotAfter;
+        var distinguishedName = options.DistinguishedName;
+        var subjectAltNames = options.SubjectAltNames;
+        var crl = options.CrlUrl;
+        var buildAIAExtensionsPath = options.AiaCertUrl;
+        var password = options.Password;
 
-        if (notBefore == default)
-        {
-            notBefore = DateTimeOffset.UtcNow;
-        }
-
-        if (notAfter == default)
-        {
-            notAfter = DateTimeOffset.UtcNow.AddYears(2);
-        }
-
-
-        var intermediateCertWithKey = intermediateCert.HasPrivateKey ?
-            intermediateCert :
-            intermediateCert.CopyWithPrivateKey(intermediateKey);
+        var intermediateKey = intermediateCert.GetRSAPrivateKey()
+            ?? throw new ArgumentException("Intermediate certificate must include its RSA private key.", nameof(intermediateCert));
 
         using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP384);
 
@@ -172,7 +160,7 @@ public class CertificateTooling
         }
 
         var clientCert = clientCertRequest.Create(
-            intermediateCertWithKey.SubjectName,
+            intermediateCert.SubjectName,
             X509SignatureGenerator.CreateForRSA(intermediateKey, RSASignaturePadding.Pkcs1),
             notBefore,
             notAfter,
@@ -185,15 +173,15 @@ public class CertificateTooling
         var certPackage = new X509Certificate2Collection
         {
             clientCertWithKey,
-            new X509Certificate2(intermediateCert.Export(X509ContentType.Cert)),
-            new X509Certificate2(caCert.Export(X509ContentType.Cert))
+            X509CertificateLoader.LoadCertificate(intermediateCert.Export(X509ContentType.Cert)),
+            X509CertificateLoader.LoadCertificate(caCert.Export(X509ContentType.Cert))
         };
 
 
         return certPackage.Export(X509ContentType.Pkcs12, password);
     }
 
-    protected static void AddAuthorityKeyIdentifier(X509Certificate2 caCert, CertificateRequest intermediateReq)
+    private static void AddAuthorityKeyIdentifier(X509Certificate2 caCert, CertificateRequest intermediateReq)
     {
         //
         // Found way to generate intermediate below
@@ -203,7 +191,8 @@ public class CertificateTooling
         //
 
 
-        var issuerSubjectKey = caCert.Extensions?["2.5.29.14"].RawData;
+        var issuerSubjectKey = caCert.Extensions["2.5.29.14"]?.RawData
+            ?? throw new ArgumentException("CA certificate must include a subject key identifier extension.", nameof(caCert));
         var segment = new ArraySegment<byte>(issuerSubjectKey, 2, issuerSubjectKey.Length - 2);
         var authorityKeyIdentifier = new byte[segment.Count + 4];
         // these bytes define the "KeyID" part of the AuthorityKeyIdentifier
@@ -215,7 +204,7 @@ public class CertificateTooling
         intermediateReq.CertificateExtensions.Add(new X509Extension("2.5.29.35", authorityKeyIdentifier, false));
     }
 
-    protected static X509Extension MakeCdp(string url)
+    private static X509Extension MakeCdp(string url)
     {
         //
         // urls less than 119 char solution.

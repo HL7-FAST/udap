@@ -6,10 +6,11 @@ services:
       context: .
       dockerfile: IdentityServer/Dockerfile
     ports:
-      - "5000:80"
-      - "5001:443"
+      - "5000:5000"
+      - "5001:5001"
     environment:
-      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_URLS=https://+:5001;http://+:5000
+      - HEALTHCHECK_URL=https://localhost:5001/health
       - ASPNETCORE_ENVIRONMENT=Development
       - AppConfig__SeedData=true
       - AppConfig__UdapIdpBaseUrl=https://localhost:5001

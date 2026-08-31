@@ -23,6 +23,8 @@ using Udap.Server.Storage.DbContexts;
 using Udap.Server.Security.Authentication.TieredOAuth;
 using Udap.Server.Storage.Stores;
 using IdentityServer.Middleware;
+using IdentityServer.Telemetry;
+using Microsoft.AspNetCore.Authentication.OAuth;
 
 namespace IdentityServer
 {
@@ -94,10 +96,24 @@ namespace IdentityServer
             builder.Services.Configure<UdapClientOptions>(builder.Configuration.GetSection("UdapClientOptions"));
             builder.Services.Configure<UdapFileCertStoreManifest>(builder.Configuration.GetSection(Udap.Common.Constants.UdapFileCertStoreManifestSectionName));
 
+            builder.Services.AddSingleton<UdapMetrics>();
+
             builder.Services.AddAuthentication()
                 .AddTieredOAuth(options =>
                 {
                     options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+                    options.Events.OnTicketReceived = ctx =>
+                    {
+                        ctx.HttpContext.RequestServices.GetRequiredService<UdapMetrics>().RecordTieredOAuth(success: true);
+                        return Task.CompletedTask;
+                    };
+                    options.Events.OnRemoteFailure = ctx =>
+                    {
+                        ctx.HttpContext.RequestServices.GetRequiredService<UdapMetrics>().RecordTieredOAuth(success: false);
+                        ctx.HttpContext.RequestServices.GetRequiredService<ILogger<TieredOAuthAuthenticationHandler>>()
+                            .LogWarning(ctx.Failure, "Tiered OAuth sign-in failed for idp={Idp}", TieredIdp(ctx.Properties));
+                        return Task.CompletedTask;
+                    };
                 });
 
 
@@ -240,6 +256,16 @@ namespace IdentityServer
             return builder.Build();
         }
 
+
+        /// <summary>The IdP the user chose, carried in the returnUrl of the external sign-in.</summary>
+        private static string? TieredIdp(Microsoft.AspNetCore.Authentication.AuthenticationProperties? properties)
+        {
+            if (properties == null || !properties.Items.TryGetValue("returnUrl", out var returnUrl) || returnUrl == null)
+            {
+                return null;
+            }
+            return System.Web.HttpUtility.ParseQueryString(returnUrl).GetValues("idp")?.LastOrDefault();
+        }
 
         public static WebApplication ConfigurePipeline(this WebApplication app)
         {

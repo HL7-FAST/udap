@@ -4,7 +4,7 @@ export function formatMarkdownDescription(input: string, leadingSpacesToRemove?:
       if (line.trim().length === 0) {
         return acc;
       }
-      const leadingSpaces = line.match(/^ +/);
+      const leadingSpaces = /^ +/.exec(line);
       if (leadingSpaces) {
         return Math.min(acc, leadingSpaces[0].length);
       }
@@ -36,9 +36,6 @@ export function getAppBaseUrl(): string {
  */
 export function tokenRequestScopes(client: UdapClient): string[] {
   const granted = client.scopes ?? [];
-  console.log("tokenRequestScopes requested:", client.requestedScopes);
-  console.log("tokenRequestScopes granted:", granted);
   const requested = (client.requestedScopes ?? []).filter((s) => granted.includes(s));
-  console.log("tokenRequestScopes filtered:", requested);
   return requested.length > 0 ? requested : granted;
 }

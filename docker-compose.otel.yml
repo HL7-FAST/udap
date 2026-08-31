@@ -1,0 +1,39 @@
+# Local observability stack (Grafana LGTM) layered on docker-compose.yml. 
+# Usage:
+#   docker compose -f docker-compose.otel.yml up --build
+# Grafana: http://localhost:3000 (anonymous admin)
+
+include:
+  - docker-compose.yml
+
+services:
+  identityserver:
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://lgtm:4317
+      - OTEL_SERVICE_NAME=fast-security
+
+      # Use the following two lines if exporting telemetry to a Grafana Cloud stack instead of the local LGTM stack
+      # - OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic ${GRAFANA_CLOUD_OTLP_TOKEN:?set GRAFANA_CLOUD_OTLP_TOKEN}
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+    depends_on:
+      - lgtm
+
+  lgtm:
+    image: grafana/otel-lgtm:latest
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      # Dashboard and alert rule provisioned from the repo
+      - ./observability/grafana/dashboards:/otel-lgtm/dashboards:ro
+      - ./observability/grafana/provisioning/dashboards:/otel-lgtm/grafana/conf/provisioning/dashboards:ro
+      - ./observability/grafana/provisioning/alerting:/otel-lgtm/grafana/conf/provisioning/alerting:ro
+      - otel-grafana:/data/grafana
+      - otel-prometheus:/data/prometheus
+      - otel-loki:/data/loki
+
+volumes:
+  otel-grafana:
+  otel-prometheus:
+  otel-loki:

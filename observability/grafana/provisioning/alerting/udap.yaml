@@ -1,0 +1,38 @@
+# Telemetry liveness: fires when a service that has reported before stops reporting.
+# udap_clients_registered is an observable gauge exported on every metrics cycle,
+# so it is present whether or not there is traffic. The 15 minute window tolerates
+# a redeploy of the single hosted container but catches a dead export pipeline
+# (for example a rejected bearer token, which the OTLP exporter never retries).
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: fast-security-liveness
+    folder: FAST Security
+    interval: 1m
+    rules:
+      - uid: udap-telemetry-stale
+        title: UDAP telemetry stale
+        condition: C
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: No udap.* metrics received from {{ $labels.service_name }} in the last 15 minutes
+        data:
+          - refId: A
+            relativeTimeRange: { from: 604800, to: 0 }
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: max by (service_name) (max_over_time(udap_clients_registered[7d])) unless max by (service_name) (max_over_time(udap_clients_registered[15m]))
+              instant: true
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator: { type: gt, params: [-1] }
+        noDataState: OK
+        execErrState: Error
