@@ -304,11 +304,19 @@ namespace IdentityServer
             return System.Web.HttpUtility.ParseQueryString(returnUrl).GetValues("idp")?.LastOrDefault();
         }
 
+        // Derived from IntermediateCrlUrl so the CDP in issued certificates and the file on disk cannot disagree.
         // The file server serves CertStore under the content root, not the bin copy SeedData reads anchors from.
         private static string CrlDirectory(IServiceProvider sp)
         {
-            var config = sp.GetRequiredService<IOptions<AppConfig>>().Value;
-            return Path.Combine(sp.GetRequiredService<IWebHostEnvironment>().ContentRootPath, config.CrlOutputPath);
+            var url = sp.GetRequiredService<IOptions<AppConfig>>().Value.IntermediateCrlUrl;
+            var segments = new Uri(url).AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            var certs = Array.IndexOf(segments, "certs");
+            if (certs < 0 || certs >= segments.Length - 2)
+            {
+                throw new InvalidOperationException($"AppConfig:IntermediateCrlUrl must point under /certs/<community>/..., got {url}");
+            }
+            var relative = Path.Combine(segments[(certs + 1)..^1]);
+            return Path.Combine(sp.GetRequiredService<IWebHostEnvironment>().ContentRootPath, "CertStore", relative);
         }
 
         public static WebApplication ConfigurePipeline(this WebApplication app)
