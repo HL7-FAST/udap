@@ -4,14 +4,10 @@
 !/EmrDirect/*
 !/FastCA
 !/FastCA/FastCA.crt
-!/FastCA/crl
-!/FastCA/crl/*.crl
 !/FastCA/intermediates
 !/FastCA/intermediates/FastSubCA.crt
 !/LocalCA
 !/LocalCA/LocalCA.crt
-!/LocalCA/crl
-!/LocalCA/crl/*.crl
 !/LocalCA/intermediates
 !/LocalCA/intermediates/LocalSubCA.crt
 !/SureFhirLabs

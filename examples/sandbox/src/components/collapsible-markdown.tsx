@@ -2,7 +2,6 @@ import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { Box, Button, Collapse } from "@mui/material";
 import { useState } from "react";
 import Markdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 
 export interface CollapsibleDescriptionProps {
@@ -24,7 +23,7 @@ export default function CollapsibleMarkdown(props: CollapsibleDescriptionProps) 
 
   const content = (
     <Box sx={{ "& > :first-of-type": { mt: 0 }, "& > :last-child": { mb: 0 } }}>
-      <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+      <Markdown remarkPlugins={[remarkGfm]}>
         {markdown}
       </Markdown>
     </Box>

@@ -1,0 +1,112 @@
+@page
+@model IdentityServer.Pages.Udap.Revocations.IndexModel
+@using System.Security.Cryptography.X509Certificates
+@{
+}
+
+<partial name="_PageHeader" model='new PageHeader("fa-ban", "Revoked Certificates", "Revoke client certificates and publish the CRL")' />
+
+<div class="row">
+    <div class="col-lg-10">
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success" role="alert">
+                <i class="fa-solid fa-circle-check me-2" aria-hidden="true"></i>
+                @Model.SuccessMessage
+            </div>
+        }
+        <div class="alert alert-info" role="alert">
+            <i class="fa-solid fa-circle-info me-2" aria-hidden="true"></i>
+            Revocations are written to the CRL at <a href="@Model.CrlUrl">@Model.CrlUrl</a> and to <code>revoked.json</code> in the same directory. A revoked certificate fails registration on its next attempt. Revocation cannot be undone from this page.
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-10">
+        <partial name="_ValidationSummary" />
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-ban me-2" aria-hidden="true"></i>
+                Revoke a certificate
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>
+                        @Model.ErrorMessage
+                    </div>
+                }
+                <form method="post" enctype="multipart/form-data" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" asp-for="CertificateFile">Certificate file</label>
+                        <input class="form-control" asp-for="CertificateFile" type="file" accept=".pfx,.p12,.cer,.crt,.pem" />
+                        <div class="form-text">A PFX (PKCS#12) file from this server, or a DER or PEM certificate.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" asp-for="FilePassword">PFX password</label>
+                        <input class="form-control" asp-for="FilePassword" type="password" autocomplete="off" />
+                        <div class="form-text">Only for PFX files. Defaults to the server's default certificate password.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" asp-for="Serial">Or serial number (hex)</label>
+                        <input class="form-control" asp-for="Serial" autocomplete="off" />
+                        <div class="form-text">Used when no file is uploaded.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" asp-for="Reason">Reason</label>
+                        <select class="form-select" asp-for="Reason">
+                            @foreach (var reason in IdentityServer.Pages.Udap.Revocations.IndexModel.Reasons)
+                            {
+                                <option value="@reason">@reason</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            <button data-mdb-ripple-init class="btn btn-outline-danger ms-auto" type="submit" data-confirm="Revoke this certificate? It cannot be undone from this page.">
+                                <i class="fa-solid fa-ban me-2" aria-hidden="true"></i>Revoke
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">Revoked certificates</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Serial</th>
+                            <th scope="col">Subject</th>
+                            <th scope="col">Reason</th>
+                            <th scope="col">Revoked at (UTC)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in Model.Entries)
+                        {
+                            <tr>
+                                <td><code class="small">@entry.Serial</code></td>
+                                <td>@entry.Subject</td>
+                                <td><span class="badge badge-secondary">@entry.Reason</span></td>
+                                <td>@entry.RevokedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Entries.Any())
+            {
+                <partial name="_EmptyState" model="@("No certificates have been revoked.")" />
+            }
+        </div>
+    </div>
+</div>

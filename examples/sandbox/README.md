@@ -25,6 +25,8 @@ The following environment variables are used:
 - `FHIR_SERVER_URL`: (optional) FHIR server to query.
 - `APP_URL`: (optional) URL of this application.
 
+The sandbox is a local testing tool. Its API routes are unauthenticated, they fetch whichever UDAP server the user configures, and TLS verification is disabled by the setting above, so do not expose the sandbox to an untrusted network.
+
 ### Certificate Note
 
 A default certificate (`cert-localhost3000-2sans.pfx`) is provided for local development that contains two different SANs (`http://localhost:3000/#SAN1` and `http://localhost:3000/#SAN2`) to enable to default registration of two different clients using the same certificate.
@@ -63,3 +65,8 @@ The `authorization_code` flow can be tested by running the application, logging 
 The `client_credentials` flow can be tested by navigating to the "FHIR Query" page, where you can enter FHIR queries that will be executed using the `client_credentials` UDAP client.
 
 There is also a basic testing suite that can test client registration and has a small set of tests for scope negotiation.
+
+Two pages under Testing exercise the server's certificate scenario catalog (`GET /api/cert/scenarios`):
+
+- "Certificate Validation" runs every scenario and grades each registration against the expected result.
+- "Scenario Walkthrough" runs one scenario step by step: issue, register, token, and for `valid` revoke on the IdP and verify rejection.

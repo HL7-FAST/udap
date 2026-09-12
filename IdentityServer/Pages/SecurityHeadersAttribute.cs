@@ -9,6 +9,8 @@ namespace IdentityServer.Pages
 {
     public class SecurityHeadersAttribute : ActionFilterAttribute
     {
+        public bool AllowDownloads { get; set; }
+
         public override void OnResultExecuting(ResultExecutingContext context)
         {
             var result = context.Result;
@@ -35,7 +37,7 @@ namespace IdentityServer.Pages
                     "img-src 'self' data: https:; " +
                     "object-src 'none'; " +
                     "frame-ancestors 'none'; " +
-                    "sandbox allow-forms allow-same-origin allow-scripts allow-popups allow-modals; " +
+                    "sandbox allow-forms allow-same-origin allow-scripts allow-popups allow-modals" + (AllowDownloads ? " allow-downloads" : "") + "; " +
                     "base-uri 'self';";
                 // also consider adding upgrade-insecure-requests once you have HTTPS in place for production
                 //csp += "upgrade-insecure-requests;";

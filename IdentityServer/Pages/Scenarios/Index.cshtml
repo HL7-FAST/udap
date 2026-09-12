@@ -1,0 +1,171 @@
+@page
+@model IdentityServer.Pages.Scenarios.IndexModel
+@using IdentityServer.Shared.x509
+@using IdentityServer.Models
+@{
+}
+
+<partial name="_PageHeader" model='new PageHeader("fa-flask", "Certificate Test Scenarios", "Generate deliberately bad client certificates and see how registration fails")' />
+
+<div class="row">
+    <div class="col-lg-10">
+        <div class="alert alert-info" role="alert">
+            <i class="fa-solid fa-circle-info me-2" aria-hidden="true"></i>
+            Pick a scenario, download the PFX (PKCS#12) file, and register with it (for example through the sandbox app). Each row states what is wrong with the certificate, what this server does with it, and quotes the conformance text that applies. The same catalog is available at <code>GET /api/cert/scenarios</code> and the <code>scenario</code> parameter of <code>POST /api/cert/generate</code>.
+        </div>
+        <div class="alert alert-secondary" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>
+            Rejections use one of two error codes: <code>unapproved_software_statement</code> for trust failures and <code>invalid_software_statement</code> for signature failures. See <a href="#@Model.ReferenceAnchor(CertScenarioCatalog.DcrErrorCodes)">@CertScenarioCatalog.DcrErrorCodes.ShortLabel</a> below.
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-10">
+        <partial name="_ValidationSummary" />
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-certificate me-2" aria-hidden="true"></i>
+                Generate a certificate
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>
+                        @Model.ErrorMessage
+                    </div>
+                }
+                <form method="post" class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-outline" data-mdb-input-init>
+                            <textarea class="form-control" asp-for="Input.AltNames" rows="3" spellcheck="false"></textarea>
+                            <label class="form-label" asp-for="Input.AltNames">Subject alternative names (one URI per line)</label>
+                        </div>
+                        <div class="form-text">One of them must equal the <code>iss</code> claim of the software statement. At most @CertGenerator.MaxAltNames.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input class="form-control" asp-for="Input.Password" />
+                            <label class="form-label" asp-for="Input.Password">PFX password</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" asp-for="Input.Scenario">Scenario</label>
+                        <select class="form-select" asp-for="Input.Scenario">
+                            @foreach (var scenario in Model.Scenarios)
+                            {
+                                <option value="@scenario.Key">@scenario.Title</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" asp-for="Input.KeyType">Key type</label>
+                        <select class="form-select" asp-for="Input.KeyType">
+                            <option value="@CertKeyType.Rsa">RSA 2048 (RS256)</option>
+                            <option value="@CertKeyType.Ecdsa">ECDSA P-384 (ES384)</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            <button data-mdb-ripple-init class="btn btn-primary" type="submit">
+                                <i class="fa-solid fa-download me-2" aria-hidden="true"></i>Download certificate
+                            </button>
+                            <button data-mdb-ripple-init data-mdb-collapse-init class="btn btn-outline-secondary" type="button" data-mdb-target="#request-json-panel" aria-expanded="false" aria-controls="request-json-panel">
+                                <i class="fa-solid fa-code me-2" aria-hidden="true"></i>Show API request
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12 collapse" id="request-json-panel">
+                        <div class="form-text mb-2">Send this body as <code>POST /api/cert/generate</code> with <code>Content-Type: application/json</code>. It follows the form as you edit it.</div>
+                        <div class="position-relative">
+                            <pre class="bg-body-tertiary rounded p-3 mb-0"><code id="request-json"></code></pre>
+                            <button data-mdb-ripple-init class="btn btn-outline-secondary btn-sm position-absolute top-0 end-0 m-2" type="button" id="request-json-copy" data-copy="" aria-label="Copy request body">
+                                <i class="fa-solid fa-copy" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">Certificate test scenarios</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Scenario</th>
+                            <th scope="col">What is wrong</th>
+                            <th scope="col">Registration result</th>
+                            <th scope="col">Applies</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var scenario in Model.Scenarios)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@scenario.Title</div>
+                                    <code class="small">@scenario.Key</code>
+                                </td>
+                                <td>@scenario.Summary</td>
+                                <td>
+                                    @if (scenario.Expected == CertScenarioCatalog.Accepted)
+                                    {
+                                        <span class="badge rounded-pill badge-success"><i class="fa-solid fa-check me-1" aria-hidden="true"></i>Accepted</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill badge-danger"><i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>Rejected</span>
+                                        @if (!string.IsNullOrEmpty(scenario.ExpectedError))
+                                        {
+                                            <div><code class="small">@scenario.ExpectedError</code></div>
+                                        }
+                                    }
+                                </td>
+                                <td>
+                                    @foreach (var reference in scenario.References)
+                                    {
+                                        <a href="#@Model.ReferenceAnchor(reference)" class="badge badge-secondary text-decoration-none me-1 mb-1">@reference.ShortLabel</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-book me-2" aria-hidden="true"></i>
+                Conformance text
+            </div>
+            <div class="list-group list-group-flush">
+                @foreach (var reference in Model.References)
+                {
+                    <div class="list-group-item" id="@Model.ReferenceAnchor(reference)">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge badge-secondary">@reference.ShortLabel</span>
+                            <a href="@reference.Url" target="_blank" rel="noopener" class="small text-body-secondary">@reference.Source, @reference.Section <i class="fa-solid fa-arrow-up-right-from-square fa-sm" aria-hidden="true"></i></a>
+                        </div>
+                        <q>@reference.Quote</q>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/js/scenario-request.js"></script>
+}

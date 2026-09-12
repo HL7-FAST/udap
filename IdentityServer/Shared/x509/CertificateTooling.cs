@@ -6,6 +6,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using IdentityServer.Models;
 
 namespace IdentityServer.Shared.x509;
 
@@ -16,149 +17,79 @@ public sealed record ClientCertificateOptions(
     string? AiaCertUrl = null,
     DateTimeOffset NotBefore = default,
     DateTimeOffset NotAfter = default,
-    string Password = "udap-test");
+    string Password = "udap-test",
+    CertKeyType KeyType = CertKeyType.Rsa,
+    X509KeyUsageFlags KeyUsage = X509KeyUsageFlags.DigitalSignature,
+    bool IncludeSubjectAltName = true,
+    bool IncludeIntermediateInBundle = true);
+
+public sealed record IssuingCa(X509Certificate2 Root, X509Certificate2 Intermediate);
 
 public static class CertificateTooling
 {
-    public static byte[]? BuildUdapClientCertificate(
+    public static byte[] BuildUdapClientCertificate(
             X509Certificate2 intermediateCert,
             X509Certificate2 caCert,
             ClientCertificateOptions options)
     {
-        var notBefore = options.NotBefore == default ? DateTimeOffset.UtcNow : options.NotBefore;
-        var notAfter = options.NotAfter == default ? DateTimeOffset.UtcNow.AddYears(2) : options.NotAfter;
-        var distinguishedName = options.DistinguishedName;
-        var subjectAltNames = options.SubjectAltNames;
-        var crl = options.CrlUrl;
-        var buildAIAExtensionsPath = options.AiaCertUrl;
-        var password = options.Password;
-
-        if (!intermediateCert.HasPrivateKey)
-        {
-            throw new ArgumentException("Intermediate certificate must include its private key.", nameof(intermediateCert));
-        }
-
-        using RSA rsaKey = RSA.Create(2048);
-
-        var clientCertRequest = new CertificateRequest(
-            distinguishedName,
-            rsaKey,
-            HashAlgorithmName.SHA256,
-            RSASignaturePadding.Pkcs1);
-
-        clientCertRequest.CertificateExtensions.Add(
-            new X509BasicConstraintsExtension(false, false, 0, true));
-
-        clientCertRequest.CertificateExtensions.Add(
-            new X509KeyUsageExtension(
-                X509KeyUsageFlags.DigitalSignature,
-                true));
-
-        clientCertRequest.CertificateExtensions.Add(
-            new X509SubjectKeyIdentifierExtension(clientCertRequest.PublicKey, false));
-
-        AddAuthorityKeyIdentifier(intermediateCert, clientCertRequest);
-
-        if (crl != null)
-        {
-            clientCertRequest.CertificateExtensions.Add(MakeCdp(crl));
-        }
-
-        var subAltNameBuilder = new SubjectAlternativeNameBuilder();
-        foreach (var subjectAltName in subjectAltNames)
-        {
-            subAltNameBuilder.AddUri(new Uri(subjectAltName)); //Same as iss claim
-        }
-
-        var x509Extension = subAltNameBuilder.Build();
-        clientCertRequest.CertificateExtensions.Add(x509Extension);
-
-        if (buildAIAExtensionsPath != null)
-        {
-            var authorityInfoAccessBuilder = new AuthorityInformationAccessBuilder();
-            authorityInfoAccessBuilder.AddCertificateAuthorityIssuerUri(new Uri(buildAIAExtensionsPath));
-            var aiaExtension = authorityInfoAccessBuilder.Build();
-            clientCertRequest.CertificateExtensions.Add(aiaExtension);
-        }
-
-        var clientCert = clientCertRequest.Create(
-            intermediateCert,
-            notBefore,
-            notAfter,
-            new ReadOnlySpan<byte>(RandomNumberGenerator.GetBytes(16)));
-        // Do something with these certs, like export them to PFX,
-        // or add them to an X509Store, or whatever.
-        var clientCertWithKey = clientCert.CopyWithPrivateKey(rsaKey);
-
-
-        var certPackage = new X509Certificate2Collection
-        {
-            clientCertWithKey,
-            X509CertificateLoader.LoadCertificate(intermediateCert.Export(X509ContentType.Cert)),
-            X509CertificateLoader.LoadCertificate(caCert.Export(X509ContentType.Cert))
-        };
-
-        return certPackage.Export(X509ContentType.Pkcs12, password);
-    }
-
-    public static byte[]? BuildClientCertificateECDSA(
-        X509Certificate2 intermediateCert,
-        X509Certificate2 caCert,
-        ClientCertificateOptions options)
-    {
-        var notBefore = options.NotBefore == default ? DateTimeOffset.UtcNow : options.NotBefore;
-        var notAfter = options.NotAfter == default ? DateTimeOffset.UtcNow.AddYears(2) : options.NotAfter;
-        var distinguishedName = options.DistinguishedName;
-        var subjectAltNames = options.SubjectAltNames;
-        var crl = options.CrlUrl;
-        var buildAIAExtensionsPath = options.AiaCertUrl;
-        var password = options.Password;
-
         var intermediateKey = intermediateCert.GetRSAPrivateKey()
             ?? throw new ArgumentException("Intermediate certificate must include its RSA private key.", nameof(intermediateCert));
 
-        using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP384);
+        // The signature-generator overload skips the issuer checks Create(X509Certificate2) performs,
+        // so guard against a misconfigured intermediate that is not a CA.
+        var basicConstraints = intermediateCert.Extensions.OfType<X509BasicConstraintsExtension>().FirstOrDefault();
+        var keyUsage = intermediateCert.Extensions.OfType<X509KeyUsageExtension>().FirstOrDefault();
+        if (basicConstraints is { CertificateAuthority: false } || keyUsage is not null && !keyUsage.KeyUsages.HasFlag(X509KeyUsageFlags.KeyCertSign))
+        {
+            throw new ArgumentException("Intermediate certificate is not a CA allowed to sign certificates.", nameof(intermediateCert));
+        }
 
-        var clientCertRequest = new CertificateRequest(
-            distinguishedName,
-            ecdsa,
-            HashAlgorithmName.SHA256);
+        using AsymmetricAlgorithm leafKey = options.KeyType == CertKeyType.Ecdsa
+            ? ECDsa.Create(ECCurve.NamedCurves.nistP384)
+            : RSA.Create(2048);
+
+        var clientCertRequest = leafKey is ECDsa ecdsaKey
+            ? new CertificateRequest(options.DistinguishedName, ecdsaKey, HashAlgorithmName.SHA256)
+            : new CertificateRequest(options.DistinguishedName, (RSA)leafKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
         clientCertRequest.CertificateExtensions.Add(
             new X509BasicConstraintsExtension(false, false, 0, true));
 
         clientCertRequest.CertificateExtensions.Add(
-            new X509KeyUsageExtension(
-                X509KeyUsageFlags.DigitalSignature,
-                true));
+            new X509KeyUsageExtension(options.KeyUsage, true));
 
         clientCertRequest.CertificateExtensions.Add(
             new X509SubjectKeyIdentifierExtension(clientCertRequest.PublicKey, false));
 
         AddAuthorityKeyIdentifier(intermediateCert, clientCertRequest);
 
-        if (crl != null)
+        if (options.CrlUrl != null)
         {
-            clientCertRequest.CertificateExtensions.Add(MakeCdp(crl));
+            clientCertRequest.CertificateExtensions.Add(MakeCdp(options.CrlUrl));
         }
 
-        var subAltNameBuilder = new SubjectAlternativeNameBuilder();
-        foreach (var subjectAltName in subjectAltNames)
+        if (options.IncludeSubjectAltName)
         {
-            subAltNameBuilder.AddUri(new Uri(subjectAltName)); //Same as iss claim
+            var subAltNameBuilder = new SubjectAlternativeNameBuilder();
+            foreach (var subjectAltName in options.SubjectAltNames)
+            {
+                subAltNameBuilder.AddUri(new Uri(subjectAltName)); //Same as iss claim
+            }
+
+            clientCertRequest.CertificateExtensions.Add(subAltNameBuilder.Build());
         }
 
-        var x509Extension = subAltNameBuilder.Build();
-        clientCertRequest.CertificateExtensions.Add(x509Extension);
-
-        if (buildAIAExtensionsPath != null)
+        if (options.AiaCertUrl != null)
         {
             var authorityInfoAccessBuilder = new AuthorityInformationAccessBuilder();
-            authorityInfoAccessBuilder.AddCertificateAuthorityIssuerUri(new Uri(buildAIAExtensionsPath));
-            var aiaExtension = authorityInfoAccessBuilder.Build();
-            clientCertRequest.CertificateExtensions.Add(aiaExtension);
+            authorityInfoAccessBuilder.AddCertificateAuthorityIssuerUri(new Uri(options.AiaCertUrl));
+            clientCertRequest.CertificateExtensions.Add(authorityInfoAccessBuilder.Build());
         }
 
+        var notBefore = options.NotBefore == default ? DateTimeOffset.UtcNow : options.NotBefore;
+        var notAfter = options.NotAfter == default ? DateTimeOffset.UtcNow.AddYears(2) : options.NotAfter;
+
+        // The signature generator path signs RSA and ECDSA leaf keys alike under the RSA intermediate.
         var clientCert = clientCertRequest.Create(
             intermediateCert.SubjectName,
             X509SignatureGenerator.CreateForRSA(intermediateKey, RSASignaturePadding.Pkcs1),
@@ -167,19 +98,62 @@ public static class CertificateTooling
             new ReadOnlySpan<byte>(RandomNumberGenerator.GetBytes(16)));
         // Do something with these certs, like export them to PFX,
         // or add them to an X509Store, or whatever.
-        var clientCertWithKey = clientCert.CopyWithPrivateKey(ecdsa);
+        var clientCertWithKey = leafKey is ECDsa ecdsaPrivate
+            ? clientCert.CopyWithPrivateKey(ecdsaPrivate)
+            : clientCert.CopyWithPrivateKey((RSA)leafKey);
 
-
-        var certPackage = new X509Certificate2Collection
+        var certPackage = new X509Certificate2Collection { clientCertWithKey };
+        if (options.IncludeIntermediateInBundle)
         {
-            clientCertWithKey,
-            X509CertificateLoader.LoadCertificate(intermediateCert.Export(X509ContentType.Cert)),
-            X509CertificateLoader.LoadCertificate(caCert.Export(X509ContentType.Cert))
-        };
+            certPackage.Add(X509CertificateLoader.LoadCertificate(intermediateCert.Export(X509ContentType.Cert)));
+        }
+        certPackage.Add(X509CertificateLoader.LoadCertificate(caCert.Export(X509ContentType.Cert)));
 
-
-        return certPackage.Export(X509ContentType.Pkcs12, password);
+        return certPackage.Export(X509ContentType.Pkcs12, options.Password)!;
     }
+
+    /// <summary>
+    /// Mints a root and intermediate that no community trusts. Used for the untrusted-root
+    /// scenario and by tests. Never written to CertStore, because SeedData trusts every
+    /// CertStore subdirectory as a community.
+    /// </summary>
+    public static IssuingCa BuildThrowawayCa(string name)
+    {
+        var caKeyUsage = X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign | X509KeyUsageFlags.DigitalSignature;
+        var now = DateTimeOffset.UtcNow;
+
+        using var rootKey = RSA.Create(2048);
+        var rootRequest = new CertificateRequest(
+            new X500DistinguishedName($"CN={name} Root, O=Untrusted"),
+            rootKey,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+        rootRequest.CertificateExtensions.Add(new X509KeyUsageExtension(caKeyUsage, true));
+        rootRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(rootRequest.PublicKey, false));
+        var root = WithPortableKey(rootRequest.CreateSelfSigned(now.AddDays(-1), now.AddYears(10)));
+
+        using var intermediateKey = RSA.Create(2048);
+        var intermediateRequest = new CertificateRequest(
+            new X500DistinguishedName($"CN={name} Intermediate, O=Untrusted"),
+            intermediateKey,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 0, true));
+        intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(caKeyUsage, true));
+        intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
+        AddAuthorityKeyIdentifier(root, intermediateRequest);
+        var intermediate = intermediateRequest
+            .Create(root, now.AddDays(-1), now.AddYears(5), RandomNumberGenerator.GetBytes(16))
+            .CopyWithPrivateKey(intermediateKey);
+
+        return new IssuingCa(root, WithPortableKey(intermediate));
+    }
+
+    // Round-tripping through PKCS#12 detaches the certificate from the key object that
+    // created it, so disposing that key does not invalidate the certificate.
+    private static X509Certificate2 WithPortableKey(X509Certificate2 certificate) =>
+        X509CertificateLoader.LoadPkcs12(certificate.Export(X509ContentType.Pkcs12), null, X509KeyStorageFlags.Exportable);
 
     private static void AddAuthorityKeyIdentifier(X509Certificate2 caCert, CertificateRequest intermediateReq)
     {

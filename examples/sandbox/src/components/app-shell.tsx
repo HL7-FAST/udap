@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { useColorScheme, useTheme } from "@mui/material/styles";
 import {
+  Checklist,
   Code,
   DarkMode,
   Dashboard,
@@ -29,6 +30,7 @@ import {
   Science,
   Shield,
   Storage,
+  VerifiedUser,
 } from "@mui/icons-material";
 import AccountStatus from "./account-status";
 import UdapClientStatus from "./udap-client-status";
@@ -48,6 +50,8 @@ const NAVIGATION: NavItem[] = [
   { segment: "query", title: "Query", icon: <Code /> },
   { kind: "header", title: "Testing" },
   { segment: "tests/scopes", title: "Scope Negotiation", icon: <Science /> },
+  { segment: "tests/certificates", title: "Certificate Validation", icon: <VerifiedUser /> },
+  { segment: "tests/walkthrough", title: "Scenario Walkthrough", icon: <Checklist /> },
 ];
 
 function activeSegment(pathname: string): string | undefined {

@@ -130,10 +130,15 @@ public sealed class UdapMetrics
         _tieredOAuthAttempts.Add(1, new TagList { { OutcomeTag, success ? Success : Error } });
     }
 
-    public void RecordCertGeneration(bool success, string provider)
+    public void RecordCertGeneration(bool success, string provider, string scenario)
     {
-        Log.Debug("Recording certificate generation attempt: success={Success}, provider={Provider}", success, provider);
-        _certGenerationAttempts.Add(1, new TagList { { OutcomeTag, success ? Success : Error }, { "udap.provider", provider } });
+        Log.Debug("Recording certificate generation attempt: success={Success}, provider={Provider}, scenario={Scenario}", success, provider, scenario);
+        _certGenerationAttempts.Add(1, new TagList
+        {
+            { OutcomeTag, success ? Success : Error },
+            { "udap.provider", provider },
+            { "udap.scenario", scenario }
+        });
     }
 
     private static string BoundedGrantType(IEnumerable<string> grantTypes)

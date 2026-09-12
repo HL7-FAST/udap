@@ -2,7 +2,6 @@
 
 import { Button, Card, CardContent, Stack, Typography } from "@mui/material";
 import Markdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import React, { useState } from "react";
 import RawOutputDialog, { RawOutput } from "../dialogs/raw-dialog";
@@ -75,13 +74,13 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
   ) {
     let waiting = false;
     // Iterate over the tests and add results to the store as they arrive
-    for await (const res of await tests) {
+    for await (const res of tests) {
       if (cancelRequested) {
         console.log("Tests have been cancelled.");
         break;
       }
 
-      await addTestResultToStore(sessionId, res.testKey, res.result);
+      addTestResultToStore(sessionId, res.testKey, res.result);
       setLastTestResultId(res.result.id);
 
       // If the test is waiting, stop running additional tests
@@ -194,7 +193,6 @@ export default function TestSuite<T extends TestSuiteModel>(props: TestSuiteProp
         <CardContent>
           <Markdown
             remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
             components={{
               p: ({ children }) => (
                 <Typography variant="body1" sx={{ "&:not(:last-child)": { mb: 2 } }}>

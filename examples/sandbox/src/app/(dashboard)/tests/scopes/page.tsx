@@ -54,8 +54,8 @@ export default function ScopesPage() {
     suiteKey,
     "Scope Negotiation",
     formatMarkdownDescription(`
-      This contains tests for scope negotiation based on the 
-      <a href="https://build.fhir.org/ig/HL7/fhir-udap-security-ig/general.html#scope-negotiation" target="_blank" rel="noopener">guidelines</a>
+      This contains tests for scope negotiation based on the
+      [guidelines](https://build.fhir.org/ig/HL7/fhir-udap-security-ig/general.html#scope-negotiation)
       in the implementation guide.
       `),
     tests,

@@ -10,6 +10,7 @@ using IdentityServer.Pages.Udap.Anchors;
 using IdentityServer.Pages.Udap.Communities;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
@@ -23,8 +24,11 @@ using Udap.Server.Storage.DbContexts;
 using Udap.Server.Security.Authentication.TieredOAuth;
 using Udap.Server.Storage.Stores;
 using IdentityServer.Middleware;
+using IdentityServer.Revocation;
+using IdentityServer.Shared.x509;
 using IdentityServer.Telemetry;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.Extensions.Options;
 
 namespace IdentityServer
 {
@@ -97,6 +101,39 @@ namespace IdentityServer
             builder.Services.Configure<UdapFileCertStoreManifest>(builder.Configuration.GetSection(Udap.Common.Constants.UdapFileCertStoreManifestSectionName));
 
             builder.Services.AddSingleton<UdapMetrics>();
+
+            builder.Services.AddSingleton(sp =>
+            {
+                var config = sp.GetRequiredService<IOptions<AppConfig>>().Value;
+                var root = CertUtil.LoadFromFileOrEncoded(config.RootCertFile, true, config.RootCertPassword)
+                    ?? throw new InvalidOperationException("AppConfig:RootCertFile could not be loaded");
+                var intermediate = CertUtil.LoadFromFileOrEncoded(config.IntermediateCertFile, true, config.IntermediateCertPassword)
+                    ?? throw new InvalidOperationException("AppConfig:IntermediateCertFile could not be loaded");
+                return new CrlWriter(root, intermediate, CrlDirectory(sp));
+            });
+            builder.Services.AddSingleton(sp =>
+            {
+                var config = sp.GetRequiredService<IOptions<AppConfig>>().Value;
+                return new RevocationStore(
+                    CrlDirectory(sp),
+                    sp.GetRequiredService<CrlWriter>(),
+                    sp.GetService<ICertificateDownloadCache>(),
+                    config.IntermediateCrlUrl);
+            });
+            builder.Services.AddHostedService<CrlMaintenanceService>();
+            builder.Services.AddTransient<CertGenerator>();
+
+            // Anonymous callers can mint certificates and, for the revoked scenario, grow the CRL; cap the rate.
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.AddFixedWindowLimiter(CertGenerator.RateLimitPolicy, window =>
+                {
+                    window.Window = TimeSpan.FromMinutes(1);
+                    window.PermitLimit = 30;
+                    window.QueueLimit = 0;
+                });
+            });
 
             builder.Services.AddAuthentication()
                 .AddTieredOAuth(options =>
@@ -267,6 +304,13 @@ namespace IdentityServer
             return System.Web.HttpUtility.ParseQueryString(returnUrl).GetValues("idp")?.LastOrDefault();
         }
 
+        // The file server serves CertStore under the content root, not the bin copy SeedData reads anchors from.
+        private static string CrlDirectory(IServiceProvider sp)
+        {
+            var config = sp.GetRequiredService<IOptions<AppConfig>>().Value;
+            return Path.Combine(sp.GetRequiredService<IWebHostEnvironment>().ContentRootPath, config.CrlOutputPath);
+        }
+
         public static WebApplication ConfigurePipeline(this WebApplication app)
         {
             var appConfig = app.Configuration.GetOption<AppConfig>(nameof(AppConfig));
@@ -294,6 +338,7 @@ namespace IdentityServer
                 appBuilder => appBuilder.UseHttpsRedirection()
             );
             app.UseRouting();
+            app.UseRateLimiter();
 
 
             app.UseDefaultFiles();

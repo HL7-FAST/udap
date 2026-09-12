@@ -24,6 +24,8 @@
         public string IntermediateCrlUrl { get; set; }
         public string IntermediateCertUrl { get; set; }
 
+        public string CrlOutputPath { get; set; } = "CertStore/LocalCA/crl";
+
 
         public AnchorConfig[] Anchors { get; set; }
     }

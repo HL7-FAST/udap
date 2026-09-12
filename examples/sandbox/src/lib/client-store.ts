@@ -29,6 +29,11 @@ export async function getClient(id: string): Promise<UdapClient | undefined> {
   return clients.get(id);
 }
 
+/** Reads the map without ensureInitialized, for callers whose client id is unrelated to the sandbox's own default clients. */
+export async function getStoredClient(id: string): Promise<UdapClient | undefined> {
+  return clients.get(id);
+}
+
 export async function getAllClients(): Promise<UdapClient[]> {
   await ensureInitialized();
   return Array.from(clients.values());

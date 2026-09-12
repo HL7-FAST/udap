@@ -22,9 +22,11 @@ POST https://udap-security.fast.hl7.org/api/cert/generate
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `altNames` | `string[]` | Yes | List of URIs to include as Subject Alternative Names (SANs) |
+| `altNames` | `string[]` | Yes | List of URIs to include as Subject Alternative Names (SANs), at most 10 |
 | `password` | `string` | Yes | Password to protect the private key |
 | `provider` | `Local` \| `FhirLabs` | No | CA provider (default: `Local`) |
+| `scenario` | `string` | No | Named certificate preset (default: `valid`). See `GET /api/cert/scenarios` for the list. Local provider only. |
+| `keyType` | `Rsa` \| `Ecdsa` | No | Key algorithm (default: `Rsa`). `Ecdsa` uses P-384 and signs software statements with ES384. Local provider only. |
 
 ### :material-file-certificate: Response
 
@@ -68,6 +70,39 @@ Returns a **PKCS#12 (.pfx/.p12)** file containing:
 
     !!! note "UdapEd Compatible"
         Certificates from FhirLabs CA are also compatible with the [UdapEd tool](https://udaped.fhirlabs.net).
+
+## :material-flask: Test Scenarios
+
+The `scenario` parameter issues a deliberately defective certificate for negative testing. `GET /api/cert/scenarios` lists each one with its expected outcome and the IG or UDAP DCR clause it tests.
+
+| Scenario | Defect | Registration |
+|----------|--------|--------------|
+| `valid` | None | Accepted |
+| `expired` | `NotAfter` one day in the past | Rejected, `unapproved_software_statement` |
+| `not-yet-valid` | `NotBefore` one day in the future | Rejected, `unapproved_software_statement` |
+| `untrusted-root` | Chain ends at a root no community trusts | Rejected, `unapproved_software_statement` |
+| `revoked` | Serial added to the intermediate CA's CRL | Rejected, `unapproved_software_statement` |
+| `no-cdp` | No CRL distribution point | Accepted, nothing to check |
+| `dead-cdp` | CRL distribution point returns 404 | Rejected, `unapproved_software_statement` |
+| `missing-san` | No SAN, so `iss` cannot match | Rejected, `invalid_software_statement` |
+| `missing-intermediate` | Bundle omits the intermediate | Accepted, the server already trusts it |
+
+`missing-san` fails JWT validation before trust is evaluated, which is why its error code differs (UDAP DCR 5.2).
+
+Where to use it:
+
+- `/scenarios` on the server: pick a scenario and download the bundle, or copy the JSON for `POST /api/cert/generate`.
+- `/udap/revocations` (admin): revoke any issued certificate by upload or serial. The CRL under `/certs/<community>/crl/` is rewritten at once.
+- Sandbox "Certificate Validation": runs the whole catalog and grades each result.
+- Sandbox "Scenario Walkthrough": one scenario, step by step, through issue, register, token, and (for `valid`) revoke and verify.
+
+```json title="Request Body"
+{
+  "altNames": ["http://localhost:8080/fhir"],
+  "password": "udap-test",
+  "scenario": "expired"
+}
+```
 
 ## :material-bash: Using cURL
 

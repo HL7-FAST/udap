@@ -24,12 +24,23 @@ export async function registerClient(
 ): Promise<UdapClient> {
   console.log("Registering client...");
   console.time("Client registration complete");
+  try {
+    return await registerClientTimed(regReq, cert);
+  } finally {
+    // A rejected registration throws, so the timer ends here.
+    console.timeEnd("Client registration complete");
+  }
+}
 
+async function registerClientTimed(regReq: UdapClientRequest, cert: P12Certificate): Promise<UdapClient> {
   // discover the UDAP endpoint
   console.time("Loaded UDAP metadata");
-  const udapMeta = await discoverUdapEndpoint(regReq.fhirServer);
-  // console.log('udapMeta:', udapMeta);
-  console.timeEnd("Loaded UDAP metadata");
+  let udapMeta: UdapMetadata;
+  try {
+    udapMeta = await discoverUdapEndpoint(regReq.fhirServer);
+  } finally {
+    console.timeEnd("Loaded UDAP metadata");
+  }
 
   // build registration JWT (header and software statement JWT claims)
   const register = await buildRegister(regReq, udapMeta, cert);
@@ -57,8 +68,6 @@ export async function registerClient(
     requestedScopes: regReq.scopes,
     grantType: regReq.grantTypes.includes("authorization_code") ? "authorization_code" : "client_credentials",
   };
-
-  console.timeEnd("Client registration complete");
 
   return client;
 }
@@ -208,12 +217,21 @@ async function getCachedToken(clientId: string): Promise<string | null> {
 
 
 /**
- * Retrieves an access token response for the given UdapClient
+ * Retrieves an access token response for the given UdapClient. When `cert` is given, it signs the
+ * client assertion instead of the sandbox's own server certificate, and the token is neither read
+ * from nor written to the client_credentials cache, since the cert is the caller's identity, not
+ * the sandbox's.
  */
-export async function getAccessToken(client: UdapClient, code?: string, redirectUri?: string, codeVerifier?: string): Promise<TokenEndpointResponse> {
+export async function getAccessToken(
+  client: UdapClient,
+  code?: string,
+  redirectUri?: string,
+  codeVerifier?: string,
+  cert?: P12Certificate,
+): Promise<TokenEndpointResponse> {
 
   // If client_credentials flow, check for cached valid token first
-  if (client.grantType === "client_credentials") {
+  if (!cert && client.grantType === "client_credentials") {
     const cachedToken = await getCachedToken(client.id);
     if (cachedToken) {
       console.log(`Using cached token for client ${client.id}`);
@@ -223,15 +241,15 @@ export async function getAccessToken(client: UdapClient, code?: string, redirect
 
   console.log(`Getting access token for client ${client.id} (${client.grantType})...`);
 
-  const cert = await getServerCertificate();
-  if (!cert) {
+  const signingCert = cert ?? (await getServerCertificate());
+  if (!signingCert) {
     throw new Error("No server certificate loaded");
   }
 
   const tokenParams: Record<string, string> = {
     grant_type: client.grantType,
     client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-    client_assertion: await getClientAssertion(client.id, client.tokenEndpoint, cert),
+    client_assertion: await getClientAssertion(client.id, client.tokenEndpoint, signingCert),
     udap: "1",
   };
 
@@ -259,11 +277,12 @@ export async function getAccessToken(client: UdapClient, code?: string, redirect
   if (!tokenResponse.ok) {
     throw new Error(
       `Failed to get token: (${tokenResponse.status}) ${tokenJson.error}: ${tokenJson.error_description}`,
+      { cause: { status: tokenResponse.status, body: tokenJson } },
     );
   }
 
-  // Cache token if client_credentials flow
-  if (client.grantType === "client_credentials" && tokenJson.access_token) {
+  // Cache token if client_credentials flow with the sandbox's own identity
+  if (!cert && client.grantType === "client_credentials" && tokenJson.access_token) {
     await cacheAccessToken(client.id, tokenJson.access_token);
   }
 
