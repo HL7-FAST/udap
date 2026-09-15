@@ -92,6 +92,25 @@ public class CertificateToolingTests
     }
 
     [Fact]
+    public void TamperSignature_FailsChainOnSignatureOnly()
+    {
+        var ca = CertificateTooling.BuildThrowawayCa("Tamper");
+        var pfx = CertificateTooling.BuildUdapClientCertificate(ca.Intermediate, ca.Root, Options() with { TamperSignature = true });
+        var bundle = X509CertificateLoader.LoadPkcs12Collection(pfx, "udap-test", X509KeyStorageFlags.Exportable);
+        var leaf = bundle.First(c => c.HasPrivateKey);
+
+        Assert.Equal(ca.Intermediate.SubjectName.Name, leaf.IssuerName.Name);
+
+        using var chain = new X509Chain();
+        chain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
+        chain.ChainPolicy.CustomTrustStore.Add(ca.Root);
+        chain.ChainPolicy.ExtraStore.Add(ca.Intermediate);
+        chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+        Assert.False(chain.Build(leaf));
+        Assert.Contains(chain.ChainStatus, s => s.Status.HasFlag(X509ChainStatusFlags.NotSignatureValid));
+    }
+
+    [Fact]
     public void Expired_HasNotAfterInThePast()
     {
         var now = DateTimeOffset.UtcNow;

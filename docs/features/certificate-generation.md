@@ -81,6 +81,7 @@ The `scenario` parameter issues a deliberately defective certificate for negativ
 | `expired` | `NotAfter` one day in the past | Rejected, `unapproved_software_statement` |
 | `not-yet-valid` | `NotBefore` one day in the future | Rejected, `unapproved_software_statement` |
 | `untrusted-root` | Chain ends at a root no community trusts | Rejected, `unapproved_software_statement` |
+| `tampered` | One bit of the issuer's signature flipped | Rejected, `unapproved_software_statement` |
 | `revoked` | Serial added to the intermediate CA's CRL | Rejected, `unapproved_software_statement` |
 | `no-cdp` | No CRL distribution point | Accepted, nothing to check |
 | `dead-cdp` | CRL distribution point returns 404 | Rejected, `unapproved_software_statement` |

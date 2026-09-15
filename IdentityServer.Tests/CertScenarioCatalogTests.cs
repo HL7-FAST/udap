@@ -27,7 +27,7 @@ public class CertScenarioCatalogTests
     [Fact]
     public void Keys_MatchSpecAndAreUnique()
     {
-        string[] expected = ["valid", "expired", "not-yet-valid", "untrusted-root", "revoked", "no-cdp", "dead-cdp",
+        string[] expected = ["valid", "expired", "not-yet-valid", "untrusted-root", "tampered", "revoked", "no-cdp", "dead-cdp",
             "missing-san", "missing-intermediate"];
         Assert.Equal(expected, CertScenarioCatalog.All.Select(s => s.Key).ToArray());
     }
@@ -50,6 +50,7 @@ public class CertScenarioCatalogTests
         Assert.False(CertScenarioCatalog.Find("missing-san")!.Shape(BaseOptions()).IncludeSubjectAltName);
         Assert.False(CertScenarioCatalog.Find("missing-intermediate")!.Shape(BaseOptions()).IncludeIntermediateInBundle);
         Assert.True(CertScenarioCatalog.Find("untrusted-root")!.UntrustedIssuer);
+        Assert.True(CertScenarioCatalog.Find("tampered")!.Shape(BaseOptions()).TamperSignature);
         Assert.True(CertScenarioCatalog.Find("revoked")!.RevokeAfterIssue);
     }
 

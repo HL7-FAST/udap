@@ -90,6 +90,10 @@ public static class CertScenarioCatalog
             Rejected, UnapprovedSoftwareStatement, [DcrChainValidation, IgJwtValidation],
             o => o with { CrlUrl = null, AiaCertUrl = null }, UntrustedIssuer: true),
 
+        new("tampered", "Tampered signature",
+            "One bit of the issuer's signature on the certificate is flipped. Every name in the chain still matches a trusted anchor, so only cryptographic verification of the signature detects the problem. This server verifies the signature while matching the leaf to its issuer, finds no issuer, and denies the request. The log shows the reason at Debug level as Error verifying signature.",
+            Rejected, UnapprovedSoftwareStatement, [DcrChainValidation, IgValidateRequest], o => o with { TamperSignature = true }),
+
         new("revoked", "Revoked certificate",
             "A valid certificate whose serial number is added to the intermediate CA's CRL before it is returned. Revocation status checking during path validation finds the entry.",
             Rejected, UnapprovedSoftwareStatement, [IgJwtValidation, DcrChainValidation], o => o, RevokeAfterIssue: true),

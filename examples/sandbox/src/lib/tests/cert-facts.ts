@@ -16,6 +16,8 @@ export interface CertificateFacts {
   hasKeyUsage: boolean;
   /** True when another certificate in the bundle has a subject equal to the leaf's issuer. */
   issuerInBundle: boolean;
+  /** Whether the issuer's signature on the leaf verifies. Null when the issuer is not in the bundle or the algorithm is unsupported. */
+  issuerSignatureValid: boolean | null;
 }
 
 export interface ShapeJudgement extends Omit<TrustJudgement, "result"> {
@@ -40,8 +42,8 @@ export function judgeCertificateShape(scenarioKey: string, facts: CertificateFac
     case "valid":
       return check(
         notBefore <= now && now <= notAfter && facts.subjectAltNames.length > 0 && facts.crlUrls.length > 0 &&
-          hasDigitalSignature && facts.bundleSize === 3 && !untrusted && facts.issuerInBundle,
-        "Certificate is current, carries a SAN, a CRL distribution point, and digitalSignature, and the bundle holds the leaf, its issuing intermediate, and a third certificate.",
+          hasDigitalSignature && facts.bundleSize === 3 && !untrusted && facts.issuerInBundle && facts.issuerSignatureValid === true,
+        "Certificate is current, carries a SAN, a CRL distribution point, and digitalSignature, its issuer's signature verifies, and the bundle holds the leaf, its issuing intermediate, and a third certificate.",
         "Certificate does not look like a sound client certificate; see the facts above.",
       );
     case "expired":
@@ -50,6 +52,11 @@ export function judgeCertificateShape(scenarioKey: string, facts: CertificateFac
       return check(notBefore > now, `NotBefore ${facts.notBefore} is in the future.`, `NotBefore ${facts.notBefore} is not in the future.`);
     case "untrusted-root":
       return check(untrusted, `Issuer is the server's throwaway CA: ${facts.issuer}.`, `Issuer is not the throwaway CA: ${facts.issuer}.`);
+    case "tampered":
+      if (facts.issuerSignatureValid === null) {
+        return { result: "warn", message: "The issuer's signature could not be checked from the bundle, so the tampering is unverified." };
+      }
+      return check(!facts.issuerSignatureValid, "The issuer's signature on the certificate does not verify.", "The issuer's signature on the certificate verifies.");
     case "revoked":
       return {
         result: "info",

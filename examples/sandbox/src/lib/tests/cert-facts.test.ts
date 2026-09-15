@@ -22,6 +22,7 @@ function validFacts(overrides: Partial<CertificateFacts> = {}): CertificateFacts
     hasCrlDistributionPoints: true,
     hasKeyUsage: true,
     issuerInBundle: true,
+    issuerSignatureValid: true,
     ...overrides,
   };
 }
@@ -37,6 +38,22 @@ describe("judgeCertificateShape", () => {
 
   test("valid fails when the issuer is not in the bundle", () => {
     expect(judgeCertificateShape("valid", validFacts({ issuerInBundle: false }), NOW).result).toBe("fail");
+  });
+
+  test("valid fails when the issuer's signature does not verify", () => {
+    expect(judgeCertificateShape("valid", validFacts({ issuerSignatureValid: false }), NOW).result).toBe("fail");
+  });
+
+  test("tampered passes when the issuer's signature does not verify", () => {
+    expect(judgeCertificateShape("tampered", validFacts({ issuerSignatureValid: false }), NOW).result).toBe("pass");
+  });
+
+  test("tampered fails on the valid fixture", () => {
+    expect(judgeCertificateShape("tampered", validFacts(), NOW).result).toBe("fail");
+  });
+
+  test("tampered warns when the signature could not be checked", () => {
+    expect(judgeCertificateShape("tampered", validFacts({ issuerSignatureValid: null }), NOW).result).toBe("warn");
   });
 
   test("expired passes when notAfter is yesterday", () => {

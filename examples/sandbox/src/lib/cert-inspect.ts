@@ -1,3 +1,4 @@
+import { X509Certificate } from "node:crypto";
 import * as forge from "node-forge";
 import { CertificateFacts } from "./tests/cert-facts";
 
@@ -43,6 +44,22 @@ function extractCrlDistributionPointUris(distributionPoints: forge.asn1.Asn1): s
   return uris;
 }
 
+function toDer(cert: forge.pki.Certificate): Buffer {
+  return Buffer.from(forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes(), "binary");
+}
+
+/**
+ * node:crypto answers false for a signature that does not verify. node-forge throws on that case with the
+ * same error type it uses for unsupported input, so it cannot tell tampering from an unknown algorithm.
+ */
+function verifyIssuerSignature(leaf: forge.pki.Certificate, issuer: forge.pki.Certificate): boolean | null {
+  try {
+    return new X509Certificate(toDer(leaf)).verify(new X509Certificate(toDer(issuer)).publicKey);
+  } catch {
+    return null;
+  }
+}
+
 function attributeString(entity: forge.pki.Certificate["subject"]): string {
   return entity.attributes.map((a) => `${a.shortName ?? a.name}=${a.value}`).join(", ");
 }
@@ -76,7 +93,9 @@ export async function describeCertificate(cert: forge.pkcs12.Pkcs12Pfx): Promise
   const issuer = attributeString(leaf.issuer);
   // node-forge sets .hash from the encoded name when it parses a certificate. This is exact encoded-name
   // matching, which fits the server's generator. It is not general X.509 name equivalence.
-  const issuerInBundle = certs.slice(0, certs.length - 1).some((c) => c.subject.hash === leaf.issuer.hash);
+  const issuerCert = certs.slice(0, certs.length - 1).find((c) => c.subject.hash === leaf.issuer.hash);
+  const issuerInBundle = issuerCert !== undefined;
+  const issuerSignatureValid = issuerCert ? verifyIssuerSignature(leaf, issuerCert) : null;
 
   const sanExtension = leaf.getExtension("subjectAltName") as { altNames?: { value: string }[] } | undefined;
   const subjectAltNames = sanExtension?.altNames?.map((a) => a.value) ?? [];
@@ -126,5 +145,6 @@ export async function describeCertificate(cert: forge.pkcs12.Pkcs12Pfx): Promise
     hasCrlDistributionPoints,
     hasKeyUsage,
     issuerInBundle,
+    issuerSignatureValid,
   };
 }

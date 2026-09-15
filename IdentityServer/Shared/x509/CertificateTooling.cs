@@ -21,7 +21,8 @@ public sealed record ClientCertificateOptions(
     CertKeyType KeyType = CertKeyType.Rsa,
     X509KeyUsageFlags KeyUsage = X509KeyUsageFlags.DigitalSignature,
     bool IncludeSubjectAltName = true,
-    bool IncludeIntermediateInBundle = true);
+    bool IncludeIntermediateInBundle = true,
+    bool TamperSignature = false);
 
 public sealed record IssuingCa(X509Certificate2 Root, X509Certificate2 Intermediate);
 
@@ -96,6 +97,15 @@ public static class CertificateTooling
             notBefore,
             notAfter,
             new ReadOnlySpan<byte>(RandomNumberGenerator.GetBytes(16)));
+
+        if (options.TamperSignature)
+        {
+            // The signature BIT STRING closes the Certificate SEQUENCE, so its last byte is the last byte of the DER.
+            // Flipping one bit there leaves the names and the public key intact but breaks the issuer's signature.
+            var der = clientCert.RawDataMemory.ToArray();
+            der[^1] ^= 0x01;
+            clientCert = X509CertificateLoader.LoadCertificate(der);
+        }
         // Do something with these certs, like export them to PFX,
         // or add them to an X509Store, or whatever.
         var clientCertWithKey = leafKey is ECDsa ecdsaPrivate
