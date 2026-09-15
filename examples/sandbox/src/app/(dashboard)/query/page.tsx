@@ -5,11 +5,12 @@ import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } f
 import { Code, Send } from "@mui/icons-material";
 import CodeEditor from "@/components/code-editor";
 import PageHeader from "@/components/page-header";
+import { BASE_PATH } from "@/lib/constants";
 
 export default function QueryPage() {
   const defaultUrl =
     typeof window !== "undefined"
-      ? `${window.location.protocol}//${window.location.host}/api/fhir/Patient`
+      ? `${window.location.protocol}//${window.location.host}${BASE_PATH}/api/fhir/Patient`
       : "http://localhost:3000/api/fhir/Patient";
 
   const [queryUrl, setQueryUrl] = useState(defaultUrl);

@@ -33,6 +33,12 @@ A default certificate (`cert-localhost3000-2sans.pfx`) is provided for local dev
 
 This certificate will work with the FAST Security RI server with its trusted `LocalCA` anchor that it loads by default.
 
+### Running Inside the Security Server Image
+
+The security server's Docker image builds this app with `NEXT_PUBLIC_BASE_PATH=/sandbox` and serves it at `https://<server>/sandbox`. The server process sets `APP_URL`, `AUTH_URL`, `CERT_FILE`, `CERT_PASSWORD`, `AUTH_SECRET` and `FHIR_SERVER_URL` for the Node child, so no `.env` file is needed there. See `docs/features/sandbox.md` in the repository root.
+
+`NEXT_PUBLIC_BASE_PATH` is inlined at build time. Leave it unset for local development.
+
 ### Running the Application
 
 Install dependencies:

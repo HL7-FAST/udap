@@ -28,6 +28,7 @@ import {
   TokenBeforeResult,
   VerifyResult,
 } from "./steps";
+import { BASE_PATH } from "@/lib/constants";
 import PageHeader from "@/components/page-header";
 import { UdapClient } from "@/lib/models";
 import { CertificateFacts } from "@/lib/tests/cert-facts";
@@ -73,7 +74,7 @@ const storageCodec = {
 };
 
 async function postStep<T>(body: unknown): Promise<T> {
-  const response = await fetch("/api/tests/walkthrough", {
+  const response = await fetch(BASE_PATH + "/api/tests/walkthrough", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -87,7 +88,7 @@ async function postStep<T>(body: unknown): Promise<T> {
 
 /** SAN carried by every certificate this walkthrough issues, so registration and token steps can reuse it. */
 function walkthroughAltName(): string {
-  return window.location.origin + "/tests/walkthrough";
+  return window.location.origin + BASE_PATH + "/tests/walkthrough";
 }
 
 export default function ScenarioWalkthroughPage() {
@@ -122,7 +123,7 @@ export default function ScenarioWalkthroughPage() {
   // a newer one from a fast server-URL change.
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/tests/certificates?serverUrl=" + encodeURIComponent(walkthrough.serverUrl), {
+    fetch(BASE_PATH + "/api/tests/certificates?serverUrl=" + encodeURIComponent(walkthrough.serverUrl), {
       signal: controller.signal,
     })
       .then(async (response) => {

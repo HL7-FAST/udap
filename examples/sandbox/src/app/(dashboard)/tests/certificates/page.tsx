@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import CertificateScenarioTest, { getCertificateScenarioTest } from "./certificate-scenario";
 import PageHeader from "@/components/page-header";
 import TestSuite from "@/components/tests/test-suite";
+import { BASE_PATH } from "@/lib/constants";
 import { useUdapClientState } from "@/lib/states";
 import { TestSuiteParams, getTestSuite } from "@/lib/tests/test-suite";
 import { CertScenarioSummary } from "@/lib/tests/trust-outcome";
@@ -36,7 +37,7 @@ export default function CertificatesPage() {
   // a newer one (from a fast server-URL change or a repeat reload of the same URL).
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/tests/certificates?serverUrl=" + encodeURIComponent(serverUrl), {
+    fetch(BASE_PATH + "/api/tests/certificates?serverUrl=" + encodeURIComponent(serverUrl), {
       signal: controller.signal,
     })
       .then(async (response) => {

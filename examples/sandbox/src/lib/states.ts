@@ -1,7 +1,8 @@
 import { CapabilityStatement } from "fhir/r4";
 import Cookies from "universal-cookie";
 import { create } from "zustand";
-import { getResourceTypes, getServerCapabilityStatement } from "./fhir";
+import { getResourceTypes } from "./fhir";
+import { getServerCapabilityStatement } from "./fhir-actions";
 import { COOKIE_CURRENT_FHIR_SERVER } from "./constants";
 import { UdapClient } from "./models";
 

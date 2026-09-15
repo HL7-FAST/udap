@@ -1,4 +1,5 @@
 import { UdapClient } from "./models";
+import { BASE_PATH } from "./constants";
 export function formatMarkdownDescription(input: string, leadingSpacesToRemove?: number): string {
   leadingSpacesToRemove ??= input.split("\n").reduce((acc, line) => {
       if (line.trim().length === 0) {
@@ -20,7 +21,7 @@ export function getAppBaseUrl(): string {
     if (hostUrl) {
       return hostUrl;
     } else {
-      hostUrl = new URL(window.location.toString()).origin;
+      hostUrl = window.location.origin + BASE_PATH;
     }
   } catch {
     hostUrl = "http://localhost:3000/";

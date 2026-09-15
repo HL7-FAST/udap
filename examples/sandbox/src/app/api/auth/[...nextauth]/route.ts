@@ -22,14 +22,24 @@ import { getServerCertificate } from "@/lib/cert-store";
 import { UdapProfile } from "@/lib/models";
 import { discoverUdapEndpoint, getAccessToken } from "@/lib/udap-actions";
 import { getClient } from "@/lib/client-store";
-import { AUTHORIZATION_CODE_CLIENT_ID } from "@/lib/constants";
+import { AUTHORIZATION_CODE_CLIENT_ID, BASE_PATH } from "@/lib/constants";
+
+/** Next.js strips the basePath from route handler URLs. Auth.js needs it back to parse the action and build absolute URLs. */
+function withBasePath(request: NextRequest): NextRequest {
+  const url = new URL(request.url);
+  if (!BASE_PATH || url.pathname.startsWith(BASE_PATH + "/")) {
+    return request;
+  }
+  url.pathname = BASE_PATH + url.pathname;
+  return new NextRequest(url, request);
+}
 
 export async function GET(request: NextRequest): Promise<Response> {
   // console.log("GET auth: ", request.nextUrl.pathname, request.url);
 
   // only really supporting /udap but we can pretend...
-  if (request.nextUrl.pathname !== "/api/auth/callback/udap") {
-    return handlers.GET(request);
+  if (!request.nextUrl.pathname.endsWith("/api/auth/callback/udap")) {
+    return handlers.GET(withBasePath(request));
   }
 
   // console.log("GET auth:", request.url);
@@ -79,6 +89,10 @@ export async function GET(request: NextRequest): Promise<Response> {
   let hostUrl = process.env.APP_URL ?? "http://localhost:3000/";
   hostUrl = hostUrl.endsWith("/") ? hostUrl : hostUrl + "/";
   const redirectUri = hostUrl + "api/auth/callback/udap";
+  // Auth.js reads the session from the __Secure- cookie when the app runs over https, and the salt is the cookie name.
+  const secure = hostUrl.startsWith("https://");
+  const cookiePrefix = secure ? "__Secure-" : "";
+  const sessionCookieName = `${cookiePrefix}authjs.session-token`;
 
   // const tokenParams = {
   //   grant_type: "authorization_code",
@@ -143,23 +157,23 @@ export async function GET(request: NextRequest): Promise<Response> {
   const sessionToken = await encode({
     token,
     secret: process.env.AUTH_SECRET || "changeMe",
-    salt: "authjs.session-token",
+    salt: sessionCookieName,
     maxAge: tokenJson.expires_in || 3600,
   });
 
   const sessionCookie = {
-    name: "authjs.session-token",
+    name: sessionCookieName,
     value: sessionToken,
     options: {
       httpOnly: true,
-      secure: false, //process.env.NODE_ENV === "production",
+      secure,
       path: "/",
       sameSite: "lax",
       maxAge: tokenJson.expires_in || 3600,
     } satisfies SerializeOptions,
   };
 
-  let redirect = cookies.get("authjs.callback-url")?.value;
+  let redirect = cookies.get(`${cookiePrefix}authjs.callback-url`)?.value;
   if (!redirect) {
     redirect = process.env.APP_URL ?? "http://localhost:3000/";
   }
@@ -179,5 +193,5 @@ export async function GET(request: NextRequest): Promise<Response> {
 
 export async function POST(request: NextRequest): Promise<Response> {
   // console.log("POST auth: ", request);
-  return handlers.POST(request);
+  return handlers.POST(withBasePath(request));
 }

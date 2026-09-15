@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: IdentityServer/Dockerfile
+      args:
+        SANDBOX_BASE_PATH: ${SANDBOX_BASE_PATH:-/sandbox}
     ports:
       - "5000:5000"
       - "5001:5001"
@@ -16,6 +18,9 @@ services:
       - AppConfig__UdapIdpBaseUrl=https://localhost:5001
       - AppConfig__SystemAdminPassword=Password1
       - AppConfig__UdapAdminPassword=Password1
+      - AppConfig__SandboxFhirServerUrl=${SANDBOX_FHIR_SERVER_URL:-http://host.docker.internal:8080/fhir}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
     - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
     - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro

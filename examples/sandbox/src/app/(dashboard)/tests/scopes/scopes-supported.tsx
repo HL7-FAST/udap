@@ -13,6 +13,7 @@ import TestDefinitionModel, {
 import { formatMarkdownDescription } from "@/lib/utils";
 import TestDefinition from "@/components/tests/test-definition";
 import { setCurrentTestSessionParam } from "@/lib/tests/test-store";
+import { discoverUdapEndpoint } from "@/lib/udap-actions";
 
 export interface ScopesSupportedTestParams extends TestDefinitionParams {
   fhirServer: string;
@@ -70,17 +71,11 @@ export function getScopesSupportedTest(
 
       let udapMetadata: string | { scopes_supported: string[] } = "";
       try {
-        const res = await fetch(params.fhirServer + "/.well-known/udap");
-        udapMetadata = await res.json();
+        // Fetched on the server so the FHIR server only has to be reachable from there, not from the browser.
+        udapMetadata = await discoverUdapEndpoint(params.fhirServer);
         step.output = udapMetadata;
-
-        if (!res.ok) {
-          step.result = "fail";
-          step.message = `Failed to fetch UDAP well-known endpoint: ${res.status} ${res.statusText}`;
-        } else {
-          step.result = "pass";
-          step.message = "Successfully fetched UDAP well-known endpoint.";
-        }
+        step.result = "pass";
+        step.message = "Successfully fetched UDAP well-known endpoint.";
       } catch (e) {
         step = handleError(step, e);
       }

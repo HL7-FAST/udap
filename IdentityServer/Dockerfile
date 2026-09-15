@@ -25,14 +25,29 @@ COPY docs/ ./docs/
 RUN pip install --no-cache-dir mkdocs mkdocs-material pymdown-extensions
 RUN mkdocs build -d /app/docs
 
+FROM node:22-alpine AS build-sandbox
+WORKDIR /src
+RUN npm install -g bun
+COPY examples/sandbox/package.json examples/sandbox/bun.lock examples/sandbox/bunfig.toml ./
+RUN bun install --frozen-lockfile
+COPY examples/sandbox/ .
+# Must equal AppConfig:PathBase + /sandbox at runtime; Next.js inlines it into every asset URL and link.
+ARG SANDBOX_BASE_PATH=/sandbox
+ENV NEXT_PUBLIC_BASE_PATH=$SANDBOX_BASE_PATH
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN bun run build \
+    && cp -r public .next/standalone/ \
+    && cp -r .next/static .next/standalone/.next/
+
 FROM base AS final
 
-# Install ca-certificates for certificate management
-RUN apk add --no-cache ca-certificates
+# ca-certificates for certificate management, nodejs for the embedded sandbox
+RUN apk add --no-cache ca-certificates nodejs
 
 WORKDIR /app
 COPY --from=publish /app/publish .
 COPY --from=build-docs /app/docs ./wwwroot/docs
+COPY --from=build-sandbox /src/.next/standalone ./sandbox
 
 # local default certificate for HTTPS support
 COPY ../certs/localhost.pfx .
@@ -46,6 +61,9 @@ ENV AppConfig__RootCertFile="/app/LocalCA.pfx"
 ENV AppConfig__IntermediateCertFile="/app/LocalSubCA.pfx"
 ENV AppConfig__RootCertPassword="udap-test"
 ENV AppConfig__IntermediateCertPassword="udap-test"
+
+# The image serves the sandbox by default; dotnet run outside Docker does not
+ENV AppConfig__SandboxEnabled=true
 
 # Install self-signed local certificates into system trust store
 COPY IdentityServer/CertStore/LocalCA/LocalCA.crt /usr/local/share/ca-certificates/LocalCA.crt

@@ -25,10 +25,12 @@ using Udap.Server.Security.Authentication.TieredOAuth;
 using Udap.Server.Storage.Stores;
 using IdentityServer.Middleware;
 using IdentityServer.Revocation;
+using IdentityServer.Sandbox;
 using IdentityServer.Shared.x509;
 using IdentityServer.Telemetry;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
+using Yarp.ReverseProxy.Transforms;
 
 namespace IdentityServer
 {
@@ -122,6 +124,12 @@ namespace IdentityServer
             });
             builder.Services.AddHostedService<CrlMaintenanceService>();
             builder.Services.AddTransient<CertGenerator>();
+
+            if (appConfig.SandboxEnabled)
+            {
+                builder.Services.AddHttpForwarder();
+                builder.Services.AddHostedService<SandboxHostService>();
+            }
 
             // Anonymous callers can mint certificates and, for the revoked scenario, grow the CRL; cap the rate.
             builder.Services.AddRateLimiter(options =>
@@ -373,6 +381,13 @@ namespace IdentityServer
             app.MapRazorPages().RequireAuthorization();
 
             app.MapHealthChecks("/health");
+
+            if (appConfig.SandboxEnabled)
+            {
+                // The build inlines the full external path, so the path base stripped by UsePathBase goes back on before forwarding.
+                app.MapForwarder(SandboxHostService.RoutePrefix + "/{**catch-all}", SandboxHostService.DestinationPrefix,
+                    transforms => transforms.AddPathPrefix(appConfig.PathBase ?? ""));
+            }
 
             return app;
         }

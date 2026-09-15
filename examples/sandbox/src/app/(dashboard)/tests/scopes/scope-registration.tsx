@@ -1,4 +1,5 @@
 import TestDefinition from "@/components/tests/test-definition";
+import { BASE_PATH } from "@/lib/constants";
 import { UdapClientRequest, UdapMetadata } from "@/lib/models";
 import TestDefinitionModel, {
   BeforeTestOutcome,
@@ -183,7 +184,7 @@ export function getScopeRegistrationTest(
         step.input = { ...clientReq, scopes: [...scopes] };
 
         try {
-          const request = await fetch("/api/client/register", {
+          const request = await fetch(BASE_PATH + "/api/client/register", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -289,7 +290,7 @@ export function getScopeRegistrationTest(
 
       // attempt to register the client
       try {
-        const request = await fetch("/api/client/register", {
+        const request = await fetch(BASE_PATH + "/api/client/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -384,7 +385,7 @@ export function getScopeRegistrationTest(
 
       // attempt to register the client
       try {
-        const response = await fetch("/api/client/register", {
+        const response = await fetch(BASE_PATH + "/api/client/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

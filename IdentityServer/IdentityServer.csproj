@@ -47,6 +47,7 @@
 		<PackageReference Include="Udap.Metadata.Server" Version="0.9.4" />
 		<PackageReference Include="Udap.Server" Version="0.9.4" />
 		<PackageReference Include="Udap.UI" Version="0.9.4" />
+		<PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>

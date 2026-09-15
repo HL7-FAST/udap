@@ -83,6 +83,17 @@
                         </div>
                         <i class="fa-solid fa-chevron-right ms-auto text-body-secondary" aria-hidden="true"></i>
                     </a>
+                    @if (Model.SandboxEnabled)
+                    {
+                        <a href="~/sandbox" data-mdb-ripple-init class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-vial text-primary fs-4" aria-hidden="true"></i>
+                            <div>
+                                <div class="fw-semibold">Sandbox</div>
+                                <small class="text-body-secondary">Register clients, run scenarios and query FHIR against this server</small>
+                            </div>
+                            <i class="fa-solid fa-chevron-right ms-auto text-body-secondary" aria-hidden="true"></i>
+                        </a>
+                    }
                 </div>
             </div>
         </div>

@@ -24,6 +24,12 @@
         public string IntermediateCrlUrl { get; set; }
         public string IntermediateCertUrl { get; set; }
 
+        public bool SandboxEnabled { get; set; }
+        public string SandboxFhirServerUrl { get; set; }
+        public string SandboxAuthSecret { get; set; }
+        public string SandboxCertFile { get; set; }
+        public string SandboxCertPassword { get; set; }
+
 
         public AnchorConfig[] Anchors { get; set; }
     }

@@ -8,6 +8,7 @@ import React from "react";
 import theme from "../theme";
 import ZustandProvider from "@/components/zustand-provider";
 import { auth } from "@/auth";
+import { BASE_PATH } from "@/lib/constants";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
@@ -26,7 +27,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme} defaultMode="system">
             <CssBaseline enableColorScheme />
-            <SessionProvider session={session}>
+            <SessionProvider session={session} basePath={BASE_PATH + "/api/auth"}>
               <ZustandProvider>{props.children}</ZustandProvider>
             </SessionProvider>
           </ThemeProvider>

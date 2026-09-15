@@ -1,4 +1,5 @@
 import TestDefinition from "@/components/tests/test-definition";
+import { BASE_PATH } from "@/lib/constants";
 import { judgeCertificateShape } from "@/lib/tests/cert-facts";
 import TestDefinitionModel, {
   TestDefinitionParams,
@@ -70,13 +71,13 @@ export function getCertificateScenarioTest(
       const request = {
         serverUrl: params.serverUrl,
         scenario: params.scenario.key,
-        altName: `${window.location.origin}/tests/certificates/${params.scenario.key}`,
+        altName: `${window.location.origin}${BASE_PATH}/tests/certificates/${params.scenario.key}`,
       };
       inspectStep.input = request;
       registerStep.input = request;
 
       try {
-        const response = await fetch("/api/tests/certificates", {
+        const response = await fetch(BASE_PATH + "/api/tests/certificates", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(request),

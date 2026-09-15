@@ -9,6 +9,7 @@ nav:
   - Server Features:
     - features/index.md
     - Generating Certificates: features/certificate-generation.md
+    - Sandbox App: features/sandbox.md
   - Developer Guides:
     - guides/index.md
     - Community Resources: guides/community.md

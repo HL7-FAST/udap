@@ -75,6 +75,9 @@ async function registerClientTimed(regReq: UdapClientRequest, cert: P12Certifica
 export async function discoverUdapEndpoint(baseUrl: string): Promise<UdapMetadata> {
   const url = baseUrl.replace(/\/$/, "") + "/.well-known/udap";
   const udapEndpoint = await fetch(url);
+  if (!udapEndpoint.ok) {
+    throw new Error(`UDAP well-known endpoint ${url} returned HTTP ${udapEndpoint.status}`);
+  }
   const udapJson: UdapMetadata = await udapEndpoint.json();
   return udapJson;
 }
