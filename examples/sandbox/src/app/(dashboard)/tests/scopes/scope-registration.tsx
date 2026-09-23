@@ -143,7 +143,7 @@ export function getScopeRegistrationTest(
         grantTypes: ["authorization_code"],
         issuer: hostUrl,
         clientName: "Scope Test Client",
-        contacts: ["mailto:tester@localhost"],
+        contacts: ["mailto:tester@localhost.local"],
         scopes: [],
         redirectUris: [hostUrl + "api/auth/callback/udap"],
       };

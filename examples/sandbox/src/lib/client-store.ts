@@ -90,7 +90,7 @@ export async function registerDefaultClients(): Promise<UdapClient[]> {
     grantTypes: ["authorization_code"],
     issuer: sans[0],
     clientName: "FAST Security Sandbox Client",
-    contacts: ["mailto:tester@localhost"],
+    contacts: ["mailto:tester@localhost.local"],
     scopes: ["openid", "fhirUser", "profile", "user/*.rs", "user/*.read"],
     redirectUris: [hostUrl + "api/auth/callback/udap"],
   };
@@ -108,7 +108,7 @@ export async function registerDefaultClients(): Promise<UdapClient[]> {
       grantTypes: ["client_credentials"],
       issuer: sans[1],
       clientName: "FAST Security Sandbox Client",
-      contacts: ["mailto:tester@localhost"],
+      contacts: ["mailto:tester@localhost.local"],
       scopes: ["system/*.read", "system/*.rs"]
     };
 

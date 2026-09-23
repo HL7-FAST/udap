@@ -91,7 +91,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           grantTypes: ["client_credentials"],
           issuer: body.altName,
           clientName: `Certificate validation ${body.scenario}`,
-          contacts: ["mailto:tester@localhost"],
+          contacts: ["mailto:tester@localhost.local"],
           scopes: ["system/Patient.read"],
         },
         cert,

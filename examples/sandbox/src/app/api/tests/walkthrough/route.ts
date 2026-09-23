@@ -199,7 +199,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         grantTypes: ["client_credentials"],
         issuer: body.altName,
         clientName: `Scenario walkthrough ${body.scenario ?? ""}`,
-        contacts: ["mailto:tester@localhost"],
+        contacts: ["mailto:tester@localhost.local"],
         scopes: ["system/Patient.read"],
       };
       const registration = await registerForOutcome(regReq, cert, transport, metadata);
