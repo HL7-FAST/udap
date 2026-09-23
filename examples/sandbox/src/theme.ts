@@ -19,13 +19,16 @@ const theme = createTheme({
         divider: "#e2e8f0",
       },
     },
-    // Dark mode keeps MUI's neutral grey surfaces (#121212 / #1e1e1e) so the blue primary
-    // and the flow accent colors stay distinct from the background.
+    // Dark mode uses neutral grey surfaces so the blue primary and the flow accent colors stay
+    // distinct from the background. Surfaces sit above near-black and text below pure white,
+    // which softens the glare while body and secondary text still pass WCAG AA.
     dark: {
       palette: {
         primary: { main: "#60a5fa", light: "#93c5fd", dark: "#2563eb" },
         secondary: { main: "#a78bfa", light: "#c4b5fd", dark: "#7c3aed" },
         success: { main: "#4ade80" },
+        background: { default: "#1a1b1e", paper: "#212226" },
+        text: { primary: "#e4e6e9", secondary: "#a3a7ae" },
       },
     },
   },

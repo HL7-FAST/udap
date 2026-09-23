@@ -17,29 +17,41 @@ import {
 import { getPrivateKey, getServerCertificate, getX509Certficate } from "./cert-store";
 import { cacheAccessToken, getCachedAccessToken } from "./client-store";
 import { tokenRequestScopes } from "./utils";
+import { UdapTransport, udapFetch } from "./udap-transport";
 
 export async function registerClient(
   regReq: UdapClientRequest,
   cert: P12Certificate,
+  transport?: UdapTransport,
+  metadata?: UdapMetadata,
 ): Promise<UdapClient> {
   console.log("Registering client...");
   console.time("Client registration complete");
   try {
-    return await registerClientTimed(regReq, cert);
+    return await registerClientTimed(regReq, cert, transport, metadata);
   } finally {
     // A rejected registration throws, so the timer ends here.
     console.timeEnd("Client registration complete");
   }
 }
 
-async function registerClientTimed(regReq: UdapClientRequest, cert: P12Certificate): Promise<UdapClient> {
-  // discover the UDAP endpoint
-  console.time("Loaded UDAP metadata");
+async function registerClientTimed(
+  regReq: UdapClientRequest,
+  cert: P12Certificate,
+  transport?: UdapTransport,
+  metadata?: UdapMetadata,
+): Promise<UdapClient> {
+  // discover the UDAP endpoint, unless the caller already discovered it
   let udapMeta: UdapMetadata;
-  try {
-    udapMeta = await discoverUdapEndpoint(regReq.fhirServer);
-  } finally {
-    console.timeEnd("Loaded UDAP metadata");
+  if (metadata) {
+    udapMeta = metadata;
+  } else {
+    console.time("Loaded UDAP metadata");
+    try {
+      udapMeta = await discoverUdapEndpoint(regReq.fhirServer, transport);
+    } finally {
+      console.timeEnd("Loaded UDAP metadata");
+    }
   }
 
   // build registration JWT (header and software statement JWT claims)
@@ -51,7 +63,7 @@ async function registerClientTimed(regReq: UdapClientRequest, cert: P12Certifica
   // console.log('regBody:', regBody);
 
   // register client
-  const regRes = await sendRegistrationRequest(udapMeta.registration_endpoint, regBody);
+  const regRes = await sendRegistrationRequest(udapMeta.registration_endpoint, regBody, transport);
   const client: UdapClient = {
     id: regRes.client_id,
     name: regRes.client_name,
@@ -72,9 +84,9 @@ async function registerClientTimed(regReq: UdapClientRequest, cert: P12Certifica
   return client;
 }
 
-export async function discoverUdapEndpoint(baseUrl: string): Promise<UdapMetadata> {
+export async function discoverUdapEndpoint(baseUrl: string, transport?: UdapTransport): Promise<UdapMetadata> {
   const url = baseUrl.replace(/\/$/, "") + "/.well-known/udap";
-  const udapEndpoint = await fetch(url);
+  const udapEndpoint = await udapFetch(url, { headers: { Accept: "application/json" } }, transport);
   if (!udapEndpoint.ok) {
     throw new Error(`UDAP well-known endpoint ${url} returned HTTP ${udapEndpoint.status}`);
   }
@@ -137,14 +149,15 @@ async function buildRequestBody(
 async function sendRegistrationRequest(
   registrationUrl: string,
   registrationBody: UdapRegistrationRequest,
+  transport?: UdapTransport,
 ): Promise<UdapRegistrationResponse> {
-  const regResp = await fetch(registrationUrl, {
+  const regResp = await udapFetch(registrationUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(registrationBody),
-  });
+  }, transport);
 
   const regJson = await regResp.json();
   if (!regResp.ok) {
@@ -231,6 +244,7 @@ export async function getAccessToken(
   redirectUri?: string,
   codeVerifier?: string,
   cert?: P12Certificate,
+  transport?: UdapTransport,
 ): Promise<TokenEndpointResponse> {
 
   // If client_credentials flow, check for cached valid token first
@@ -267,14 +281,14 @@ export async function getAccessToken(
   }
 
 
-  const tokenResponse = await fetch(client.tokenEndpoint, {
+  const tokenResponse = await udapFetch(client.tokenEndpoint, {
     method: "POST",
     headers: {
       "Accept": "application/json",
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams(tokenParams).toString(),
-  });
+  }, transport);
 
   const tokenJson = await tokenResponse.json();
   if (!tokenResponse.ok) {

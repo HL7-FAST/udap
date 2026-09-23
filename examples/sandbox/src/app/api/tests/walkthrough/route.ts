@@ -1,19 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readPatientForOutcome } from "@/lib/access-outcome";
 import { addCertificate, getCertificate, parseCertificate } from "@/lib/cert-store";
 import { BUNDLE_PASSWORD, describeCertificate, leafSerialHex } from "@/lib/cert-inspect";
-import { addClient, getStoredClient } from "@/lib/client-store";
-import { UdapClient, UdapClientRequest } from "@/lib/models";
+import { addClient, addMetadata, getMetadata, getStoredClient } from "@/lib/client-store";
+import { UdapClient, UdapClientRequest, UdapMetadata } from "@/lib/models";
 import { registerForOutcome } from "@/lib/register-outcome";
 import { errorResponse, normalizeServerUrl } from "@/lib/route-helpers";
 import { requestTokenForOutcome } from "@/lib/token-outcome";
+import { applySignedMetadata, discoveryPassed, judgeDiscovery, judgeIssuerMatchesSecurityServer } from "@/lib/tests/discovery-outcome";
+import { verifySignedMetadata } from "@/lib/signed-metadata";
+import { discoverUdapEndpoint } from "@/lib/udap-actions";
+import { UdapTransport } from "@/lib/udap-transport";
 
 export interface WalkthroughStepRequest {
   serverUrl: string;
-  action: "issue" | "register" | "token";
+  fhirServer: string;
+  proxy?: { resourceServer?: string; authorizationServer?: string };
+  /** Sent on every standards request (discover, register, token, access), with or without a proxy. */
+  headers?: Array<{ name: string; value: string }>;
+  action: "issue" | "discover" | "register" | "token" | "access";
   altName?: string;
   certId?: string;
   clientId?: string;
   scenario?: string;
+  accessToken?: string;
 }
 
 function badRequest(message: string): Response {
@@ -35,8 +45,14 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (!serverUrl) {
     return badRequest("serverUrl must be a valid http or https URL");
   }
-  if (body.action !== "issue" && body.action !== "register" && body.action !== "token") {
-    return badRequest("action must be one of issue, register, token");
+  if (
+    body.action !== "issue" &&
+    body.action !== "discover" &&
+    body.action !== "register" &&
+    body.action !== "token" &&
+    body.action !== "access"
+  ) {
+    return badRequest("action must be one of issue, discover, register, token, access");
   }
 
   if (body.action === "issue") {
@@ -79,29 +95,114 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
   }
 
-  // "register" and "token" both act on a certificate this route already issued and stored.
-  if (typeof body.certId !== "string" || !body.certId.startsWith("walkthrough-")) {
-    return badRequest("certId is required");
+  // Every action past this point discovers or acts against the FHIR server.
+  const fhirServer = normalizeServerUrl(body.fhirServer);
+  if (!fhirServer) {
+    return badRequest("fhirServer must be a valid http or https URL");
+  }
+
+  let resourceServerProxy: string | undefined;
+  if (body.proxy?.resourceServer !== undefined) {
+    const normalized = normalizeServerUrl(body.proxy.resourceServer);
+    if (!normalized) {
+      return badRequest("proxy.resourceServer must be a valid http or https URL");
+    }
+    resourceServerProxy = normalized;
+  }
+  let authorizationServerProxy: string | undefined;
+  if (body.proxy?.authorizationServer !== undefined) {
+    const normalized = normalizeServerUrl(body.proxy.authorizationServer);
+    if (!normalized) {
+      return badRequest("proxy.authorizationServer must be a valid http or https URL");
+    }
+    authorizationServerProxy = normalized;
+  }
+  let headers: Record<string, string> | undefined;
+  if (body.headers !== undefined) {
+    if (!Array.isArray(body.headers)) {
+      return badRequest("headers must be an array");
+    }
+    headers = {};
+    for (const entry of body.headers) {
+      if (!entry || typeof entry !== "object" || typeof entry.name !== "string" || typeof entry.value !== "string") {
+        return badRequest("Each headers entry must have a string name and value");
+      }
+      const name = entry.name.trim();
+      if (!name) {
+        continue;
+      }
+      // Control characters, whitespace, and colons cannot appear in an HTTP header name.
+      if (/[\s:\x00-\x1f]/.test(name)) {
+        return badRequest("headers entries must have valid header names");
+      }
+      headers[name] = entry.value;
+    }
+  }
+
+  let transport: UdapTransport | undefined;
+  if (resourceServerProxy || authorizationServerProxy || (headers && Object.keys(headers).length > 0)) {
+    transport = { fhirServer, resourceServerProxy, authorizationServerProxy, headers };
+  }
+
+  // "discover", "register", and "token" all act on a certificate this route already issued and stored.
+  // "access" only needs the bearer token it was given, not the certificate.
+  if (body.action !== "access") {
+    if (typeof body.certId !== "string" || !body.certId.startsWith("walkthrough-")) {
+      return badRequest("certId is required");
+    }
+  }
+
+  if (body.action === "discover") {
+    try {
+      let metadata: UdapMetadata;
+      try {
+        metadata = await discoverUdapEndpoint(fhirServer, transport);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Unknown error";
+        return NextResponse.json({
+          discovery: { metadata: {} as UdapMetadata, checks: [{ name: "well-known", result: "fail", message }] },
+          securityServerCheck: { name: "issuer_matches_security_server", result: "fail", message: "No metadata to compare." },
+        });
+      }
+      const signed = verifySignedMetadata(metadata.signed_metadata, fhirServer);
+      const checks = judgeDiscovery(metadata, fhirServer, signed);
+      const effective = applySignedMetadata(metadata, signed);
+      const passed = discoveryPassed(checks);
+      if (passed) {
+        await addMetadata(body.certId as string, effective);
+      }
+      // A failed document may carry no usable registration_endpoint, so the comparison only runs on a pass.
+      const securityServerCheck = passed
+        ? judgeIssuerMatchesSecurityServer(effective, serverUrl)
+        : { name: "issuer_matches_security_server", result: "fail" as const, message: "No valid metadata to compare." };
+      return NextResponse.json({ discovery: { metadata: effective, checks }, securityServerCheck });
+    } catch (e) {
+      return errorResponse("Scenario walkthrough step failed", e, 500);
+    }
   }
 
   if (body.action === "register") {
     if (typeof body.altName !== "string" || body.altName.length === 0) {
       return badRequest("altName is required");
     }
-    const cert = await getCertificate(body.certId);
+    const cert = await getCertificate(body.certId as string);
     if (!cert) {
       return badRequest("Certificate not found. The sandbox restarted; start over.");
     }
+    const metadata = await getMetadata(body.certId as string);
+    if (!metadata) {
+      return badRequest("Run discovery first.");
+    }
     try {
       const regReq: UdapClientRequest = {
-        fhirServer: serverUrl,
+        fhirServer,
         grantTypes: ["client_credentials"],
         issuer: body.altName,
         clientName: `Scenario walkthrough ${body.scenario ?? ""}`,
         contacts: ["mailto:tester@localhost"],
         scopes: ["system/Patient.read"],
       };
-      const registration = await registerForOutcome(regReq, cert);
+      const registration = await registerForOutcome(regReq, cert, transport, metadata);
       if (registration.outcome === "accepted") {
         const client = registration.body as UdapClient;
         await addClient(client.id, client);
@@ -112,21 +213,33 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
   }
 
-  // action === "token"
-  if (typeof body.clientId !== "string" || body.clientId.length === 0) {
-    return badRequest("clientId is required");
+  if (body.action === "token") {
+    if (typeof body.clientId !== "string" || body.clientId.length === 0) {
+      return badRequest("clientId is required");
+    }
+    try {
+      const cert = await getCertificate(body.certId as string);
+      if (!cert) {
+        return badRequest("Certificate not found. The sandbox restarted; start over.");
+      }
+      const client = await getStoredClient(body.clientId);
+      if (!client) {
+        return badRequest("Client not found. The sandbox restarted; start over.");
+      }
+      const token = await requestTokenForOutcome(client, cert, transport);
+      return NextResponse.json({ token });
+    } catch (e) {
+      return errorResponse("Scenario walkthrough step failed", e, 500);
+    }
+  }
+
+  // action === "access"
+  if (typeof body.accessToken !== "string" || body.accessToken.length === 0) {
+    return badRequest("accessToken is required");
   }
   try {
-    const cert = await getCertificate(body.certId);
-    if (!cert) {
-      return badRequest("Certificate not found. The sandbox restarted; start over.");
-    }
-    const client = await getStoredClient(body.clientId);
-    if (!client) {
-      return badRequest("Client not found. The sandbox restarted; start over.");
-    }
-    const token = await requestTokenForOutcome(client, cert);
-    return NextResponse.json({ token });
+    const access = await readPatientForOutcome(fhirServer, body.accessToken, transport);
+    return NextResponse.json({ access });
   } catch (e) {
     return errorResponse("Scenario walkthrough step failed", e, 500);
   }

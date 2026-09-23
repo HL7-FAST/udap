@@ -75,4 +75,16 @@ There is also a basic testing suite that can test client registration and has a 
 Two pages under Testing exercise the server's certificate scenario catalog (`GET /api/cert/scenarios`):
 
 - "Certificate Validation" runs every scenario and grades each registration against the expected result.
-- "Scenario Walkthrough" runs one scenario step by step: issue, register, token, and for `valid` revoke on the IdP and verify rejection.
+- "Scenario Walkthrough" runs one scenario step by step: issue, discover at the FHIR server, register, token, read a Patient, and for `valid` revoke on the IdP and verify rejection.
+
+### Testing through a proxy
+
+The walkthrough's discovery step targets a FHIR server, not the security server. That FHIR server must publish full UDAP metadata with a `signed_metadata` value. The security server's own `/.well-known/udap` is only the OpenID discovery document, so it is not a valid discovery target here.
+
+The security server still issues the walkthrough's certificate and hosts the revocation page. Neither of those goes through a proxy.
+
+The walkthrough can send its UDAP requests through any forwarding proxy that captures traffic. The page takes one proxy URL per host, one for the resource server and one for the authorization server. Use the same URL for both if one proxy covers both roles. The client keeps signing for the real, discovered endpoints (`aud` stays the origin URL) and only sends the bytes through the proxy. Custom headers are separate from the proxy. They go on every discovery, registration, token, and resource request, with or without a proxy, because some test platforms need them either way. They are kept in the browser's localStorage and never logged. Certificate issuance is not a standards request and gets neither the proxy nor the headers.
+
+AEGIS Touchstone is a worked example: each Touchstone test system gives you a Proxy URL, and Touchstone matches a request to your test execution by a `USER_KEY` or `ORG_KEY` header.
+
+Chain validation of the FHIR server's `signed_metadata` certificate against a trust anchor is not performed. The walkthrough reports this as informational, not as a failure.

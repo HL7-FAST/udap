@@ -95,7 +95,7 @@ Where to use it:
 - `/scenarios` on the server: pick a scenario and download the bundle, or copy the JSON for `POST /api/cert/generate`.
 - `/udap/revocations` (admin): revoke any issued certificate by upload or serial. The CRL under `/certs/<community>/crl/` is rewritten at once.
 - Sandbox "Certificate Validation": runs the whole catalog and grades each result.
-- Sandbox "Scenario Walkthrough": one scenario, step by step, through issue, register, token, and (for `valid`) revoke and verify.
+- Sandbox "Scenario Walkthrough": one scenario, step by step, through issue, discover, register, token, access, and (for `valid`) revoke and verify.
 
 ```json title="Request Body"
 {

@@ -3,6 +3,7 @@
 import jwt from "jsonwebtoken";
 import { P12Certificate, UdapClient } from "./models";
 import { getAccessToken } from "./udap-actions";
+import { UdapTransport } from "./udap-transport";
 
 export type TokenRunOutcome =
   | { outcome: "issued"; accessToken: string; claims: Record<string, unknown> }
@@ -12,9 +13,10 @@ export type TokenRunOutcome =
 export async function requestTokenForOutcome(
   client: UdapClient,
   cert: P12Certificate,
+  transport?: UdapTransport,
 ): Promise<TokenRunOutcome> {
   try {
-    const token = await getAccessToken(client, undefined, undefined, undefined, cert);
+    const token = await getAccessToken(client, undefined, undefined, undefined, cert, transport);
     let claims: Record<string, unknown> = {};
     if (token.access_token) {
       const decoded = jwt.decode(token.access_token);

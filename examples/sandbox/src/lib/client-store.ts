@@ -4,10 +4,11 @@ import { getServerCertificate, getX509Certficate } from "./cert-store";
 import { AUTHORIZATION_CODE_CLIENT_ID, CLIENT_CREDENTIALS_CLIENT_ID } from "./constants";
 import { registerClient } from "./udap-actions";
 import { getDefaultFhirServer } from "./env";
-import { UdapClient, UdapClientRequest } from "@/lib/models";
+import { UdapClient, UdapClientRequest, UdapMetadata } from "@/lib/models";
 
 const clients: Map<string, UdapClient> = new Map();
 const cachedTokens: Map<string, string> = new Map();
+const metadataByCertId: Map<string, UdapMetadata> = new Map();
 let initialized = false;
 
 /**
@@ -49,6 +50,15 @@ export async function cacheAccessToken(clientId: string, token: string): Promise
 
 export async function getCachedAccessToken(clientId: string): Promise<string | undefined> {
   return cachedTokens.get(clientId);
+}
+
+/** Keyed by the certificate id, so discovered metadata ties to the certificate that will register with it. */
+export async function addMetadata(certId: string, metadata: UdapMetadata): Promise<void> {
+  metadataByCertId.set(certId, metadata);
+}
+
+export async function getMetadata(certId: string): Promise<UdapMetadata | undefined> {
+  return metadataByCertId.get(certId);
 }
 
 /**
