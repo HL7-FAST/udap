@@ -6,7 +6,7 @@ import { addClient, addMetadata, getMetadata, getStoredClient } from "@/lib/clie
 import { UdapClient, UdapClientRequest, UdapMetadata } from "@/lib/models";
 import { registerForOutcome } from "@/lib/register-outcome";
 import { errorResponse, normalizeServerUrl } from "@/lib/route-helpers";
-import { requestTokenForOutcome } from "@/lib/token-outcome";
+import { AuthorizationCodeGrant, requestTokenForOutcome } from "@/lib/token-outcome";
 import { applySignedMetadata, discoveryPassed, judgeDiscovery, judgeIssuerMatchesSecurityServer } from "@/lib/tests/discovery-outcome";
 import { verifySignedMetadata } from "@/lib/signed-metadata";
 import { discoverUdapEndpoint } from "@/lib/udap-actions";
@@ -24,6 +24,14 @@ export interface WalkthroughStepRequest {
   clientId?: string;
   scenario?: string;
   accessToken?: string;
+  /** Register and verify: which grant to request. Defaults to client_credentials. */
+  grantType?: "client_credentials" | "authorization_code";
+  /** Token, authorization_code only. */
+  code?: string;
+  redirectUri?: string;
+  codeVerifier?: string;
+  /** Register and verify. Defaults per grant type when absent. */
+  scopes?: string[];
 }
 
 function badRequest(message: string): Response {
@@ -193,14 +201,31 @@ export async function POST(request: NextRequest): Promise<Response> {
     if (!metadata) {
       return badRequest("Run discovery first.");
     }
+    const grantType = body.grantType ?? "client_credentials";
+    if (grantType !== "client_credentials" && grantType !== "authorization_code") {
+      return badRequest("grantType must be client_credentials or authorization_code");
+    }
+    let scopes = grantType === "authorization_code"
+      ? ["user/Patient.read", "user/Observation.read"]
+      : ["system/Patient.read", "system/Observation.read"];
+    if (body.scopes !== undefined) {
+      if (!Array.isArray(body.scopes) || body.scopes.length === 0 || body.scopes.some((s) => typeof s !== "string" || s.trim().length === 0)) {
+        return badRequest("scopes must be a non-empty array of strings");
+      }
+      scopes = body.scopes.map((s) => s.trim());
+    }
     try {
+      const authorizationCode = grantType === "authorization_code";
+      // The altName doubles as the redirect URI because the page URL is the SAN.
+      // The logo comes from buildRegister's default, so logoUri is left unset here.
       const regReq: UdapClientRequest = {
         fhirServer,
-        grantTypes: ["client_credentials"],
+        grantTypes: [grantType],
         issuer: body.altName,
         clientName: `Scenario walkthrough ${body.scenario ?? ""}`,
         contacts: ["mailto:tester@localhost.local"],
-        scopes: ["system/Patient.read"],
+        scopes,
+        ...(authorizationCode ? { redirectUris: [body.altName] } : {}),
       };
       const registration = await registerForOutcome(regReq, cert, transport, metadata);
       if (registration.outcome === "accepted") {
@@ -226,7 +251,18 @@ export async function POST(request: NextRequest): Promise<Response> {
       if (!client) {
         return badRequest("Client not found. The sandbox restarted; start over.");
       }
-      const token = await requestTokenForOutcome(client, cert, transport);
+      let grant: AuthorizationCodeGrant | undefined;
+      if (client.grantType === "authorization_code") {
+        if (
+          typeof body.code !== "string" || body.code.length === 0 ||
+          typeof body.redirectUri !== "string" || body.redirectUri.length === 0 ||
+          typeof body.codeVerifier !== "string" || body.codeVerifier.length === 0
+        ) {
+          return badRequest("code, redirectUri, and codeVerifier are required for an authorization_code client");
+        }
+        grant = { code: body.code, redirectUri: body.redirectUri, codeVerifier: body.codeVerifier };
+      }
+      const token = await requestTokenForOutcome(client, cert, transport, grant);
       return NextResponse.json({ token });
     } catch (e) {
       return errorResponse("Scenario walkthrough step failed", e, 500);

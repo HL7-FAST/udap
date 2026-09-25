@@ -162,7 +162,7 @@ discoveryResponse.add("udap_profiles_supported",
 discoveryResponse.add("udap_authorization_extensions_supported", 
     gson.toJsonTree(List.of("hl7-b2b")));
 discoveryResponse.add("udap_authorization_extensions_required", 
-    gson.toJsonTree(List.of("hl7-b2b")));
+    gson.toJsonTree(List.of()));
 discoveryResponse.add("udap_certifications_supported", 
     gson.toJsonTree(List.of("https://www.example.com/udap/profiles/example-certification")));
 discoveryResponse.add("udap_certifications_required", 

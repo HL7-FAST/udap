@@ -118,7 +118,7 @@ async function buildRegister(
     contacts: regReq.contacts,
     logo_uri: logo_uri,
     grant_types: regReq.grantTypes,
-    response_types: (regReq.grantTypes || []).includes("authorization_code") ? ["code"] : null,
+    ...(regReq.grantTypes.includes("authorization_code") ? { response_types: ["code"] } : {}),
     token_endpoint_auth_method: "private_key_jwt",
     scope: scopes,
   } as UdapSoftwareStatement;

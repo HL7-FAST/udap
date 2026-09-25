@@ -45,11 +45,26 @@ import { CertScenarioSummary, TrustRunOutcome, judgeTrustOutcome } from "@/lib/t
 import { TokenRunOutcome } from "@/lib/token-outcome";
 import { useUdapClientState } from "@/lib/states";
 import { useLocalStorageState } from "@/lib/use-local-storage-state";
+import { UdapTransport, routeRequest } from "@/lib/udap-transport";
 
 const STORE_KEY = "scenario-walkthrough";
 const DEFAULT_SERVER_URL = "https://localhost:5001";
 
-type WalkthroughStepKey = "issue" | "discover" | "register" | "token" | "access" | "verify";
+type WalkthroughStepKey = "issue" | "discover" | "register" | "authorize" | "token" | "access" | "verify";
+
+export type WalkthroughGrantType = "client_credentials" | "authorization_code";
+
+const DEFAULT_SCOPES: Record<WalkthroughGrantType, string> = {
+  client_credentials: "system/Patient.read system/Observation.read",
+  authorization_code: "user/Patient.read user/Observation.read",
+};
+
+export interface WalkthroughAuthorization {
+  state: string;
+  codeVerifier: string;
+  /** Set once the IdP redirects back with a code that matches `state`. */
+  code?: string;
+}
 // Server and proxy fields share one grid so their columns line up. The last column holds the header delete icon.
 const FIELD_GRID = { display: "grid", gridTemplateColumns: "1fr 1fr 34px", gap: 2, alignItems: "center" };
 
@@ -70,6 +85,10 @@ export interface WalkthroughState {
   headers: CustomHeader[];
   activeStep: number;
   revokedConfirmed: boolean;
+  grantType: WalkthroughGrantType;
+  /** Space separated scopes sent in the software statement. */
+  scopes: string;
+  authorization?: WalkthroughAuthorization;
   scenario?: CertScenarioSummary;
   certId?: string;
   pfx?: string;
@@ -94,6 +113,8 @@ function initialState(serverUrl: string, fhirServer: string): WalkthroughState {
     headers: [],
     activeStep: 0,
     revokedConfirmed: false,
+    grantType: "client_credentials",
+    scopes: DEFAULT_SCOPES.client_credentials,
   };
 }
 
@@ -125,6 +146,7 @@ const storageCodec = {
         ...initialState(parsed.serverUrl, parsed.fhirServer ?? ""),
         ...parsed,
         ...migrateSettings(parsed),
+        scopes: parsed.scopes ?? DEFAULT_SCOPES[parsed.grantType ?? "client_credentials"],
       };
     } catch {
       return initialState(DEFAULT_SERVER_URL, "");
@@ -150,6 +172,10 @@ function namedHeaders(headers: CustomHeader[]): CustomHeader[] {
   return headers.filter((h) => h.name.trim().length > 0);
 }
 
+function scopeList(scopes: string): string[] {
+  return scopes.trim().split(/\s+/).filter((s) => s.length > 0);
+}
+
 async function postStep<T>(body: unknown): Promise<T> {
   const response = await fetch(BASE_PATH + "/api/tests/walkthrough", {
     method: "POST",
@@ -168,6 +194,17 @@ function walkthroughAltName(): string {
   return window.location.origin + BASE_PATH + "/tests/walkthrough";
 }
 
+function base64Url(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** PKCE S256 pair. crypto.subtle needs a secure context, which https and localhost both are. */
+async function pkcePair(): Promise<{ verifier: string; challenge: string }> {
+  const verifier = base64Url(crypto.getRandomValues(new Uint8Array(32)));
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+  return { verifier, challenge: base64Url(new Uint8Array(digest)) };
+}
+
 export default function ScenarioWalkthroughPage() {
   const udapClient = useUdapClientState((state) => state.client);
   const initialServerUrl = udapClient ? new URL(udapClient.authorizationEndpoint).origin : DEFAULT_SERVER_URL;
@@ -178,6 +215,9 @@ export default function ScenarioWalkthroughPage() {
     { codec: storageCodec },
   );
   const walkthrough = state ?? initialState(initialServerUrl, "");
+  const authorizationCode = walkthrough.grantType === "authorization_code";
+  // The Authorize step only exists for authorization_code, so later step indexes shift by one.
+  const stepOffset = authorizationCode ? 1 : 0;
 
   const [draft, setDraft] = useState(initialServerUrl);
   const [fhirDraft, setFhirDraft] = useState(walkthrough.fhirServer);
@@ -251,6 +291,32 @@ export default function ScenarioWalkthroughPage() {
     return () => controller.abort();
   }, [walkthrough.serverUrl]);
 
+  // Reads the authorization code (or error) the IdP appended to this page's URL on redirect back.
+  // Reads storage directly because the hydration render still carries the server snapshot.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const errorCode = params.get("error");
+    if (!code && !errorCode) {
+      return;
+    }
+    // Strip the query so a reload cannot replay the code.
+    window.history.replaceState(null, "", window.location.pathname);
+    const raw = window.localStorage.getItem(STORE_KEY);
+    const pending = raw ? storageCodec.parse(raw).authorization : undefined;
+    if (errorCode) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reacting to a URL the IdP just redirected to, not synchronizing render state
+      setError({ step: "authorize", message: `${errorCode}: ${params.get("error_description") ?? ""}` });
+      return;
+    }
+    if (!pending || params.get("state") !== pending.state) {
+      setError({ step: "authorize", message: "The state returned by the IdP does not match the one sent." });
+      return;
+    }
+    update({ authorization: { ...pending, code: code ?? undefined }, activeStep: 4 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount, update() reads the latest state from storage itself
+  }, []);
+
   // Merges onto whatever is currently in storage, not onto `walkthrough` from this render's
   // closure, so a patch built before an await cannot clobber a change made during that await.
   function update(patch: Partial<WalkthroughState>) {
@@ -263,7 +329,13 @@ export default function ScenarioWalkthroughPage() {
     runIdRef.current += 1;
     // The FHIR server, proxy, and header settings are independent of the certificate/registration
     // progress being reset here, so they carry over rather than reverting to defaults.
-    setState({ ...initialState(serverUrl, walkthrough.fhirServer), proxy: walkthrough.proxy, headers: walkthrough.headers });
+    setState({
+      ...initialState(serverUrl, walkthrough.fhirServer),
+      proxy: walkthrough.proxy,
+      headers: walkthrough.headers,
+      grantType: walkthrough.grantType,
+      scopes: walkthrough.scopes,
+    });
     setError(null);
     // The catalog effect only refetches on a new server URL, so a same-server reset keeps the
     // loaded catalog. Clearing it here would leave Issue disabled with nothing to reload it.
@@ -351,6 +423,7 @@ export default function ScenarioWalkthroughPage() {
       securityServerCheck: undefined,
       client: undefined,
       registration: undefined,
+      authorization: undefined,
       tokenBefore: undefined,
       access: undefined,
       tokenAfter: undefined,
@@ -377,6 +450,7 @@ export default function ScenarioWalkthroughPage() {
       securityServerCheck: result.securityServerCheck,
       client: undefined,
       registration: undefined,
+      authorization: undefined,
       tokenBefore: undefined,
       access: undefined,
       tokenAfter: undefined,
@@ -394,6 +468,8 @@ export default function ScenarioWalkthroughPage() {
         certId: walkthrough.certId,
         altName: walkthroughAltName(),
         scenario: walkthrough.scenario?.key,
+        grantType: walkthrough.grantType,
+        scopes: scopeList(walkthrough.scopes),
       }),
     );
     if (!result) {
@@ -403,6 +479,7 @@ export default function ScenarioWalkthroughPage() {
     update({
       registration: result.registration,
       client: accepted ? (result.registration.body as UdapClient) : undefined,
+      authorization: undefined,
       tokenBefore: undefined,
       access: undefined,
       tokenAfter: undefined,
@@ -412,6 +489,52 @@ export default function ScenarioWalkthroughPage() {
     });
   };
 
+  const changeGrantType = (grantType: WalkthroughGrantType) => {
+    const passedDiscovery = !!walkthrough.discovery && discoveryPassed(walkthrough.discovery.checks);
+    update({
+      grantType,
+      scopes: DEFAULT_SCOPES[grantType],
+      client: undefined,
+      registration: undefined,
+      authorization: undefined,
+      tokenBefore: undefined,
+      access: undefined,
+      tokenAfter: undefined,
+      registrationAfter: undefined,
+      revokedConfirmed: false,
+      ...(walkthrough.certId && passedDiscovery ? { activeStep: 2 } : {}),
+    });
+  };
+
+  /** Keeps the authorize leg on the authorization server proxy when one is set. Headers are not sent, since they cannot ride on a browser redirect. */
+  function browserTransport(): UdapTransport {
+    return { fhirServer: walkthrough.fhirServer, ...buildProxy(walkthrough.proxy) };
+  }
+
+  const authorize = async () => {
+    const endpoint = walkthrough.discovery?.metadata.authorization_endpoint;
+    const clientId = walkthrough.client?.id;
+    if (!endpoint || !clientId) {
+      return;
+    }
+    setError(null);
+    const { verifier, challenge } = await pkcePair();
+    const state = crypto.randomUUID();
+    const url = new URL(routeRequest(endpoint, browserTransport()).url);
+    url.search = new URLSearchParams({
+      response_type: "code",
+      client_id: clientId,
+      redirect_uri: walkthroughAltName(),
+      scope: walkthrough.client?.requestedScopes.join(" ") ?? "",
+      state,
+      code_challenge: challenge,
+      code_challenge_method: "S256",
+    }).toString();
+    // localStorage writes are synchronous, so the state and verifier survive the navigation.
+    update({ authorization: { state, codeVerifier: verifier }, tokenBefore: undefined, access: undefined, tokenAfter: undefined, registrationAfter: undefined, revokedConfirmed: false });
+    window.location.assign(url.toString());
+  };
+
   const requestTokenBefore = async () => {
     const result = await runStep("token", () =>
       postStep<{ token: TokenRunOutcome }>({
@@ -419,6 +542,13 @@ export default function ScenarioWalkthroughPage() {
         action: "token",
         certId: walkthrough.certId,
         clientId: walkthrough.client?.id,
+        ...(authorizationCode
+          ? {
+              code: walkthrough.authorization?.code,
+              redirectUri: walkthroughAltName(),
+              codeVerifier: walkthrough.authorization?.codeVerifier,
+            }
+          : {}),
       }),
     );
     if (!result) {
@@ -431,7 +561,7 @@ export default function ScenarioWalkthroughPage() {
       tokenAfter: undefined,
       registrationAfter: undefined,
       revokedConfirmed: false,
-      ...(advance ? { activeStep: 4 } : {}),
+      ...(advance ? { activeStep: 4 + stepOffset } : {}),
     });
   };
 
@@ -449,28 +579,34 @@ export default function ScenarioWalkthroughPage() {
     const advance = judgeAccess(result.access).result === "pass";
     update({
       access: result.access,
-      ...(advance ? { activeStep: 5 } : {}),
+      ...(advance ? { activeStep: 5 + stepOffset } : {}),
     });
   };
 
   const confirmRevoked = () => {
-    update({ revokedConfirmed: true, activeStep: 6 });
+    update({ revokedConfirmed: true, activeStep: 6 + stepOffset });
   };
 
   const verify = async () => {
     const result = await runStep("verify", async () => {
-      const tokenResult = await postStep<{ token: TokenRunOutcome }>({
-        ...baseBody(),
-        action: "token",
-        certId: walkthrough.certId,
-        clientId: walkthrough.client?.id,
-      });
       const registrationResult = await postStep<{ registration: TrustRunOutcome }>({
         ...baseBody(),
         action: "register",
         certId: walkthrough.certId,
         altName: walkthroughAltName(),
         scenario: walkthrough.scenario?.key,
+        grantType: walkthrough.grantType,
+        scopes: scopeList(walkthrough.scopes),
+      });
+      // An authorization code is single use, so a second token request cannot show the revocation.
+      if (authorizationCode) {
+        return { registrationAfter: registrationResult.registration };
+      }
+      const tokenResult = await postStep<{ token: TokenRunOutcome }>({
+        ...baseBody(),
+        action: "token",
+        certId: walkthrough.certId,
+        clientId: walkthrough.client?.id,
       });
       return { tokenAfter: tokenResult.token, registrationAfter: registrationResult.registration };
     });
@@ -491,14 +627,15 @@ export default function ScenarioWalkthroughPage() {
   const canIssue = scenarios.length > 0;
   const canDiscover = !!walkthrough.certId;
   const discoveryOk = !!walkthrough.discovery && discoveryPassed(walkthrough.discovery.checks);
-  const canRegister = discoveryOk;
+  const canRegister = discoveryOk && scopeList(walkthrough.scopes).length > 0;
   const canRequestToken = walkthrough.registration?.outcome === "accepted";
+  const canExchange = canRequestToken && (!authorizationCode || !!walkthrough.authorization?.code);
   const canAccess = walkthrough.tokenBefore?.outcome === "issued";
   const canConfirmRevoked = walkthrough.tokenBefore?.outcome === "issued";
   const canVerify =
     walkthrough.revokedConfirmed &&
     walkthrough.registration?.outcome === "accepted" &&
-    walkthrough.tokenBefore?.outcome === "issued";
+    (authorizationCode || walkthrough.tokenBefore?.outcome === "issued");
 
   const registrationJudgement =
     walkthrough.scenario && walkthrough.registration
@@ -656,7 +793,7 @@ export default function ScenarioWalkthroughPage() {
       <PageHeader icon={<Block />} title="Certificate Scenario Walkthrough" tag="Testing" color="success" />
       {showRevocationSteps && (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Step 6 needs an IdP admin login (admin or udap).
+          Step {6 + stepOffset} needs an IdP admin login (admin or udap).
         </Alert>
       )}
       <Stack spacing={3}>
@@ -736,12 +873,34 @@ export default function ScenarioWalkthroughPage() {
                 <StepLabel>Register a client</StepLabel>
                 <StepContent>
                   <Stack spacing={1}>
+                    <TextField
+                      select
+                      label="Grant type"
+                      value={walkthrough.grantType}
+                      onChange={(e) => changeGrantType(e.target.value as WalkthroughGrantType)}
+                      fullWidth
+                      helperText={
+                        walkthrough.grantType === "authorization_code"
+                          ? "Registers with redirect_uris, logo_uri, response_types [\"code\"] and a user scope, then signs in at the IdP"
+                          : "Registers with a system scope and no redirect_uris"
+                      }
+                    >
+                      <MenuItem value="client_credentials">Client credentials</MenuItem>
+                      <MenuItem value="authorization_code">Authorization code</MenuItem>
+                    </TextField>
+                    <TextField
+                      label="Scopes"
+                      value={walkthrough.scopes}
+                      onChange={(e) => update({ scopes: e.target.value })}
+                      fullWidth
+                      helperText="Space separated. Sent in the software statement and requested at the token endpoint."
+                    />
                     <StepButtonRow
                       label="Register"
                       busy={busy}
                       running={running === "register"}
                       disabled={!canRegister}
-                      hint={canRegister ? undefined : "Run discovery first."}
+                      hint={canRegister ? undefined : discoveryOk ? "Enter at least one scope." : "Run discovery first."}
                       onClick={registerClient}
                     />
                     <ErrorAlert message={errorFor("register")} />
@@ -752,6 +911,33 @@ export default function ScenarioWalkthroughPage() {
                 </StepContent>
               </Step>
 
+              {authorizationCode && showTokenStep && (
+                <Step expanded completed={!!walkthrough.authorization?.code}>
+                  <StepLabel>Authorize at the IdP</StepLabel>
+                  <StepContent>
+                    <Stack spacing={1}>
+                      <Typography variant="body2" color="text.secondary">
+                        Sends the browser to the authorization endpoint with PKCE and state. Sign in as a test
+                        user and you return here with an authorization code. Custom headers cannot ride on a
+                        browser redirect, so this leg goes without them.
+                      </Typography>
+                      <StepButtonRow
+                        label="Sign in at the IdP"
+                        busy={busy}
+                        running={running === "authorize"}
+                        disabled={!canRequestToken}
+                        hint={canRequestToken ? undefined : "Register a client first."}
+                        onClick={authorize}
+                      />
+                      <ErrorAlert message={errorFor("authorize")} />
+                      {walkthrough.authorization?.code && (
+                        <Typography variant="body2">Authorization code received.</Typography>
+                      )}
+                    </Stack>
+                  </StepContent>
+                </Step>
+              )}
+
               {showTokenStep && (
                 <Step expanded completed={walkthrough.tokenBefore?.outcome === "issued"}>
                   <StepLabel>Request an access token</StepLabel>
@@ -761,8 +947,8 @@ export default function ScenarioWalkthroughPage() {
                         label="Request token"
                         busy={busy}
                         running={running === "token"}
-                        disabled={!canRequestToken}
-                        hint={canRequestToken ? undefined : "Register a client first."}
+                        disabled={!canExchange}
+                        hint={canExchange ? undefined : authorizationCode ? "Sign in at the IdP first." : "Register a client first."}
                         onClick={requestTokenBefore}
                       />
                       <ErrorAlert message={errorFor("token")} />
@@ -814,7 +1000,7 @@ export default function ScenarioWalkthroughPage() {
               )}
 
               {showRevocationSteps && (
-                <Step expanded completed={walkthrough.tokenAfter !== undefined && walkthrough.registrationAfter !== undefined}>
+                <Step expanded completed={walkthrough.registrationAfter !== undefined}>
                   <StepLabel>Prove the certificate is rejected</StepLabel>
                   <StepContent>
                     <Stack spacing={1}>

@@ -85,7 +85,7 @@ public class DiscoveryInterceptor {
     discoveryResponse.add("udap_versions_supported", gson.toJsonTree(List.of("1")));
     discoveryResponse.add("udap_profiles_supported", gson.toJsonTree(List.of("udap_dcr", "udap_authn", "udap_authz")));
     discoveryResponse.add("udap_authorization_extensions_supported", gson.toJsonTree(List.of("hl7-b2b")));
-    discoveryResponse.add("udap_authorization_extensions_required", gson.toJsonTree(List.of("hl7-b2b")));
+    discoveryResponse.add("udap_authorization_extensions_required", gson.toJsonTree(List.of()));
     discoveryResponse.add("udap_certifications_supported", gson.toJsonTree(List.of("https://www.example.com/udap/profiles/example-certification")));
     discoveryResponse.add("udap_certifications_required", gson.toJsonTree(List.of("https://www.example.com/udap/profiles/example-certification")));
     discoveryResponse.add("grant_types_supported", gson.toJsonTree(List.of("authorization_code", "refresh_token", "client_credentials")));

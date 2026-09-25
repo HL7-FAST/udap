@@ -8,7 +8,8 @@ export async function getServerCapabilityStatement(fhirServer: string): Promise<
   const client = new Client({ baseUrl: fhirServer });
   const cs = await client.capabilityStatement();
   if (cs.resourceType !== "CapabilityStatement") {
-    console.error("Did not receive a CapabilityStatement.  Received:", cs);
+    console.error("Did not receive a CapabilityStatement. Received:", cs);
+    throw new Error("FHIR server did not return a CapabilityStatement.");
   }
-  return cs as unknown as CapabilityStatement;
+  return structuredClone(cs) as unknown as CapabilityStatement;
 }

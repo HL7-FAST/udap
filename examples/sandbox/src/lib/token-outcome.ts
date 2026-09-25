@@ -9,14 +9,24 @@ export type TokenRunOutcome =
   | { outcome: "issued"; accessToken: string; claims: Record<string, unknown> }
   | { outcome: "rejected"; status: number; body: unknown };
 
-/** Requests a token signed with an explicit certificate and turns a rejection into a TokenRunOutcome. Any other failure rethrows. */
+export interface AuthorizationCodeGrant {
+  code: string;
+  redirectUri: string;
+  codeVerifier: string;
+}
+
+/**
+ * Requests a token signed with an explicit certificate and turns a rejection into a TokenRunOutcome.
+ * Any other failure rethrows. `grant` carries the authorization code leg for authorization_code clients.
+ */
 export async function requestTokenForOutcome(
   client: UdapClient,
   cert: P12Certificate,
   transport?: UdapTransport,
+  grant?: AuthorizationCodeGrant,
 ): Promise<TokenRunOutcome> {
   try {
-    const token = await getAccessToken(client, undefined, undefined, undefined, cert, transport);
+    const token = await getAccessToken(client, grant?.code, grant?.redirectUri, grant?.codeVerifier, cert, transport);
     let claims: Record<string, unknown> = {};
     if (token.access_token) {
       const decoded = jwt.decode(token.access_token);

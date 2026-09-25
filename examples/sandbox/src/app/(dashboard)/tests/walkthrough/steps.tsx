@@ -459,17 +459,19 @@ export function VerifyResult({
   tokenAfter?: TokenRunOutcome;
   registrationAfter?: TrustRunOutcome;
 }) {
-  if (!tokenAfter || !registrationAfter) {
+  if (!registrationAfter) {
     return null;
   }
-  const tokenJudgement = judgeTokenAfterRevocation(tokenAfter);
+  const tokenJudgement = tokenAfter ? judgeTokenAfterRevocation(tokenAfter) : undefined;
   const registrationJudgement = judgeRegistrationAfterRevocation(registrationAfter);
   return (
     <Stack spacing={1}>
-      <ResultPanel tone={tokenJudgement.result} title={`Token endpoint: ${tokenJudgement.message}`}>
-        <FactList facts={tokenAfter.outcome === "rejected" ? errorFacts(tokenAfter.status, tokenAfter.body) : claimFacts(tokenAfter.claims)} />
-        <JsonDetails summary="Token endpoint response." value={tokenAfter.outcome === "rejected" ? tokenAfter.body : tokenAfter.claims} />
-      </ResultPanel>
+      {tokenAfter && tokenJudgement && (
+        <ResultPanel tone={tokenJudgement.result} title={`Token endpoint: ${tokenJudgement.message}`}>
+          <FactList facts={tokenAfter.outcome === "rejected" ? errorFacts(tokenAfter.status, tokenAfter.body) : claimFacts(tokenAfter.claims)} />
+          <JsonDetails summary="Token endpoint response." value={tokenAfter.outcome === "rejected" ? tokenAfter.body : tokenAfter.claims} />
+        </ResultPanel>
+      )}
       <ResultPanel tone={registrationJudgement.result} title={`Registration: ${registrationJudgement.message}`}>
         <FactList
           facts={

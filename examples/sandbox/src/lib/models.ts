@@ -71,7 +71,7 @@ export interface UdapSoftwareStatement {
   contacts: string[];
   logo_uri?: string;
   grant_types: string[];
-  response_types?: string[] | null;
+  response_types?: string[];
   token_endpoint_auth_method: "private_key_jwt";
   scope: string;
 }
