@@ -32,7 +32,7 @@
           "hide": false,
           "iconColor": "orange",
           "legacyOptions": {
-            "expr": "{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} |= \"Application started\"",
+            "expr": "{service_name=~\"$service\"} |= \"Application started\"",
             "titleFormat": "Service started"
           },
           "name": "Restarts",
@@ -70,7 +70,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (udap_error) (clamp_min(udap_registration_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", udap_error!=\"\"} - (last_over_time(udap_registration_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", udap_error!=\"\"}[1d] offset $__interval) or udap_registration_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", udap_error!=\"\"} * 0), 0))",
+                        "expr": "sum by (udap_error) (clamp_min(udap_registration_attempts_total{service_name=~\"$service\", udap_error!=\"\"} - (last_over_time(udap_registration_attempts_total{service_name=~\"$service\", udap_error!=\"\"}[1d] offset $__interval) or udap_registration_attempts_total{service_name=~\"$service\", udap_error!=\"\"} * 0), 0))",
                         "legendFormat": "{{udap_error}}"
                       },
                       "version": "v0"
@@ -91,7 +91,7 @@
             {
               "targetBlank": true,
               "title": "View traces",
-              "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&resource.deployment.environment.name=~\\\"$environment\\\"&&span:name=\\\"POST/connect/register\\\"&&span:http.response.status_code>=400}\",\"limit\":50}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}}"
+              "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&span:name=\\\"POST/connect/register\\\"&&span:http.response.status_code>=400}\",\"limit\":50}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}}"
             }
           ],
           "title": "Registration errors by RFC 7591 code",
@@ -197,7 +197,7 @@
                       "group": "loki",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} | RegistrationOutcome != \"\"",
+                        "expr": "{service_name=~\"$service\"} | RegistrationOutcome != \"\"",
                         "maxLines": 200,
                         "queryType": "range"
                       },
@@ -343,7 +343,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (grant_type) (clamp_min(tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"} - (last_over_time(tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"}[1d] offset $__interval) or tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"} * 0), 0))",
+                        "expr": "sum by (grant_type) (clamp_min(tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"} - (last_over_time(tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"}[1d] offset $__interval) or tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"} * 0), 0))",
                         "legendFormat": "{{grant_type}}"
                       },
                       "version": "v0"
@@ -364,7 +364,7 @@
             {
               "targetBlank": true,
               "title": "View traces",
-              "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&resource.deployment.environment.name=~\\\"$environment\\\"&&span:name=\\\"POST/connect/token\\\"}\",\"limit\":50}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}}"
+              "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&span:name=\\\"POST/connect/token\\\"}\",\"limit\":50}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}}"
             }
           ],
           "title": "Tokens issued by grant type",
@@ -470,7 +470,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sort_desc((((sum by (client) (increase(tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"}[$__range])) > 0) or (sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"}) unless sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"} offset $__range))) * on (client) group_left (udap_client_name) max by (client, udap_client_name) (udap_client_info{service_name=~\"$service\", deployment_environment_name=~\"$environment\"})) or (((sum by (client) (increase(tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"}[$__range])) > 0) or (sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"}) unless sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"} offset $__range))) unless on (client) max by (client, udap_client_name) (udap_client_info{service_name=~\"$service\", deployment_environment_name=~\"$environment\"})))",
+                        "expr": "sort_desc((((sum by (client) (increase(tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"}[$__range])) > 0) or (sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"}) unless sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"} offset $__range))) * on (client) group_left (udap_client_name) max by (client, udap_client_name) (udap_client_info{service_name=~\"$service\"})) or (((sum by (client) (increase(tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"}[$__range])) > 0) or (sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"}) unless sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"} offset $__range))) unless on (client) max by (client, udap_client_name) (udap_client_info{service_name=~\"$service\"})))",
                         "format": "table",
                         "instant": true,
                         "range": false
@@ -577,7 +577,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (error, auth_method) (clamp_min(tokenservice_client_secret_validation_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error!=\"\"} - (last_over_time(tokenservice_client_secret_validation_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error!=\"\"}[1d] offset $__interval) or tokenservice_client_secret_validation_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error!=\"\"} * 0), 0))",
+                        "expr": "sum by (error, auth_method) (clamp_min(tokenservice_client_secret_validation_total{service_name=~\"$service\", error!=\"\"} - (last_over_time(tokenservice_client_secret_validation_total{service_name=~\"$service\", error!=\"\"}[1d] offset $__interval) or tokenservice_client_secret_validation_total{service_name=~\"$service\", error!=\"\"} * 0), 0))",
                         "legendFormat": "{{auth_method}} {{error}}"
                       },
                       "version": "v0"
@@ -698,7 +698,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (udap_outcome) (clamp_min(udap_trust_chain_validations_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} - (last_over_time(udap_trust_chain_validations_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"}[1d] offset $__interval) or udap_trust_chain_validations_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} * 0), 0))",
+                        "expr": "sum by (udap_outcome) (clamp_min(udap_trust_chain_validations_total{service_name=~\"$service\"} - (last_over_time(udap_trust_chain_validations_total{service_name=~\"$service\"}[1d] offset $__interval) or udap_trust_chain_validations_total{service_name=~\"$service\"} * 0), 0))",
                         "legendFormat": "{{udap_outcome}}"
                       },
                       "version": "v0"
@@ -819,7 +819,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (udap_outcome) (clamp_min(udap_tiered_oauth_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} - (last_over_time(udap_tiered_oauth_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"}[1d] offset $__interval) or udap_tiered_oauth_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} * 0), 0))",
+                        "expr": "sum by (udap_outcome) (clamp_min(udap_tiered_oauth_attempts_total{service_name=~\"$service\"} - (last_over_time(udap_tiered_oauth_attempts_total{service_name=~\"$service\"}[1d] offset $__interval) or udap_tiered_oauth_attempts_total{service_name=~\"$service\"} * 0), 0))",
                         "legendFormat": "{{udap_outcome}}"
                       },
                       "version": "v0"
@@ -940,7 +940,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (udap_outcome, udap_provider) (clamp_min(udap_cert_generation_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} - (last_over_time(udap_cert_generation_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"}[1d] offset $__interval) or udap_cert_generation_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} * 0), 0))",
+                        "expr": "sum by (udap_outcome, udap_provider) (clamp_min(udap_cert_generation_attempts_total{service_name=~\"$service\"} - (last_over_time(udap_cert_generation_attempts_total{service_name=~\"$service\"}[1d] offset $__interval) or udap_cert_generation_attempts_total{service_name=~\"$service\"} * 0), 0))",
                         "legendFormat": "{{udap_provider}} {{udap_outcome}}"
                       },
                       "version": "v0"
@@ -961,7 +961,7 @@
             {
               "targetBlank": true,
               "title": "View traces",
-              "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&resource.deployment.environment.name=~\\\"$environment\\\"&&span:name=\\\"POSTapi/Cert/generate\\\"}\",\"limit\":50}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}}"
+              "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&span:name=\\\"POSTapi/Cert/generate\\\"}\",\"limit\":50}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}}"
             }
           ],
           "title": "Certificate generation",
@@ -1067,7 +1067,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum(udap_clients_registered{service_name=~\"$service\", deployment_environment_name=~\"$environment\"})",
+                        "expr": "sum(udap_clients_registered{service_name=~\"$service\"})",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -1155,7 +1155,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "limit": 50,
-                        "query": "{ resource.service.name =~ \"$service\" && resource.deployment.environment.name =~ \"$environment\" && span:name =~ \"POST /connect/(register|token)|POST api/Cert/generate\" }",
+                        "query": "{ resource.service.name =~ \"$service\" && span:name =~ \"POST /connect/(register|token)|POST api/Cert/generate\" }",
                         "queryType": "traceql",
                         "tableType": "traces"
                       },
@@ -1238,7 +1238,7 @@
                       "group": "loki",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} | severity_text=~\"Warning|Error|Fatal\" | scope_name=~\"Udap.*|IdentityServer.*\"",
+                        "expr": "{service_name=~\"$service\"} | severity_text=~\"Warning|Error|Fatal\" | scope_name=~\"Udap.*|IdentityServer.*\"",
                         "maxLines": 200,
                         "queryType": "range"
                       },
@@ -1302,9 +1302,9 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "max by (deployment_environment_name) (process_start_time_seconds{service_name=~\"$service\", deployment_environment_name=~\"$environment\"}) * 1000",
+                        "expr": "max(process_start_time_seconds{service_name=~\"$service\"}) * 1000",
                         "instant": true,
-                        "legendFormat": "{{deployment_environment_name}}",
+                        "legendFormat": "started",
                         "range": false
                       },
                       "version": "v0"
@@ -1317,7 +1317,7 @@
               "transformations": []
             }
           },
-          "description": "When the server last reached the running state, per environment. Source: process_start_time_seconds.",
+          "description": "When the server last reached the running state,. Source: process_start_time_seconds.",
           "id": 27,
           "links": [],
           "title": "Last startup",
@@ -1388,7 +1388,7 @@
                       "group": "loki",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum(count_over_time({service_name=~\"$service\", deployment_environment_name=~\"$environment\"} |= \"Host started\" [$__range]))",
+                        "expr": "sum(count_over_time({service_name=~\"$service\"} |= \"Host started\" [$__range]))",
                         "queryType": "instant"
                       },
                       "version": "v0"
@@ -1473,7 +1473,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum(increase(udap_registration_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", udap_outcome=\"success\"}[$__range]))",
+                        "expr": "sum(increase(udap_registration_attempts_total{service_name=~\"$service\", udap_outcome=\"success\"}[$__range]))",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -1560,7 +1560,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "count((sum by (client) (increase(tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"}[$__range])) > 0) or (sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"}) unless sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"} offset $__range)))",
+                        "expr": "count((sum by (client) (increase(tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"}[$__range])) > 0) or (sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"}) unless sum by (client) (tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"} offset $__range)))",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -1647,7 +1647,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "(sum(last_over_time(tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"}[$__range])) or vector(0)) - (sum(tokenservice_token_issued_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\", error=\"\"} offset $__range) or vector(0))",
+                        "expr": "(sum(last_over_time(tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"}[$__range])) or vector(0)) - (sum(tokenservice_token_issued_total{service_name=~\"$service\", error=\"\"} offset $__range) or vector(0))",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -1734,7 +1734,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum(increase(udap_trust_chain_validations_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"}[$__range]))",
+                        "expr": "sum(increase(udap_trust_chain_validations_total{service_name=~\"$service\"}[$__range]))",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -1821,7 +1821,7 @@
                       "group": "loki",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "count(sum by (CertIssuer) (count_over_time({service_name=~\"$service\", deployment_environment_name=~\"$environment\"} | RegistrationOutcome != \"\" | CertIssuer != \"\" [$__range])))",
+                        "expr": "count(sum by (CertIssuer) (count_over_time({service_name=~\"$service\"} | RegistrationOutcome != \"\" | CertIssuer != \"\" [$__range])))",
                         "instant": true,
                         "queryType": "instant",
                         "range": false
@@ -1908,7 +1908,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (udap_outcome) (clamp_min(udap_registration_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} - (last_over_time(udap_registration_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"}[1d] offset $__interval) or udap_registration_attempts_total{service_name=~\"$service\", deployment_environment_name=~\"$environment\"} * 0), 0))",
+                        "expr": "sum by (udap_outcome) (clamp_min(udap_registration_attempts_total{service_name=~\"$service\"} - (last_over_time(udap_registration_attempts_total{service_name=~\"$service\"}[1d] offset $__interval) or udap_registration_attempts_total{service_name=~\"$service\"} * 0), 0))",
                         "legendFormat": "{{udap_outcome}}"
                       },
                       "version": "v0"
@@ -1929,7 +1929,7 @@
             {
               "targetBlank": true,
               "title": "View traces",
-              "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&resource.deployment.environment.name=~\\\"$environment\\\"&&span:name=\\\"POST/connect/register\\\"}\",\"limit\":50}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}}"
+              "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&span:name=\\\"POST/connect/register\\\"}\",\"limit\":50}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}}"
             }
           ],
           "title": "Registrations by outcome",
@@ -2035,7 +2035,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (http_route) (label_replace(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\"}[$__rate_interval]), \"http_route\", \"(unrouted)\", \"http_route\", \"^$\"))",
+                        "expr": "sum by (http_route) (label_replace(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\"}[$__rate_interval]), \"http_route\", \"(unrouted)\", \"http_route\", \"^$\"))",
                         "legendFormat": "{{http_route}}"
                       },
                       "version": "v0"
@@ -2154,7 +2154,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\", http_response_status_code=~\"5..\"}[$__rate_interval])) or vector(0)) / sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\"}[$__rate_interval]))",
+                        "expr": "100 * (sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\", http_response_status_code=~\"5..\"}[$__rate_interval])) or vector(0)) / sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\"}[$__rate_interval]))",
                         "legendFormat": "5xx"
                       },
                       "version": "v0"
@@ -2173,7 +2173,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\", http_response_status_code=~\"4..\"}[$__rate_interval])) or vector(0)) / sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\"}[$__rate_interval]))",
+                        "expr": "100 * (sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\", http_response_status_code=~\"4..\"}[$__rate_interval])) or vector(0)) / sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\"}[$__rate_interval]))",
                         "legendFormat": "4xx"
                       },
                       "version": "v0"
@@ -2276,125 +2276,6 @@
           }
         }
       },
-      "panel-31": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "${prometheus}"
-                      },
-                      "group": "prometheus",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "expr": "histogram_quantile(0.95, sum by (le, http_route) (label_replace(rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\"}[$__rate_interval]), \"http_route\", \"(unrouted)\", \"http_route\", \"^$\")))",
-                        "legendFormat": "{{http_route}}"
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": []
-            }
-          },
-          "description": "Server-side request duration from the ASP.NET Core histogram. See the requests panel for what (unrouted) means. Docker health probes are excluded.",
-          "id": 31,
-          "links": [],
-          "title": "p95 latency by route",
-          "vizConfig": {
-            "group": "timeseries",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {
-                  "color": {
-                    "mode": "palette-classic"
-                  },
-                  "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
-                    "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.6,
-                    "drawStyle": "line",
-                    "fillOpacity": 10,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 1,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "never",
-                    "showValues": false,
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  },
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "red",
-                        "value": 80
-                      }
-                    ]
-                  },
-                  "unit": "s"
-                },
-                "overrides": []
-              },
-              "options": {
-                "annotations": {
-                  "clustering": -1,
-                  "multiLane": false
-                },
-                "legend": {
-                  "calcs": [],
-                  "displayMode": "list",
-                  "enableFacetedFilter": false,
-                  "overflow": "ellipsis",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "multi",
-                  "sort": "desc"
-                }
-              }
-            },
-            "version": "13.1.3"
-          }
-        }
-      },
       "panel-32": {
         "kind": "Panel",
         "spec": {
@@ -2413,7 +2294,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "(sum(last_over_time(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\"}[$__range])) or vector(0)) - (sum(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\"} offset $__range) or vector(0))",
+                        "expr": "(sum(last_over_time(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\"}[$__range])) or vector(0)) - (sum(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\"} offset $__range) or vector(0))",
                         "instant": true,
                         "range": false
                       },
@@ -2499,7 +2380,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "(sum(last_over_time(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\", http_response_status_code=~\"4..\"}[$__range])) or vector(0)) - (sum(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\", http_response_status_code=~\"4..\"} offset $__range) or vector(0))",
+                        "expr": "(sum(last_over_time(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\", http_response_status_code=~\"4..\"}[$__range])) or vector(0)) - (sum(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\", http_response_status_code=~\"4..\"} offset $__range) or vector(0))",
                         "instant": true,
                         "range": false
                       },
@@ -2585,7 +2466,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "(sum(last_over_time(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\", http_response_status_code=~\"5..\"}[$__range])) or vector(0)) - (sum(http_server_request_duration_seconds_count{service_name=~\"$service\", deployment_environment_name=~\"$environment\", http_route!=\"/health\", http_response_status_code=~\"5..\"} offset $__range) or vector(0))",
+                        "expr": "(sum(last_over_time(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\", http_response_status_code=~\"5..\"}[$__range])) or vector(0)) - (sum(http_server_request_duration_seconds_count{service_name=~\"$service\", http_route!=\"/health\", http_response_status_code=~\"5..\"} offset $__range) or vector(0))",
                         "instant": true,
                         "range": false
                       },
@@ -2832,7 +2713,7 @@
                           "name": "panel-29"
                         },
                         "height": 8,
-                        "width": 8,
+                        "width": 12,
                         "x": 0,
                         "y": 4
                       }
@@ -2845,21 +2726,8 @@
                           "name": "panel-30"
                         },
                         "height": 8,
-                        "width": 8,
-                        "x": 8,
-                        "y": 4
-                      }
-                    },
-                    {
-                      "kind": "GridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-31"
-                        },
-                        "height": 8,
-                        "width": 8,
-                        "x": 16,
+                        "width": 12,
+                        "x": 12,
                         "y": 4
                       }
                     }
@@ -3081,7 +2949,7 @@
         "title": "Explore traces",
         "tooltip": "",
         "type": "link",
-        "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&resource.deployment.environment.name=~\\\"$environment\\\"&&span:name=\\\"POST/connect/register\\\"}\"}]}}"
+        "url": "/explore?schemaVersion=1&panes={\"a\":{\"datasource\":\"${tempo}\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceql\",\"query\":\"{resource.service.name=~\\\"$service\\\"&&span:name=\\\"POST/connect/register\\\"}\"}]}}"
       }
     ],
     "liveNow": false,
@@ -3197,41 +3065,6 @@
             "kind": "DataQuery",
             "spec": {
               "query": "label_values(udap_clients_registered, service_name)",
-              "refId": "A"
-            },
-            "version": "v0"
-          },
-          "refresh": "onTimeRangeChanged",
-          "regex": "",
-          "regexApplyTo": "value",
-          "skipUrlSync": false,
-          "sort": "alphabeticalAsc"
-        }
-      },
-      {
-        "kind": "QueryVariable",
-        "spec": {
-          "allValue": ".*",
-          "allowCustomValue": true,
-          "current": {
-            "text": "All",
-            "value": "$__all"
-          },
-          "definition": "label_values(udap_clients_registered{service_name=~\"$service\"}, deployment_environment_name)",
-          "hide": "dontHide",
-          "includeAll": true,
-          "label": "Environment",
-          "multi": true,
-          "name": "environment",
-          "options": [],
-          "query": {
-            "datasource": {
-              "name": "${prometheus}"
-            },
-            "group": "prometheus",
-            "kind": "DataQuery",
-            "spec": {
-              "query": "label_values(udap_clients_registered{service_name=~\"$service\"}, deployment_environment_name)",
               "refId": "A"
             },
             "version": "v0"

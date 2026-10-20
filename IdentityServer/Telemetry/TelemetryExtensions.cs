@@ -85,11 +85,11 @@ internal static class TelemetryExtensions
             .WithMetrics(metrics =>
             {
                 metrics
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation()
+                    .AddMeter("Microsoft.AspNetCore.Hosting")
                     .AddMeter("Duende.IdentityServer")
                     .AddMeter(UdapMetrics.MeterName)
+                    // Usage counts only. Buckets would multiply every route, method and status by 15 series.
+                    .AddView("http.server.request.duration", new ExplicitBucketHistogramConfiguration { Boundaries = Array.Empty<double>() })
                     // Attach the current trace id to metric samples so charts can link to traces
                     .SetExemplarFilter(ExemplarFilterType.TraceBased)
                     .AddOtlpExporter();
