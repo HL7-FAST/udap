@@ -21,6 +21,7 @@ public class SandboxHostServiceTests
         Assert.Equal("127.0.0.1", env["HOSTNAME"]);
         Assert.Equal("3000", env["PORT"]);
         Assert.Equal("https://fhir.example.org/fhir", env["FHIR_SERVER_URL"]);
+        Assert.Equal(baseUrl.TrimEnd('/'), env["SECURITY_SERVER_URL"]);
         Assert.DoesNotContain("NODE_TLS_REJECT_UNAUTHORIZED", env.Keys);
         Assert.Equal([expectedAppUrl + "/#SAN1", expectedAppUrl + "/#SAN2"], SandboxHostService.ClientAltNames(expectedAppUrl));
     }

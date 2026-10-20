@@ -7,7 +7,7 @@ import CertificateScenarioTest, { getCertificateScenarioTest } from "./certifica
 import PageHeader from "@/components/page-header";
 import TestSuite from "@/components/tests/test-suite";
 import { BASE_PATH } from "@/lib/constants";
-import { useUdapClientState } from "@/lib/states";
+import { getDefaultServers } from "@/lib/env";
 import { TestSuiteParams, getTestSuite } from "@/lib/tests/test-suite";
 import { CertScenarioSummary } from "@/lib/tests/trust-outcome";
 import { formatMarkdownDescription } from "@/lib/utils";
@@ -17,25 +17,39 @@ export interface CertificateValidationTestSuiteParams extends TestSuiteParams {
 }
 
 const SUITE_KEY = "certificate-validation";
-const DEFAULT_SERVER_URL = "https://localhost:5001";
 
 export default function CertificatesPage() {
-  const client = useUdapClientState((state) => state.client);
-  const initialServerUrl = client
-    ? new URL(client.authorizationEndpoint).origin
-    : DEFAULT_SERVER_URL;
-
   // The draft follows the text field. The server URL only changes when the user commits it,
   // so the catalog is not refetched on every keystroke.
-  const [draft, setDraft] = useState(initialServerUrl);
-  const [serverUrl, setServerUrl] = useState(initialServerUrl);
+  const [draft, setDraft] = useState("");
+  const [serverUrl, setServerUrl] = useState("");
   const [scenarios, setScenarios] = useState<CertScenarioSummary[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadCount, setReloadCount] = useState(0);
 
+  // Fills the security server once from the sandbox defaults.
+  useEffect(() => {
+    if (serverUrl) {
+      return;
+    }
+    let cancelled = false;
+    getDefaultServers().then((defaults) => {
+      if (!cancelled) {
+        setDraft(defaults.securityServer);
+        setServerUrl(defaults.securityServer);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [serverUrl]);
+
   // The cleanup aborts a superseded catalog request so a late response cannot overwrite
   // a newer one (from a fast server-URL change or a repeat reload of the same URL).
   useEffect(() => {
+    if (!serverUrl) {
+      return;
+    }
     const controller = new AbortController();
     fetch(BASE_PATH + "/api/tests/certificates?serverUrl=" + encodeURIComponent(serverUrl), {
       signal: controller.signal,

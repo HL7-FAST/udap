@@ -61,6 +61,7 @@ public sealed class SandboxHostService(
             ["PORT"] = destination.Port.ToString(),
             ["APP_URL"] = appUrl,
             ["AUTH_URL"] = appUrl + "/api/auth",
+            ["SECURITY_SERVER_URL"] = config.UdapIdpBaseUrl.TrimEnd('/'),
             ["AUTH_TRUST_HOST"] = "true",
             ["AUTH_SECRET"] = authSecret,
             ["CERT_FILE"] = certFile,

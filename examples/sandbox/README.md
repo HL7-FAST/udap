@@ -23,6 +23,7 @@ The following environment variables are used:
 - `CERT_FILE`: Path to the p12 certificate for the default server clients OR base64 encoded certificate.
 - `CERT_PASSWORD`: Password for the certificate.
 - `FHIR_SERVER_URL`: (optional) FHIR server to query.
+- `SECURITY_SERVER_URL`: (optional) FAST Security RI the test pages default to. Defaults to `https://localhost:5001`.
 - `APP_URL`: (optional) URL of this application.
 
 The sandbox is a local testing tool. Its API routes are unauthenticated, they fetch whichever UDAP server the user configures, and TLS verification is disabled by the setting above, so do not expose the sandbox to an untrusted network.
@@ -35,7 +36,7 @@ This certificate will work with the FAST Security RI server with its trusted `Lo
 
 ### Running Inside the Security Server Image
 
-The security server's Docker image builds this app with `NEXT_PUBLIC_BASE_PATH=/sandbox` and serves it at `https://<server>/sandbox`. The server process sets `APP_URL`, `AUTH_URL`, `CERT_FILE`, `CERT_PASSWORD`, `AUTH_SECRET` and `FHIR_SERVER_URL` for the Node child, so no `.env` file is needed there. See `docs/features/sandbox.md` in the repository root.
+The security server's Docker image builds this app with `NEXT_PUBLIC_BASE_PATH=/sandbox` and serves it at `https://<server>/sandbox`. The server process sets `APP_URL`, `AUTH_URL`, `CERT_FILE`, `CERT_PASSWORD`, `AUTH_SECRET`, `FHIR_SERVER_URL` and `SECURITY_SERVER_URL` for the Node child, so no `.env` file is needed there. See `docs/features/sandbox.md` in the repository root.
 
 `NEXT_PUBLIC_BASE_PATH` is inlined at build time. Leave it unset for local development.
 

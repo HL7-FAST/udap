@@ -34,7 +34,7 @@ import {
 } from "./steps";
 import { BASE_PATH } from "@/lib/constants";
 import PageHeader from "@/components/page-header";
-import { getDefaultFhirServer } from "@/lib/env";
+import { getDefaultServers } from "@/lib/env";
 import { UdapClient } from "@/lib/models";
 import type { AccessRunOutcome } from "@/lib/access-outcome";
 import { CertificateFacts } from "@/lib/tests/cert-facts";
@@ -43,12 +43,10 @@ import { DiscoveryCheck, DiscoveryOutcome, discoveryPassed } from "@/lib/tests/d
 import { judgeTokenBeforeRevocation } from "@/lib/tests/revocation-outcome";
 import { CertScenarioSummary, TrustRunOutcome, judgeTrustOutcome } from "@/lib/tests/trust-outcome";
 import { TokenRunOutcome } from "@/lib/token-outcome";
-import { useUdapClientState } from "@/lib/states";
 import { useLocalStorageState } from "@/lib/use-local-storage-state";
 import { UdapTransport, routeRequest } from "@/lib/udap-transport";
 
 const STORE_KEY = "scenario-walkthrough";
-const DEFAULT_SERVER_URL = "https://localhost:5001";
 
 type WalkthroughStepKey = "issue" | "discover" | "register" | "authorize" | "token" | "access" | "verify";
 
@@ -140,7 +138,7 @@ const storageCodec = {
     try {
       const parsed = JSON.parse(raw) as Partial<WalkthroughState> | null;
       if (!parsed || typeof parsed.serverUrl !== "string") {
-        return initialState(DEFAULT_SERVER_URL, "");
+        return initialState("", "");
       }
       return {
         ...initialState(parsed.serverUrl, parsed.fhirServer ?? ""),
@@ -149,7 +147,7 @@ const storageCodec = {
         scopes: parsed.scopes ?? DEFAULT_SCOPES[parsed.grantType ?? "client_credentials"],
       };
     } catch {
-      return initialState(DEFAULT_SERVER_URL, "");
+      return initialState("", "");
     }
   },
   stringify: (value: WalkthroughState) => JSON.stringify(value),
@@ -206,20 +204,17 @@ async function pkcePair(): Promise<{ verifier: string; challenge: string }> {
 }
 
 export default function ScenarioWalkthroughPage() {
-  const udapClient = useUdapClientState((state) => state.client);
-  const initialServerUrl = udapClient ? new URL(udapClient.authorizationEndpoint).origin : DEFAULT_SERVER_URL;
-
   const [state, setState] = useLocalStorageState<WalkthroughState>(
     STORE_KEY,
-    initialState(initialServerUrl, ""),
+    initialState("", ""),
     { codec: storageCodec },
   );
-  const walkthrough = state ?? initialState(initialServerUrl, "");
+  const walkthrough = state ?? initialState("", "");
   const authorizationCode = walkthrough.grantType === "authorization_code";
   // The Authorize step only exists for authorization_code, so later step indexes shift by one.
   const stepOffset = authorizationCode ? 1 : 0;
 
-  const [draft, setDraft] = useState(initialServerUrl);
+  const [draft, setDraft] = useState("");
   const [fhirDraft, setFhirDraft] = useState(walkthrough.fhirServer);
   const [proxyOpen, setProxyOpen] = useState(false);
   // One request runs at a time because each step builds on the one before. Only the step that
@@ -247,26 +242,33 @@ export default function ScenarioWalkthroughPage() {
     setFhirDraft(walkthrough.fhirServer);
   }, [walkthrough.fhirServer]);
 
-  // Fills a default FHIR server exactly once, and only for state saved before this field existed.
+  // Fills missing server defaults once: fresh state, and state saved before a field existed.
   useEffect(() => {
-    if (walkthrough.fhirServer) {
+    if (walkthrough.fhirServer && walkthrough.serverUrl) {
       return;
     }
     let cancelled = false;
-    getDefaultFhirServer().then((url) => {
-      if (!cancelled) {
-        update({ fhirServer: url });
+    getDefaultServers().then((defaults) => {
+      if (cancelled) {
+        return;
       }
+      update({
+        ...(walkthrough.fhirServer ? {} : { fhirServer: defaults.fhirServer }),
+        ...(walkthrough.serverUrl ? {} : { serverUrl: defaults.securityServer }),
+      });
     });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- update() reads the latest state from storage itself
-  }, [walkthrough.fhirServer]);
+  }, [walkthrough.fhirServer, walkthrough.serverUrl]);
 
   // The cleanup aborts a superseded catalog request so a late response cannot overwrite
   // a newer one from a fast server-URL change.
   useEffect(() => {
+    if (!walkthrough.serverUrl) {
+      return;
+    }
     const controller = new AbortController();
     fetch(BASE_PATH + "/api/tests/certificates?serverUrl=" + encodeURIComponent(walkthrough.serverUrl), {
       signal: controller.signal,
