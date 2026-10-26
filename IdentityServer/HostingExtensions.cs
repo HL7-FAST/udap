@@ -354,6 +354,7 @@ namespace IdentityServer
                 appBuilder => appBuilder.UseHttpsRedirection()
             );
             app.UseRouting();
+            app.UseRouteTags();
             app.UseRateLimiter();
 
 
