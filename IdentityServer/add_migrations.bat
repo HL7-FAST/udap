@@ -24,9 +24,9 @@ dotnet ef migrations script -c UdapDbContext -o ../IdentityServer.Migrations.Sql
 
 
 :: PostgreSQL
-dotnet ef migrations add %1IdentityServerConfigurationDbMigration -c ConfigurationDbContext --project ../IdentityServer.Migrations.Pgsql -o ../IdentityServer.Migrations.Pgsql/Migrations/ConfigurationDb -- AppConfig:DatabaseProvider=Pgsql
-dotnet ef migrations add %1InitialIdentityServerPersistedGrantDbMigration -c PersistedGrantDbContext --project ../IdentityServer.Migrations.Pgsql -o ../IdentityServer.Migrations.Pgsql/Migrations/PersistedGrantDb -- AppConfig:DatabaseProvider=Pgsql
+dotnet ef migrations add %1IdentityServerConfigurationDbMigration -c NpgsqlConfigurationDbContext --project ../IdentityServer.Migrations.Pgsql -o ../IdentityServer.Migrations.Pgsql/Migrations/ConfigurationDb -- AppConfig:DatabaseProvider=Pgsql
+dotnet ef migrations add %1InitialIdentityServerPersistedGrantDbMigration -c NpgsqlPersistedGrantDbContext --project ../IdentityServer.Migrations.Pgsql -o ../IdentityServer.Migrations.Pgsql/Migrations/PersistedGrantDb -- AppConfig:DatabaseProvider=Pgsql
 dotnet ef migrations add %1InitialIdentityServerUdapDbMigration -c UdapDbContext --project ../IdentityServer.Migrations.Pgsql -o ../IdentityServer.Migrations.Pgsql/Migrations/UdapDb -- AppConfig:DatabaseProvider=Pgsql
-dotnet ef migrations script -c ConfigurationDbContext -o ../IdentityServer.Migrations.Pgsql/Migrations/create-ConfigurationDb.sql -- AppConfig:DatabaseProvider=Pgsql
-dotnet ef migrations script -c PersistedGrantDbContext -o ../IdentityServer.Migrations.Pgsql/Migrations/create-PersistedGrantDb.sql -- AppConfig:DatabaseProvider=Pgsql
+dotnet ef migrations script -c NpgsqlConfigurationDbContext -o ../IdentityServer.Migrations.Pgsql/Migrations/create-ConfigurationDb.sql -- AppConfig:DatabaseProvider=Pgsql
+dotnet ef migrations script -c NpgsqlPersistedGrantDbContext -o ../IdentityServer.Migrations.Pgsql/Migrations/create-PersistedGrantDb.sql -- AppConfig:DatabaseProvider=Pgsql
 dotnet ef migrations script -c UdapDbContext -o ../IdentityServer.Migrations.Pgsql/Migrations/create-UdapDb.sql -- AppConfig:DatabaseProvider=Pgsql

@@ -14,7 +14,7 @@ namespace IdentityServer.Tests;
 
 public class UdapMetricsTests
 {
-    // The gauge callback requires a ConfigurationDbContext, which we don't register here.
+    // The gauge callback requires an IConfigurationDbContext, which we don't register here.
     // Nothing in these tests observes the gauge, so it is never invoked.
     private static (UdapMetrics Metrics, TrustChainValidator Validator, IMeterFactory MeterFactory) BuildMetrics()
     {

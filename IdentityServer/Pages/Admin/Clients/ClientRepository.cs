@@ -1,4 +1,4 @@
-using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.EntityFramework.Interfaces;
 using Duende.IdentityServer.EntityFramework.Entities;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Models;
@@ -56,9 +56,9 @@ namespace IdentityServer.Pages.Admin.Clients
 
     public class ClientRepository
     {
-        private readonly ConfigurationDbContext _context;
+        private readonly IConfigurationDbContext _context;
 
-        public ClientRepository(ConfigurationDbContext context)
+        public ClientRepository(IConfigurationDbContext context)
         {
             _context = context;
         }

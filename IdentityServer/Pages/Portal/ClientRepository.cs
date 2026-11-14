@@ -1,4 +1,4 @@
-using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.EntityFramework.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IdentityServer.Pages.Portal
@@ -12,9 +12,9 @@ namespace IdentityServer.Pages.Portal
 
     public class ClientRepository
     {
-        private readonly ConfigurationDbContext _context;
+        private readonly IConfigurationDbContext _context;
 
-        public ClientRepository(ConfigurationDbContext context)
+        public ClientRepository(IConfigurationDbContext context)
         {
             _context = context;
         }

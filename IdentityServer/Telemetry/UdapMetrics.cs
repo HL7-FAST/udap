@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
-using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.EntityFramework.Interfaces;
 using IdentityServer.Models;
 using Serilog;
 using Udap.Common.Certificates;
@@ -151,7 +151,7 @@ public sealed class UdapMetrics
     {
         // Gauge callbacks run on the metrics reader thread, outside any request scope.
         using var scope = scopeFactory.CreateScope();
-        return scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>().Clients.LongCount();
+        return scope.ServiceProvider.GetRequiredService<IConfigurationDbContext>().Clients.LongCount();
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ public sealed class UdapMetrics
     private static IEnumerable<Measurement<int>> ListRegisteredClients(IServiceScopeFactory scopeFactory)
     {
         using var scope = scopeFactory.CreateScope();
-        var clients = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>().Clients
+        var clients = scope.ServiceProvider.GetRequiredService<IConfigurationDbContext>().Clients
             .Select(c => new { c.ClientId, c.ClientName })
             .ToList();
         return clients.Select(c => new Measurement<int>(1, new TagList

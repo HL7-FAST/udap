@@ -162,7 +162,7 @@ namespace IdentityServer
                 });
 
 
-            builder.Services.AddIdentityServer(options =>
+            var identityServer = builder.Services.AddIdentityServer(options =>
                 {
                     if (!string.IsNullOrEmpty(appConfig.IssuerUri))
                     {
@@ -181,38 +181,53 @@ namespace IdentityServer
                     //options.UserInteraction.LogoutUrl = "/udapaccount/logout";
                     options.InputLengthRestrictions.Scope = appConfig.MaxScopeLength;
                 })
-                .AddServerSideSessions()
-                // this adds the config data from DB (clients, resources, CORS)
-                .AddConfigurationStore(options =>
-                    _ = appConfig.DatabaseProvider switch
-                    {
-                        "Pgsql" => options.ConfigureDbContext = b =>
+                .AddServerSideSessions();
+
+            if (appConfig.DatabaseProvider == "Pgsql")
+            {
+                // On Npgsql, UdapDbContext reads the client tables as snake_case names in the udap schema.
+                // These contexts create the Duende tables with the same names.
+                identityServer
+                    .AddConfigurationStore<NpgsqlConfigurationDbContext>(options =>
+                        options.ConfigureDbContext = b =>
                             b.UseNpgsql(connectionString,
-                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Pgsql")),
-                        "SqlServer" => options.ConfigureDbContext = b =>
-                            b.UseSqlServer(connectionString,
-                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.SqlServer")),
-                        _ => options.ConfigureDbContext = b =>
-                            b.UseSqlite(connectionString,
-                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Sqlite"))
-                    })
-                // this is something you will want in production to reduce load on and requests to the DB
-                //.AddConfigurationStoreCache()
-                //
-                // this adds the operational data from DB (codes, tokens, consents)
-                .AddOperationalStore(options =>
-                    _ = appConfig.DatabaseProvider switch
-                    {
-                        "Pgsql" => options.ConfigureDbContext = b =>
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Pgsql")))
+                    .AddOperationalStore<NpgsqlPersistedGrantDbContext>(options =>
+                        options.ConfigureDbContext = b =>
                             b.UseNpgsql(connectionString,
-                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Pgsql")),
-                        "SqlServer" => options.ConfigureDbContext = b =>
-                            b.UseSqlServer(connectionString,
-                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.SqlServer")),
-                        _ => options.ConfigureDbContext = b =>
-                            b.UseSqlite(connectionString,
-                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Sqlite"))
-                    })
+                                dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Pgsql")));
+            }
+            else
+            {
+                identityServer
+                    // this adds the config data from DB (clients, resources, CORS)
+                    .AddConfigurationStore(options =>
+                        _ = appConfig.DatabaseProvider switch
+                        {
+                            "SqlServer" => options.ConfigureDbContext = b =>
+                                b.UseSqlServer(connectionString,
+                                    dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.SqlServer")),
+                            _ => options.ConfigureDbContext = b =>
+                                b.UseSqlite(connectionString,
+                                    dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Sqlite"))
+                        })
+                    // this is something you will want in production to reduce load on and requests to the DB
+                    //.AddConfigurationStoreCache()
+                    //
+                    // this adds the operational data from DB (codes, tokens, consents)
+                    .AddOperationalStore(options =>
+                        _ = appConfig.DatabaseProvider switch
+                        {
+                            "SqlServer" => options.ConfigureDbContext = b =>
+                                b.UseSqlServer(connectionString,
+                                    dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.SqlServer")),
+                            _ => options.ConfigureDbContext = b =>
+                                b.UseSqlite(connectionString,
+                                    dbOpts => dbOpts.MigrationsAssembly("IdentityServer.Migrations.Sqlite"))
+                        });
+            }
+
+            identityServer
                 .AddResourceStore<ResourceStore>()
                 .AddClientStore<ClientStore>()
                 .AddTestUsers(new List<TestUser> { 

@@ -1,5 +1,5 @@
 ﻿using Duende.IdentityServer;
-using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.EntityFramework.Interfaces;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Models;
 using IdentityServer.Models;
@@ -29,15 +29,15 @@ namespace IdentityServer
             using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 // ensure we have required services available before any seeding
-                var persistedGrantContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-                var configContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+                var persistedGrantContext = scope.ServiceProvider.GetRequiredService<IPersistedGrantDbContext>();
+                var configContext = scope.ServiceProvider.GetRequiredService<IConfigurationDbContext>();
                 var udapContext = scope.ServiceProvider.GetRequiredService<UdapDbContext>();
                 var clientRegistrationStore = scope.ServiceProvider.GetRequiredService<IUdapClientRegistrationStore>();
                 var appConfig = app.Configuration.GetOption<AppConfig>(nameof(AppConfig));
 
-                // handle migrations
-                await persistedGrantContext.Database.MigrateAsync();
-                await configContext.Database.MigrateAsync();
+                // handle migrations. The Duende context types depend on the provider, so they are resolved by interface.
+                await ((DbContext)persistedGrantContext).Database.MigrateAsync();
+                await ((DbContext)configContext).Database.MigrateAsync();
                 await udapContext.Database.MigrateAsync();
 
                 // seed data
@@ -48,7 +48,7 @@ namespace IdentityServer
         }
 
 
-        private static async Task SeedIdentityResources(ConfigurationDbContext context)
+        private static async Task SeedIdentityResources(IConfigurationDbContext context)
         {
             Log.Debug("Seeding identity resources");
 
@@ -271,7 +271,7 @@ namespace IdentityServer
 
         }
 
-        private static async Task SeedFhirScopes(ConfigurationDbContext configContext)
+        private static async Task SeedFhirScopes(IConfigurationDbContext configContext)
         {
             Log.Debug("Seeding FHIR scopes");
 
@@ -308,7 +308,7 @@ namespace IdentityServer
         }
 
 
-        private static async Task SeedFhirScopes(ConfigurationDbContext configDbContext, HashSet<string> seedScopes, Dictionary<string, string> scopeProperties)
+        private static async Task SeedFhirScopes(IConfigurationDbContext configDbContext, HashSet<string> seedScopes, Dictionary<string, string> scopeProperties)
         {
 
             var apiScopes = configDbContext.ApiScopes

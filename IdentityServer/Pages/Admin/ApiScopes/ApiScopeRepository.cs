@@ -1,4 +1,4 @@
-using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.EntityFramework.Interfaces;
 using Duende.IdentityServer.EntityFramework.Entities;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +23,9 @@ namespace IdentityServer.Pages.Admin.ApiScopes
 
     public class ApiScopeRepository
     {
-        private readonly ConfigurationDbContext _context;
+        private readonly IConfigurationDbContext _context;
 
-        public ApiScopeRepository(ConfigurationDbContext context)
+        public ApiScopeRepository(IConfigurationDbContext context)
         {
             _context = context;
         }
