@@ -10,12 +10,12 @@ namespace IdentityServer.Pages.Admin.IdentityScopes
     {
         [Required]
         public string Name { get; set; }
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
     }
 
     public class IdentityScopeModel : IdentityScopeSummaryModel
     {
-        public string UserClaims { get; set; }
+        public string? UserClaims { get; set; }
     }
 
 

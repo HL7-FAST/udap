@@ -10,14 +10,14 @@ namespace IdentityServer.Pages.Admin.ApiScopes
     {
         [Required]
         public string Name { get; set; }
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
         public bool ShowInDiscoveryDocument { get; set; }
         public bool Enabled { get; set; }
     }
 
     public class ApiScopeModel : ApiScopeSummaryModel
     {
-        public string UserClaims { get; set; }
+        public string? UserClaims { get; set; }
     }
 
 

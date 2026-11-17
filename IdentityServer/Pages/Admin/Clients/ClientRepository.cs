@@ -11,7 +11,7 @@ namespace IdentityServer.Pages.Admin.Clients
     {
         [Required]
         public string ClientId { get; set; }
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [Required]
         public Flow Flow { get; set; }
         public int AllowedScopesCount { get; set; }
@@ -22,15 +22,15 @@ namespace IdentityServer.Pages.Admin.Clients
         public string Secret { get; set; }
     }
 
-    public class ClientModel : CreateClientModel, IValidatableObject
+    public class ClientModel : ClientSummaryModel, IValidatableObject
     {
         [Required]
         public string AllowedScopes { get; set; }
 
-        public string RedirectUri { get; set; }
-        public string PostLogoutRedirectUri { get; set; }
-        public string FrontChannelLogoutUri { get; set; }
-        public string BackChannelLogoutUri { get; set; }
+        public string? RedirectUri { get; set; }
+        public string? PostLogoutRedirectUri { get; set; }
+        public string? FrontChannelLogoutUri { get; set; }
+        public string? BackChannelLogoutUri { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
