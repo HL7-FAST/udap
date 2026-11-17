@@ -18,7 +18,7 @@ The following settings are available in the `AppConfig` section:
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `DatabaseProvider` | `Sqlite` \| `SqlServer` | `Sqlite` | :fontawesome-solid-database: Database provider for persistence. Must match the connection string in `ConnectionStrings.DefaultConnection`. |
-| `UdapIdpBaseUrl` | string | `https://localhost:5001` | :material-link: Base URL for the server (e.g., `https://localhost:5001`). Used for the `registration_endpoint` in `.well-known/udap`. |
+| `UdapIdpBaseUrl` | string | `https://localhost:5001` | :material-link: Base URL for the server (e.g., `https://localhost:5001`). It sets the identity and the endpoints in `.well-known/udap`, so it must be the public URL that clients use. The server publishes `.well-known/udap` only when `UdapFileCertStoreManifest` holds a certificate with this URL as a URI subject alternative name. Without one the endpoint returns 404. |
 | `SeedData` | `true` \| `false` | `false` | :material-database-import: Whether to seed initial data on startup. See [Seeding Data](seeding-data.md). |
 | `SystemAdminPassword` | string | `admin` | :material-shield-account: Password for the default system administrator user. |
 | `UdapAdminPassword` | string | `udap` | :material-shield-key: Password for the default UDAP administrator user. |

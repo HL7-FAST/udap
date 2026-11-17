@@ -20,7 +20,7 @@ async function readSealedCheckCookie(cookies: RequestCookies, name: string): Pro
 import { getAuthConfig, handlers } from "@/auth";
 import { getServerCertificate } from "@/lib/cert-store";
 import { UdapProfile } from "@/lib/models";
-import { discoverUdapEndpoint, getAccessToken } from "@/lib/udap-actions";
+import { discoverOpenIdConfiguration, discoverUdapEndpoint, getAccessToken } from "@/lib/udap-actions";
 import { getClient } from "@/lib/client-store";
 import { AUTHORIZATION_CODE_CLIENT_ID, BASE_PATH } from "@/lib/constants";
 
@@ -68,9 +68,9 @@ export async function GET(request: NextRequest): Promise<Response> {
     throw new Error("No server certificate");
   }
 
-  // ensure we have token and userinfo endpoints
+  // ensure we have token and userinfo endpoints. The userinfo endpoint is OpenID metadata, so that document is read first.
   if (!options.token?.url || !options.userinfo?.url) {
-    const wellKnown = await discoverUdapEndpoint(options.issuer);
+    const wellKnown = (await discoverOpenIdConfiguration(options.issuer)) ?? (await discoverUdapEndpoint(options.issuer));
     options.token ??= {};
     options.token.url ??= wellKnown.token_endpoint;
     options.userinfo ??= {};

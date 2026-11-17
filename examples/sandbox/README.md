@@ -28,6 +28,16 @@ The following environment variables are used:
 
 The sandbox is a local testing tool. Its API routes are unauthenticated, they fetch whichever UDAP server the user configures, and TLS verification is disabled by the setting above, so do not expose the sandbox to an untrusted network.
 
+### Redirect URI Note
+
+The FAST Security IG requires `https` redirect URIs, and the security server refuses `http` ones by default. This app runs on `http://localhost` in local development, so its `authorization_code` client can only register when the security server allows `http` on loopback addresses. Add this to the server's `appsettings.Local.json`:
+
+```json
+"ServerSettings": {
+  "AllowLoopbackHttpRedirectUris": true
+}
+```
+
 ### Certificate Note
 
 A default certificate (`cert-localhost3000-2sans.pfx`) is provided for local development that contains two different SANs (`http://localhost:3000/#SAN1` and `http://localhost:3000/#SAN2`) to enable to default registration of two different clients using the same certificate.
@@ -80,7 +90,7 @@ Two pages under Testing exercise the server's certificate scenario catalog (`GET
 
 ### Testing through a proxy
 
-The walkthrough's discovery step targets a FHIR server, not the security server. That FHIR server must publish full UDAP metadata with a `signed_metadata` value. The security server's own `/.well-known/udap` is only the OpenID discovery document, so it is not a valid discovery target here.
+The walkthrough's discovery step targets a FHIR server, not the security server. That FHIR server must publish full UDAP metadata with a `signed_metadata` value. The security server publishes signed UDAP metadata of its own at `/.well-known/udap`, but it has no FHIR API for the read step.
 
 The security server still issues the walkthrough's certificate and hosts the revocation page. Neither of those goes through a proxy.
 

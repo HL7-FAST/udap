@@ -55,7 +55,7 @@ After setup, verify your installation:
 curl https://localhost:5001/.well-known/udap
 ```
 
-You should receive a signed JWT containing the server's UDAP metadata.
+You should receive the server's UDAP metadata as JSON, with a signed JWT in the `signed_metadata` element.
 
 ## :material-help-circle: Need Help?
 

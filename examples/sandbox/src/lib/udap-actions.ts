@@ -84,6 +84,15 @@ async function registerClientTimed(
   return client;
 }
 
+// Returns undefined when the authorization server has no OpenID discovery document.
+export async function discoverOpenIdConfiguration(
+  issuer: string,
+): Promise<{ token_endpoint?: string; userinfo_endpoint?: string } | undefined> {
+  const url = issuer.replace(/\/$/, "") + "/.well-known/openid-configuration";
+  const response = await udapFetch(url, { headers: { Accept: "application/json" } });
+  return response.ok ? response.json() : undefined;
+}
+
 export async function discoverUdapEndpoint(baseUrl: string, transport?: UdapTransport): Promise<UdapMetadata> {
   const url = baseUrl.replace(/\/$/, "") + "/.well-known/udap";
   const udapEndpoint = await udapFetch(url, { headers: { Accept: "application/json" } }, transport);

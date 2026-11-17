@@ -15,10 +15,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.DataProtection;
 using Udap.Client.Configuration;
 using Udap.Common;
 using Udap.Common.Certificates;
+using Udap.Model;
 using Udap.Server.Configuration;
 using Udap.Server.Storage.DbContexts;
 using Udap.Server.Security.Authentication.TieredOAuth;
@@ -66,6 +68,7 @@ namespace IdentityServer
                         options.ForceStateParamOnAuthorizationCode = udapServerOptions.ForceStateParamOnAuthorizationCode;
                         options.RequireConsent = udapServerOptions.RequireConsent;
                         options.AllowRememberConsent = udapServerOptions.AllowRememberConsent;
+                        options.AllowLoopbackHttpRedirectUris = udapServerOptions.AllowLoopbackHttpRedirectUris;
                     },
                     storeOptionAction: options =>
                     _ = appConfig.DatabaseProvider switch
@@ -85,6 +88,12 @@ namespace IdentityServer
                 )
                 .AddUdapResponseGenerators()
                 .AddSmartV2Expander();
+
+            builder.Services.AddScoped<IUdapMetadataOptionsProvider, UdapMetadataOptionsProvider>();
+            builder.Services.AddUdapMetadataServer(builder.Configuration);
+            // UDAP metadata elements that do not apply are left out of the response, not written as null.
+            builder.Services.ConfigureHttpJsonOptions(options =>
+                options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 
             // For development/testing, allow untrusted certs when calling out to other servers (e.g., for DCR)
             if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Local"))
@@ -386,6 +395,10 @@ namespace IdentityServer
 
             // must run before the UDAP scope enrichment middleware fills in a missing scope
             app.UseRequireScope();
+            // serves the signed UDAP metadata, ahead of the OpenID document that IdentityServer registers at the same path.
+            // The library answers any path that ends with /.well-known/udap, so it only runs for this server's own path.
+            app.UseWhen(context => context.Request.Path.StartsWithSegments("/.well-known/udap"),
+                branch => branch.UseUdapMetadataServer());
             app.UseIdentityServer();
             app.UseUdapServer();
 

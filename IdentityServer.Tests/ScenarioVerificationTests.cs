@@ -31,7 +31,7 @@ public class ScenarioVerificationTests(ITestOutputHelper output)
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         });
 
-        var metadata = await http.GetFromJsonAsync<JsonElement>($"{serverUrl}/.well-known/udap");
+        var metadata = await http.GetFromJsonAsync<JsonElement>($"{serverUrl}/.well-known/openid-configuration");
         var registrationEndpoint = metadata.GetProperty("registration_endpoint").GetString()!;
         var scenarios = (await http.GetFromJsonAsync<List<CertScenarioSummary>>($"{serverUrl}/api/cert/scenarios"))!;
 
