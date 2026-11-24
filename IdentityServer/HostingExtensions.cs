@@ -1,5 +1,7 @@
 using Duende.IdentityServer;
 using Duende.IdentityServer.EntityFramework.Stores;
+using Duende.IdentityServer.ResponseHandling;
+using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Test;
 using Duende.IdentityModel;
 using IdentityServer.Models;
@@ -275,6 +277,12 @@ namespace IdentityServer
                     }
                 });
             
+            // FHIR resource sign-in. These registrations come after AddUdapServer, AddIdentityServer, and AddTestUsers, because the last registration of a service wins.
+            identityServer.AddProfileService<FhirPersonaProfileService>();
+            builder.Services.AddTransient<IClaimsService, FhirPersonaClaimsService>();
+            builder.Services.AddTransient<ITokenResponseGenerator, FhirContextTokenResponseGenerator>();
+            identityServer.AddAuthorizeInteractionResponseGenerator<FhirPersonaInteractionResponseGenerator>();
+
             // this adds the necessary config for the simple admin/config pages
             {
                 builder.Services.AddAuthorization(options => {

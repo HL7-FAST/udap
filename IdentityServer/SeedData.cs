@@ -275,6 +275,13 @@ namespace IdentityServer
         {
             Log.Debug("Seeding FHIR scopes");
 
+            // SMART App Launch: a standalone launch asks for a patient in context with this scope.
+            if (configContext.ApiScopes.All(s => s.Name != "launch/patient"))
+            {
+                configContext.ApiScopes.Add(new ApiScope("launch/patient", "Patient in context for a standalone launch") { ShowInDiscoveryDocument = true }.ToEntity());
+                await configContext.SaveChangesAsync();
+            }
+
             var compartments = new[] { "patient", "user", "system" };
 
             var v1Properties = new Dictionary<string, string> { { "smart_version", "v1" } };

@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  AccessResult,
+  AccessResults,
   DiscoveryResult,
   ErrorAlert,
   IssueCertificateResult,
@@ -38,7 +38,7 @@ import { getDefaultServers } from "@/lib/env";
 import { UdapClient } from "@/lib/models";
 import type { AccessRunOutcome } from "@/lib/access-outcome";
 import { CertificateFacts } from "@/lib/tests/cert-facts";
-import { judgeAccess } from "@/lib/tests/access-judge";
+import { accessPassed, patientIdFromClaims } from "@/lib/tests/access-judge";
 import { DiscoveryCheck, DiscoveryOutcome, discoveryPassed } from "@/lib/tests/discovery-outcome";
 import { judgeTokenBeforeRevocation } from "@/lib/tests/revocation-outcome";
 import { CertScenarioSummary, TrustRunOutcome, judgeTrustOutcome } from "@/lib/tests/trust-outcome";
@@ -86,6 +86,8 @@ export interface WalkthroughState {
   grantType: WalkthroughGrantType;
   /** Space separated scopes sent in the software statement. */
   scopes: string;
+  /** Fills `{id}` in the access checks that read one patient. Empty skips those checks. */
+  patientId: string;
   authorization?: WalkthroughAuthorization;
   scenario?: CertScenarioSummary;
   certId?: string;
@@ -98,7 +100,7 @@ export interface WalkthroughState {
   client?: UdapClient;
   registration?: TrustRunOutcome;
   tokenBefore?: TokenRunOutcome;
-  access?: AccessRunOutcome;
+  accessChecks?: AccessRunOutcome[];
   tokenAfter?: TokenRunOutcome;
   registrationAfter?: TrustRunOutcome;
 }
@@ -113,6 +115,7 @@ function initialState(serverUrl: string, fhirServer: string): WalkthroughState {
     revokedConfirmed: false,
     grantType: "client_credentials",
     scopes: DEFAULT_SCOPES.client_credentials,
+    patientId: "",
   };
 }
 
@@ -337,6 +340,7 @@ export default function ScenarioWalkthroughPage() {
       headers: walkthrough.headers,
       grantType: walkthrough.grantType,
       scopes: walkthrough.scopes,
+      patientId: walkthrough.patientId,
     });
     setError(null);
     // The catalog effect only refetches on a new server URL, so a same-server reset keeps the
@@ -427,7 +431,7 @@ export default function ScenarioWalkthroughPage() {
       registration: undefined,
       authorization: undefined,
       tokenBefore: undefined,
-      access: undefined,
+      accessChecks: undefined,
       tokenAfter: undefined,
       registrationAfter: undefined,
       revokedConfirmed: false,
@@ -454,7 +458,7 @@ export default function ScenarioWalkthroughPage() {
       registration: undefined,
       authorization: undefined,
       tokenBefore: undefined,
-      access: undefined,
+      accessChecks: undefined,
       tokenAfter: undefined,
       registrationAfter: undefined,
       revokedConfirmed: false,
@@ -483,7 +487,7 @@ export default function ScenarioWalkthroughPage() {
       client: accepted ? (result.registration.body as UdapClient) : undefined,
       authorization: undefined,
       tokenBefore: undefined,
-      access: undefined,
+      accessChecks: undefined,
       tokenAfter: undefined,
       registrationAfter: undefined,
       revokedConfirmed: false,
@@ -500,7 +504,7 @@ export default function ScenarioWalkthroughPage() {
       registration: undefined,
       authorization: undefined,
       tokenBefore: undefined,
-      access: undefined,
+      accessChecks: undefined,
       tokenAfter: undefined,
       registrationAfter: undefined,
       revokedConfirmed: false,
@@ -533,7 +537,7 @@ export default function ScenarioWalkthroughPage() {
       code_challenge_method: "S256",
     }).toString();
     // localStorage writes are synchronous, so the state and verifier survive the navigation.
-    update({ authorization: { state, codeVerifier: verifier }, tokenBefore: undefined, access: undefined, tokenAfter: undefined, registrationAfter: undefined, revokedConfirmed: false });
+    update({ authorization: { state, codeVerifier: verifier }, tokenBefore: undefined, accessChecks: undefined, tokenAfter: undefined, registrationAfter: undefined, revokedConfirmed: false });
     window.location.assign(url.toString());
   };
 
@@ -557,9 +561,11 @@ export default function ScenarioWalkthroughPage() {
       return;
     }
     const advance = judgeTokenBeforeRevocation(result.token).result === "pass";
+    const patientId = result.token.outcome === "issued" ? patientIdFromClaims(result.token.claims) : undefined;
     update({
       tokenBefore: result.token,
-      access: undefined,
+      ...(patientId ? { patientId } : {}),
+      accessChecks: undefined,
       tokenAfter: undefined,
       registrationAfter: undefined,
       revokedConfirmed: false,
@@ -568,19 +574,21 @@ export default function ScenarioWalkthroughPage() {
   };
 
   const accessResource = async () => {
+    const patientId = walkthrough.patientId.trim();
     const result = await runStep("access", () =>
-      postStep<{ access: AccessRunOutcome }>({
+      postStep<{ access: AccessRunOutcome[] }>({
         ...baseBody(),
         action: "access",
         accessToken: walkthrough.tokenBefore?.outcome === "issued" ? walkthrough.tokenBefore.accessToken : undefined,
+        ...(patientId ? { patientId } : {}),
       }),
     );
     if (!result) {
       return;
     }
-    const advance = judgeAccess(result.access).result === "pass";
+    const advance = accessPassed(result.access);
     update({
-      access: result.access,
+      accessChecks: result.access,
       ...(advance ? { activeStep: 5 + stepOffset } : {}),
     });
   };
@@ -961,12 +969,29 @@ export default function ScenarioWalkthroughPage() {
               )}
 
               {showTokenStep && (
-                <Step expanded completed={!!walkthrough.access && judgeAccess(walkthrough.access).result === "pass"}>
-                  <StepLabel>Access a resource</StepLabel>
+                <Step expanded completed={!!walkthrough.accessChecks && accessPassed(walkthrough.accessChecks)}>
+                  <StepLabel>Check resource access</StepLabel>
                   <StepContent>
                     <Stack spacing={1}>
+                      <Typography variant="body2" color="text.secondary">
+                        Sends five GET requests to the FHIR server with the access token: Patient, one Patient by id,
+                        Patient/$everything, $everything for that one Patient, and Encounter. The results show what
+                        the scopes of the token let it read. A request that the server denies (HTTP 403) is not a
+                        failure.
+                      </Typography>
+                      <TextField
+                        label="Patient id"
+                        value={walkthrough.patientId}
+                        onChange={(e) => update({ patientId: e.target.value })}
+                        fullWidth
+                        helperText={
+                          walkthrough.patientId.trim()
+                            ? undefined
+                            : "With no patient id, the two checks that need one do not run."
+                        }
+                      />
                       <StepButtonRow
-                        label="Read a Patient"
+                        label="Run the access checks"
                         busy={busy}
                         running={running === "access"}
                         disabled={!canAccess}
@@ -974,7 +999,7 @@ export default function ScenarioWalkthroughPage() {
                         onClick={accessResource}
                       />
                       <ErrorAlert message={errorFor("access")} />
-                      {walkthrough.access && <AccessResult access={walkthrough.access} />}
+                      {walkthrough.accessChecks && <AccessResults checks={walkthrough.accessChecks} />}
                     </Stack>
                   </StepContent>
                 </Step>

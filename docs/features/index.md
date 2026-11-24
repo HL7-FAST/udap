@@ -52,3 +52,15 @@ Built on Duende IdentityServer with:
 - User management
 - Consent screens
 - Session management
+
+<div class="grid cards" markdown>
+
+-   :material-account-circle:{ .lg .middle } **Sign In as a FHIR Resource**
+
+    ---
+
+    Sign in as a Patient, Practitioner, RelatedPerson, or Person of a FHIR server, with no stored account
+
+    [:octicons-arrow-right-24: Learn More](resource-sign-in.md)
+
+</div>

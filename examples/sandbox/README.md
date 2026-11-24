@@ -86,7 +86,7 @@ There is also a basic testing suite that can test client registration and has a 
 Two pages under Testing exercise the server's certificate scenario catalog (`GET /api/cert/scenarios`):
 
 - "Certificate Validation" runs every scenario and grades each registration against the expected result.
-- "Scenario Walkthrough" runs one scenario step by step: issue, discover at the FHIR server, register, token, read a Patient, and for `valid` revoke on the IdP and verify rejection.
+- "Scenario Walkthrough" runs one scenario step by step: issue, discover at the FHIR server, register, token, access checks on Patient and Encounter, and for `valid` revoke on the IdP and verify rejection.
 
 ### Testing through a proxy
 

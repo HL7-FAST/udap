@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readPatientForOutcome } from "@/lib/access-outcome";
+import { runAccessChecks } from "@/lib/access-outcome";
 import { addCertificate, getCertificate, parseCertificate } from "@/lib/cert-store";
 import { BUNDLE_PASSWORD, describeCertificate, leafSerialHex } from "@/lib/cert-inspect";
 import { addClient, addMetadata, getMetadata, getStoredClient } from "@/lib/client-store";
@@ -24,6 +24,8 @@ export interface WalkthroughStepRequest {
   clientId?: string;
   scenario?: string;
   accessToken?: string;
+  /** Access only. Fills `{id}` in the checks that read one patient. Without it, those checks do not run. */
+  patientId?: string;
   /** Register and verify: which grant to request. Defaults to client_credentials. */
   grantType?: "client_credentials" | "authorization_code";
   /** Token, authorization_code only. */
@@ -273,8 +275,12 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (typeof body.accessToken !== "string" || body.accessToken.length === 0) {
     return badRequest("accessToken is required");
   }
+  // The id goes into the request path, so only the FHIR id characters can reach it.
+  if (body.patientId !== undefined && (typeof body.patientId !== "string" || !/^[A-Za-z0-9\-.]{1,64}$/.test(body.patientId))) {
+    return badRequest("patientId must be a FHIR id");
+  }
   try {
-    const access = await readPatientForOutcome(fhirServer, body.accessToken, transport);
+    const access = await runAccessChecks(fhirServer, body.accessToken, body.patientId, transport);
     return NextResponse.json({ access });
   } catch (e) {
     return errorResponse("Scenario walkthrough step failed", e, 500);

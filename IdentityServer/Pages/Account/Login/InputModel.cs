@@ -20,4 +20,15 @@ namespace IdentityServer.Pages.Login
 
         public string Button { get; set; }
     }
+
+    /// <summary>The form "Sign in as a FHIR resource". The tester names the resource, and the server looks nothing up.</summary>
+    public class PersonaInputModel
+    {
+        public string? FhirBase { get; set; }
+        public string? ResourceType { get; set; }
+        public string? ResourceId { get; set; }
+        // The patient in context of a type other than Patient, for a request that asks for one.
+        public string? PatientId { get; set; }
+        public string? ReturnUrl { get; set; }
+    }
 }

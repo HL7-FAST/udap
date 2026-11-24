@@ -410,25 +410,50 @@ function accessSummary(access: AccessRunOutcome): string {
   const body = access.body as { resourceType?: unknown; entry?: unknown[] } | null;
   if (body && typeof body === "object" && body.resourceType === "Bundle") {
     const count = (body.entry ?? []).length;
-    return `Bundle with ${count} matching resource${count !== 1 ? "s" : ""}`;
+    return `Bundle with ${count} ${count === 1 ? "entry" : "entries"}`;
   }
   return body && typeof body === "object" && body.resourceType ? String(body.resourceType) : "(no FHIR resource)";
 }
 
-/** Shows the routed URL so the user can see which host, real server or test proxy, was hit. */
-export function AccessResult({ access }: { access: AccessRunOutcome }) {
+/** One line for each check, so all results fit on one screen. The details show the routed URL so the user can see which host, real server or test proxy, was hit. */
+function AccessRow({ access }: { access: AccessRunOutcome }) {
+  const [open, setOpen] = useState(false);
   const judgement = judgeAccess(access);
+  const tone = TONES[judgement.result];
   return (
-    <ResultPanel tone={judgement.result} title={judgement.message}>
-      <FactList
-        facts={[
-          { label: "Requested", value: access.url, mono: true },
-          { label: "HTTP status", value: access.status },
-          { label: "Response", value: accessSummary(access) },
-        ]}
-      />
-      <JsonDetails summary="Response body." value={access.body} />
-    </ResultPanel>
+    <Box>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }} useFlexGap>
+        <Chip label={judgement.result === "info" ? "Denied" : tone.label} color={tone.chip} size="small" sx={{ minWidth: 64 }} />
+        <Typography variant="body2" sx={{ fontFamily: "monospace", flexGrow: 1, overflowWrap: "anywhere" }}>
+          {access.label}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          HTTP {access.status} · {accessSummary(access)}
+        </Typography>
+        <Button size="small" onClick={() => setOpen(!open)} endIcon={open ? <ExpandLess /> : <ExpandMore />}>
+          {open ? "Hide details" : "Show details"}
+        </Button>
+      </Stack>
+      <Collapse in={open} unmountOnExit>
+        <Stack spacing={1} sx={{ pt: 0.5, pb: 1 }}>
+          <Typography variant="body2">{judgement.message}</Typography>
+          <FactList facts={[{ label: "Requested", value: access.url, mono: true }]} />
+          <JsonDetails summary="Response body." value={access.body} />
+        </Stack>
+      </Collapse>
+    </Box>
+  );
+}
+
+export function AccessResults({ checks }: { checks: AccessRunOutcome[] }) {
+  return (
+    <Paper variant="outlined" square sx={{ mt: 1, px: 1.5, py: 0.5 }}>
+      <Stack divider={<Divider />}>
+        {checks.map((access) => (
+          <AccessRow key={access.key} access={access} />
+        ))}
+      </Stack>
+    </Paper>
   );
 }
 
